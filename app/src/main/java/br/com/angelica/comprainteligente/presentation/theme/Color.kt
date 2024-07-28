@@ -1,4 +1,4 @@
-package br.com.angelica.comprainteligente.ui.theme
+package br.com.angelica.comprainteligente.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 
