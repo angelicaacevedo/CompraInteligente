@@ -1,4 +1,4 @@
-package br.com.angelica.comprainteligente.presentation.theme
+package br.com.angelica.comprainteligente.theme
 
 import android.app.Activity
 import android.os.Build

@@ -1,4 +1,4 @@
-package br.com.angelica.comprainteligente.presentation.main
+package br.com.angelica.comprainteligente
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -11,7 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import br.com.angelica.comprainteligente.presentation.theme.CompraInteligenteTheme
+import br.com.angelica.comprainteligente.theme.CompraInteligenteTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

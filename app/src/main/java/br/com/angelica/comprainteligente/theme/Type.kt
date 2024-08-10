@@ -1,4 +1,4 @@
-package br.com.angelica.comprainteligente.presentation.theme
+package br.com.angelica.comprainteligente.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
