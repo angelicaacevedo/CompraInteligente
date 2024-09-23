@@ -26,15 +26,18 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import br.com.angelica.comprainteligente.presentation.viewmodel.LoginViewModel
+import br.com.angelica.comprainteligente.presentation.viewmodel.RegisterViewModel
 import org.koin.androidx.compose.getViewModel
 
 @Composable
-fun LoginScreen(navController: NavController) {
-    val loginViewModel: LoginViewModel = getViewModel()
-    val state by loginViewModel.state.collectAsState()
+fun RegisterScreen(
+    navController: NavController,
+) {
+    val registerViewModel: RegisterViewModel = getViewModel()
+    val state by registerViewModel.state.collectAsState()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -47,7 +50,7 @@ fun LoginScreen(navController: NavController) {
             value = email,
             onValueChange = { email = it },
             label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
         TextField(
@@ -57,40 +60,62 @@ fun LoginScreen(navController: NavController) {
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = PasswordVisualTransformation()
         )
+        Spacer(modifier = Modifier.height(8.dp))
+        TextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = { Text("Confirm Password") },
+            modifier = Modifier.fillMaxWidth(),
+            visualTransformation = PasswordVisualTransformation()
+        )
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
-                loginViewModel.handleIntent(LoginViewModel.LoginIntent.Login(email, password))
+                if (password == confirmPassword) {
+                    registerViewModel.processIntent(
+                        RegisterViewModel.RegisterIntent.Register(
+                            email,
+                            password,
+                            confirmPassword
+                        )
+                    )
+                } else {
+                    registerViewModel.processIntent(RegisterViewModel.RegisterIntent.Error("Seu email ou senha estão incorretos"))
+                }
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Login")
+            Text("Register")
         }
         Spacer(modifier = Modifier.height(8.dp))
         TextButton(
             onClick = {
-                navController.navigate("register")
+                navController.navigate("login")
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Não tem uma conta? Cadastre-se")
+            Text("Você tem uma conta? Login")
         }
 
         when (state) {
-            is LoginViewModel.LoginState.Loading -> {
+            is RegisterViewModel.RegisterState.Loading -> {
                 CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
             }
 
-            is LoginViewModel.LoginState.Success -> {
+            is RegisterViewModel.RegisterState.Success -> {
                 LaunchedEffect(Unit) {
                     navController.navigate("home") {
-                        popUpTo("login") { inclusive = true }
+                        popUpTo("register") { inclusive = true }
                     }
                 }
             }
 
-            is LoginViewModel.LoginState.Error -> {
-                Text((state as LoginViewModel.LoginState.Error).error, color = MaterialTheme.colorScheme.error)
+            is RegisterViewModel.RegisterState.Error -> {
+                Text(
+                    (state as RegisterViewModel.RegisterState.Error).message,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 16.dp)
+                )
             }
 
             else -> {}
