@@ -68,7 +68,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     // Firebase dependencies
-    implementation(platform("com.google.firebase:firebase-bom:33.3.0"))
+    implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.analytics)
 
@@ -81,8 +81,8 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
 
     // Dependency Injection with Koin
-    implementation(libs.koin.android)
-    implementation(libs.koin.androidx.compose)
+    implementation(libs.koin.android.v340)
+    implementation(libs.koin.androidx.compose.v344)
 
     // Testing dependencies
     testImplementation(libs.junit)

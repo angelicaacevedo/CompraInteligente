@@ -27,12 +27,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import br.com.angelica.comprainteligente.presentation.viewmodel.RegisterViewModel
+import org.koin.androidx.compose.getViewModel
 
 @Composable
 fun RegisterScreen(
     navController: NavController,
-    registerViewModel: RegisterViewModel = viewModel()
 ) {
+    val registerViewModel: RegisterViewModel = getViewModel()
     val state by registerViewModel.state.collectAsState()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }

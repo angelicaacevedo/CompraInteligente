@@ -30,9 +30,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import br.com.angelica.comprainteligente.presentation.viewmodel.HomeViewModel
+import org.koin.androidx.compose.getViewModel
 
 @Composable
-fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel = viewModel()) {
+fun HomeScreen(navController: NavController) {
+    val homeViewModel: HomeViewModel = getViewModel()
     val state by homeViewModel.state.collectAsState()
 
     var searchQuery by remember { mutableStateOf("") }
