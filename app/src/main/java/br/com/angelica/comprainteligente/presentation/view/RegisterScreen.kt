@@ -17,6 +17,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -29,55 +33,54 @@ fun RegisterScreen(
     navController: NavController,
     registerViewModel: RegisterViewModel = viewModel()
 ) {
-    val email by registerViewModel.email.collectAsState()
-    val password by registerViewModel.password.collectAsState()
-    val confirmPassword by registerViewModel.confirmPassword.collectAsState()
     val state by registerViewModel.state.collectAsState()
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         TextField(
             value = email,
-            onValueChange = { registerViewModel.processIntent(RegisterViewModel.RegisterIntent.EmailChanged(it)) },
+            onValueChange = { email = it },
             label = { Text("Email") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
         TextField(
             value = password,
-            onValueChange = { registerViewModel.processIntent(RegisterViewModel.RegisterIntent.PasswordChanged(it)) },
+            onValueChange = { password = it },
             label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            visualTransformation = PasswordVisualTransformation()
         )
         Spacer(modifier = Modifier.height(8.dp))
         TextField(
             value = confirmPassword,
-            onValueChange = {
-                registerViewModel.processIntent(
-                    RegisterViewModel.RegisterIntent.ConfirmPasswordChanged(
-                        it
-                    )
-                )
-            },
+            onValueChange = { confirmPassword = it },
             label = { Text("Confirm Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            visualTransformation = PasswordVisualTransformation()
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
-                registerViewModel.processIntent(
-                    RegisterViewModel.RegisterIntent.Register(
-                        email,
-                        password,
-                        confirmPassword
+                if (password == confirmPassword) {
+                    registerViewModel.processIntent(
+                        RegisterViewModel.RegisterIntent.Register(
+                            email,
+                            password,
+                            confirmPassword
+                        )
                     )
-                )
+                } else {
+                    registerViewModel.processIntent(RegisterViewModel.RegisterIntent.Error("Seu email ou senha estão incorretos"))
+                }
             },
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -90,7 +93,7 @@ fun RegisterScreen(
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Back to Login")
+            Text("Você tem uma conta? Login")
         }
 
         when (state) {
@@ -100,7 +103,7 @@ fun RegisterScreen(
 
             is RegisterViewModel.RegisterState.Success -> {
                 LaunchedEffect(Unit) {
-                    navController.navigate("mainScreen") {
+                    navController.navigate("home") {
                         popUpTo("register") { inclusive = true }
                     }
                 }
@@ -108,7 +111,7 @@ fun RegisterScreen(
 
             is RegisterViewModel.RegisterState.Error -> {
                 Text(
-                    text = (state as RegisterViewModel.RegisterState.Error).message,
+                    (state as RegisterViewModel.RegisterState.Error).message,
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(top = 16.dp)
                 )

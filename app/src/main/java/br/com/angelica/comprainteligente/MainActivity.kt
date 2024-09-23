@@ -12,8 +12,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             CompraInteligenteTheme {
-                val navController = rememberNavController()
-                NavGraph(navController = navController)
+                NavGraph()
             }
         }
     }

@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    //Add the Google service plugin
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -61,11 +63,14 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.google.firebase.firestore.ktx)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
     // Firebase dependencies
+    implementation(platform("com.google.firebase:firebase-bom:33.3.0"))
     implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.analytics)
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
