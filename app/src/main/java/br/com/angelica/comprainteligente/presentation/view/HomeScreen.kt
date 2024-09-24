@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import br.com.angelica.comprainteligente.presentation.common.GenericBottomNavigationBar
 import br.com.angelica.comprainteligente.presentation.viewmodel.HomeViewModel
+import br.com.angelica.comprainteligente.presentation.viewmodel.NavigationViewModel
 import org.koin.androidx.compose.getViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,6 +41,7 @@ import org.koin.androidx.compose.getViewModel
 fun HomeScreen(navController: NavController) {
     var searchQuery by remember { mutableStateOf("") }
     val homeViewModel: HomeViewModel = getViewModel()
+    val navigationViewModel: NavigationViewModel = getViewModel()
     val state by homeViewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -53,7 +55,7 @@ fun HomeScreen(navController: NavController) {
             )
         },
         bottomBar = {
-            GenericBottomNavigationBar(navController)
+            GenericBottomNavigationBar(navController, navigationViewModel)
         }
     ) { innerPadding ->
         Column(
@@ -105,3 +107,4 @@ fun HomeScreen(navController: NavController) {
         }
     }
 }
+

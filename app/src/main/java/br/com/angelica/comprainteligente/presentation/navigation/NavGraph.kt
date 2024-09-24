@@ -11,9 +11,13 @@ import br.com.angelica.comprainteligente.presentation.view.RegisterScreen
 @Composable
 fun NavGraph() {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "home") {
+    NavHost(navController = navController, startDestination = "Login") {
         composable("login") { LoginScreen(navController) }
         composable("register") { RegisterScreen(navController) }
         composable("home") { HomeScreen(navController) }
+        composable("lists") { /* Tela para Listas */ }
+        composable("add_product") { /* Tela para adicionar produto */ }
+        composable("reports") { /* Tela para relatórios */ }
+        composable("profile") { /* Tela de perfil */ }
     }
 }
