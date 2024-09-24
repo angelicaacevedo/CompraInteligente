@@ -1,11 +1,11 @@
 package br.com.angelica.comprainteligente.presentation.navigation
 
-import HomeScreen
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import br.com.angelica.comprainteligente.presentation.view.AddProductScreen
+import br.com.angelica.comprainteligente.presentation.view.HomeScreen
 import br.com.angelica.comprainteligente.presentation.view.ListsScreen
 import br.com.angelica.comprainteligente.presentation.view.LoginScreen
 import br.com.angelica.comprainteligente.presentation.view.ProductDetailsScreen

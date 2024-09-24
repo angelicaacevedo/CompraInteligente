@@ -2,7 +2,7 @@ package br.com.angelica.comprainteligente.presentation.common
 
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.Icon
+import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
@@ -12,12 +12,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import br.com.angelica.comprainteligente.presentation.viewmodel.NavigationViewModel
 
 @Composable
 fun GenericBottomNavigationBar(
-    navController: NavController,
-    viewModel: NavigationViewModel
+    navController: NavController
 ) {
     val items = listOf(
         BottomNavItem(
@@ -64,12 +62,15 @@ fun GenericBottomNavigationBar(
                 },
                 selected = currentRoute == item.route,
                 onClick = {
-                    when (item.route) {
-                        "home" -> viewModel.handleIntent(NavigationViewModel.NavigationIntent.NavigateToHome)
-                        "lists" -> viewModel.handleIntent(NavigationViewModel.NavigationIntent.NavigateToLists)
-                        "add_product" -> viewModel.handleIntent(NavigationViewModel.NavigationIntent.NavigateToAddProduct)
-                        "reports" -> viewModel.handleIntent(NavigationViewModel.NavigationIntent.NavigateToReports)
-                        "profile" -> viewModel.handleIntent(NavigationViewModel.NavigationIntent.NavigateToProfile)
+                    navController.navigate(item.route) {
+                        // Evita múltiplas cópias da mesma rota na pilha de navegação
+                        popUpTo(navController.graph.startDestinationId) {
+                            saveState = true
+                        }
+                        // Evita recriar o mesmo destino se já estiver selecionado
+                        launchSingleTop = true
+                        // Restaura o estado quando re-selecionado
+                        restoreState = true
                     }
                 },
                 alwaysShowLabel = false,
