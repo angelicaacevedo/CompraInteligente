@@ -10,6 +10,7 @@ import br.com.angelica.comprainteligente.domain.LoginUseCase
 import br.com.angelica.comprainteligente.domain.RegisterUseCase
 import br.com.angelica.comprainteligente.presentation.viewmodel.HomeViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.LoginViewModel
+import br.com.angelica.comprainteligente.presentation.viewmodel.NavigationViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.RegisterViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -28,4 +29,5 @@ val appModule = module {
     viewModel { LoginViewModel(get()) }
     viewModel { RegisterViewModel(get()) }
     viewModel { HomeViewModel(get(), get()) }
+    viewModel { NavigationViewModel() }
 }
