@@ -23,49 +23,50 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
+    modifier: Modifier = Modifier,
     isError: Boolean = false,
-    isPassword: Boolean = false,
-    modifier: Modifier = Modifier
+    errorMessage: String? = null,
+    isPassword: Boolean = false
 ) {
-    var isFocused by remember { mutableStateOf(false) }
+    val visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None
 
-    TextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label) },
-        modifier = modifier
-            .fillMaxWidth()
-            .onFocusChanged { focusState ->
-                isFocused = focusState.isFocused
-            }
-            .border(
-                width = 2.dp,
-                color = when {
-                    isError -> Color.Red
-                    isFocused -> Color.Black
-                    else -> Color.Gray
-                },
-                shape = RoundedCornerShape(8.dp)
+    Column(modifier = modifier) {
+        TextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = { Text(label) },
+            isError = isError,
+            visualTransformation = visualTransformation,
+            modifier = Modifier
+                .border(
+                    width = 2.dp,
+                    color = if (isError) Color.Red else Color.Gray,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .padding(8.dp)
+                .fillMaxWidth(),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                errorContainerColor = Color.Transparent,
+                focusedIndicatorColor = Color.Black,
+                unfocusedIndicatorColor = Color.Gray,
+                errorIndicatorColor = Color.Red,
+                cursorColor = Color.Black,
+                errorCursorColor = Color.Red
             )
-            .padding(8.dp),
-        isError = isError,
-        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent,
-            disabledContainerColor = Color.Transparent,
-            errorContainerColor = Color.Transparent,
-            focusedIndicatorColor = Color.Black,
-            unfocusedIndicatorColor = Color.Gray,
-            errorIndicatorColor = Color.Red,
-            cursorColor = Color.Black,
-            errorCursorColor = Color.Red
         )
-    )
+        if (isError && !errorMessage.isNullOrEmpty()) {
+            Text(
+                text = errorMessage,
+                color = Color.Red,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+            )
+        }
+    }
 }

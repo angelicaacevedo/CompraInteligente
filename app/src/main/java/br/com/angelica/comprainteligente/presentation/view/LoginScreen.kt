@@ -31,12 +31,12 @@ import org.koin.androidx.compose.getViewModel
 fun LoginScreen(navController: NavController) {
     val loginViewModel: LoginViewModel = getViewModel()
     val state by loginViewModel.state.collectAsState()
+
+    val emailError by loginViewModel.emailError.collectAsState()
+    val passwordError by loginViewModel.passwordError.collectAsState()
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-
-    // Estados para foco e erro
-    var isEmailError by remember { mutableStateOf(false) }
-    var isPasswordError by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -56,47 +56,46 @@ fun LoginScreen(navController: NavController) {
                 value = email,
                 onValueChange = { email = it },
                 label = "Email",
-                isError = isEmailError,
+                isError = emailError != null,
+                errorMessage = emailError,
                 modifier = Modifier.fillMaxWidth()
             )
-        }
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-        CustomTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = "Password",
-            isError = isPasswordError,
-            isPassword = true,
-            modifier = Modifier.fillMaxWidth()
-        )
+            CustomTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = "Password",
+                isError = passwordError != null,
+                errorMessage = passwordError,
+                isPassword = true,
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = {
-                isEmailError = email.isEmpty()
-                isPasswordError = password.isEmpty()
+            Button(
+                onClick = {
+                    loginViewModel.handleIntent(
+                        LoginViewModel.LoginIntent.Login(email, password)
+                    )
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Login")
+            }
 
-                if (!isEmailError && !isPasswordError) {
-                    loginViewModel.handleIntent(LoginViewModel.LoginIntent.Login(email, password))
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Login")
-        }
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        TextButton(
-            onClick = {
-                navController.navigate("register")
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Não tem uma conta? Cadastre-se")
+            TextButton(
+                onClick = {
+                    navController.navigate("register")
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Não tem uma conta? Cadastre-se")
+            }
         }
 
         when (state) {
