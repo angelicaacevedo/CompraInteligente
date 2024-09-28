@@ -25,4 +25,18 @@ class FirestoreProductRepository : ProductRepository {
             Result.failure(e)
         }
     }
+
+    override suspend fun getProductDetails(productId: String): Result<Product> {
+        return try {
+            val document = db.collection("products").document(productId).get().await()
+            val product = document.toObject(Product::class.java)
+            if (product != null) {
+                Result.success(product)
+            } else {
+                Result.failure(Exception("Product not found"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
