@@ -12,7 +12,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -22,9 +21,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import br.com.angelica.comprainteligente.presentation.common.CustomTextField
 import br.com.angelica.comprainteligente.presentation.viewmodel.LoginViewModel
 import org.koin.androidx.compose.getViewModel
 
@@ -35,6 +34,10 @@ fun LoginScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    // Estados para foco e erro
+    var isEmailError by remember { mutableStateOf(false) }
+    var isPasswordError by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -42,30 +45,51 @@ fun LoginScreen(navController: NavController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        TextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth(),
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CustomTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = "Email",
+                isError = isEmailError,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
         Spacer(modifier = Modifier.height(8.dp))
-        TextField(
+
+        CustomTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Password") },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation()
+            label = "Password",
+            isError = isPasswordError,
+            isPassword = true,
+            modifier = Modifier.fillMaxWidth()
         )
+
         Spacer(modifier = Modifier.height(16.dp))
+
         Button(
             onClick = {
-                loginViewModel.handleIntent(LoginViewModel.LoginIntent.Login(email, password))
+                isEmailError = email.isEmpty()
+                isPasswordError = password.isEmpty()
+
+                if (!isEmailError && !isPasswordError) {
+                    loginViewModel.handleIntent(LoginViewModel.LoginIntent.Login(email, password))
+                }
             },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Login")
         }
+
         Spacer(modifier = Modifier.height(8.dp))
+
         TextButton(
             onClick = {
                 navController.navigate("register")
@@ -89,7 +113,10 @@ fun LoginScreen(navController: NavController) {
             }
 
             is LoginViewModel.LoginState.Error -> {
-                Text((state as LoginViewModel.LoginState.Error).error, color = MaterialTheme.colorScheme.error)
+                Text(
+                    (state as LoginViewModel.LoginState.Error).error,
+                    color = MaterialTheme.colorScheme.error
+                )
             }
 
             else -> {}

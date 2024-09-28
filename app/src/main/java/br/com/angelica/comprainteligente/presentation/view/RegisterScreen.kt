@@ -44,24 +44,6 @@ fun RegisterScreen(
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
 
-    fun validateForm(): Boolean {
-        var isValid = true
-        if (email.isBlank() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            emailError = "Email inválido"
-            isValid = false
-        } else {
-            emailError = null
-        }
-
-        if (password.isBlank() || password.length < 6) {
-            passwordError = "Senha deve ter no mínimo 6 caracteres"
-            isValid = false
-        } else {
-            passwordError = null
-        }
-        return isValid
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -112,15 +94,7 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
-                if (validateForm()) {
-                    registerViewModel.processIntent(
-                        RegisterViewModel.RegisterIntent.Register(
-                            email,
-                            password,
-                            confirmPassword
-                        )
-                    )
-                }
+
             },
             modifier = Modifier.fillMaxWidth()
         ) {
