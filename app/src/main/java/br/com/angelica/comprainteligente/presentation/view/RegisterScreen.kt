@@ -12,7 +12,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -24,25 +23,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import br.com.angelica.comprainteligente.presentation.common.CustomTextField
 import br.com.angelica.comprainteligente.presentation.viewmodel.RegisterViewModel
 import org.koin.androidx.compose.getViewModel
 
 @Composable
-fun RegisterScreen(
-    navController: NavController,
-) {
+fun RegisterScreen(navController: NavController) {
     val registerViewModel: RegisterViewModel = getViewModel()
     val state by registerViewModel.state.collectAsState()
+
+    // Estados locais para inputs
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-    var emailError by remember { mutableStateOf<String?>(null) }
-    var passwordError by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -51,56 +48,63 @@ fun RegisterScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        TextField(
+        // Campo de e-mail
+        CustomTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth(),
-            isError = emailError != null
+            label = "Email",
+            isError = registerViewModel.emailError != null,
+            errorMessage = registerViewModel.emailError,
+            modifier = Modifier.fillMaxWidth()
         )
-        if (emailError != null) {
-            Text(
-                text = emailError!!,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(start = 16.dp)
-            )
-        }
+
         Spacer(modifier = Modifier.height(8.dp))
-        TextField(
+
+        // Campo de senha
+        CustomTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Password") },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation(),
-            isError = passwordError != null
+            label = "Senha",
+            isPassword = true,
+            isError = registerViewModel.passwordError != null,
+            errorMessage = registerViewModel.passwordError,
+            modifier = Modifier.fillMaxWidth()
         )
-        if (passwordError != null) {
-            Text(
-                text = passwordError!!,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(start = 16.dp)
-            )
-        }
+
         Spacer(modifier = Modifier.height(8.dp))
-        TextField(
+
+        // Campo de confirmação de senha
+        CustomTextField(
             value = confirmPassword,
             onValueChange = { confirmPassword = it },
-            label = { Text("Confirm Password") },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation()
+            label = "Confirme a senha",
+            isPassword = true,
+            isError = registerViewModel.confirmPasswordError != null,
+            errorMessage = registerViewModel.confirmPasswordError,
+            modifier = Modifier.fillMaxWidth()
         )
+
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Botão de registro
         Button(
             onClick = {
-
+                registerViewModel.processIntent(
+                    RegisterViewModel.RegisterIntent.Register(
+                        email = email,
+                        password = password,
+                        confirmPassword = confirmPassword
+                    )
+                )
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Register")
+            Text("Registrar")
         }
+
         Spacer(modifier = Modifier.height(8.dp))
+
+        // Link para a tela de login
         Text(
             buildAnnotatedString {
                 append("Já tem uma conta? ")
@@ -116,11 +120,11 @@ fun RegisterScreen(
             textAlign = TextAlign.Center
         )
 
+        // Exibe o estado da ViewModel
         when (state) {
             is RegisterViewModel.RegisterState.Loading -> {
                 CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
             }
-
             is RegisterViewModel.RegisterState.Success -> {
                 LaunchedEffect(Unit) {
                     navController.navigate("home") {
@@ -128,7 +132,6 @@ fun RegisterScreen(
                     }
                 }
             }
-
             is RegisterViewModel.RegisterState.Error -> {
                 Text(
                     (state as RegisterViewModel.RegisterState.Error).message,
@@ -136,7 +139,6 @@ fun RegisterScreen(
                     modifier = Modifier.padding(top = 16.dp)
                 )
             }
-
             else -> {}
         }
     }
