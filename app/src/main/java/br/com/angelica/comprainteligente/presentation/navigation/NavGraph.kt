@@ -21,7 +21,6 @@ fun NavGraph() {
         composable("lists") {
             ShoppingListScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onAddProductClick = { navController.navigate("add_product") }
             )
         }
         composable("add_product") {

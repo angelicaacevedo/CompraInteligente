@@ -1,74 +1,78 @@
 package br.com.angelica.comprainteligente.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import br.com.angelica.comprainteligente.domain.PriceAnalyzerUseCase
-import br.com.angelica.comprainteligente.domain.ProductUseCase
-import br.com.angelica.comprainteligente.model.Product
 import br.com.angelica.comprainteligente.model.SupermarketComparisonResult
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 
-class ListsViewModel(
-    private val productUseCase: ProductUseCase,
-    private val priceAnalyzerUseCase: PriceAnalyzerUseCase
-) : ViewModel() {
-    // Estados para os produtos
+class ListsViewModel : ViewModel() {
     private val _state = MutableStateFlow<ListState>(ListState.Loading)
     val state: StateFlow<ListState> = _state
 
-    // Estados para a análise de preços
     private val _priceAnalysisState = MutableStateFlow<PriceAnalysisState>(PriceAnalysisState.Idle)
     val priceAnalysisState: StateFlow<PriceAnalysisState> = _priceAnalysisState
 
-    // Carregar produtos
-    fun loadProducts() {
-        viewModelScope.launch {
-            val result = productUseCase.getProducts()
-            _state.value = if (result.isSuccess) {
-                ListState.Success(result.getOrNull() ?: emptyList())
-            } else {
-                ListState.Error(result.exceptionOrNull()?.message ?: "Erro desconhecido")
+    private val firestore = FirebaseFirestore.getInstance()
+    private val shoppingListCollection = firestore.collection("shoppingLists")
+
+    init {
+        loadShoppingList()
+    }
+
+    private fun loadShoppingList() {
+        shoppingListCollection.document("userShoppingList")
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val items = document.get("items") as? List<String> ?: emptyList()
+                    _state.value = ListState.Success(items)
+                } else {
+                    _state.value = ListState.Success(emptyList())
+                }
             }
-        }
-    }
-
-    // Adicionar produto à lista de compras
-    fun addProductToShoppingList(product: Product) {
-        viewModelScope.launch {
-            productUseCase.addProduct(product)
-            loadProducts() // Recarrega a lista após adicionar
-        }
-    }
-
-    // Analisar preços
-    fun analyzePrices(shoppingList: List<Product>) {
-        viewModelScope.launch {
-            val result = priceAnalyzerUseCase.analyzePrices(shoppingList)
-            _priceAnalysisState.value = if (result.isSuccess) {
-                PriceAnalysisState.Success(result.getOrNull() ?: emptyList())
-            } else {
-                PriceAnalysisState.Error(result.exceptionOrNull()?.message ?: "Erro ao analisar preços")
+            .addOnFailureListener { exception ->
+                _state.value = ListState.Error(exception.message ?: "Erro ao carregar lista")
             }
+    }
+
+    fun addItemToShoppingList(item: String) {
+        val currentState = _state.value
+        if (currentState is ListState.Success) {
+            val updatedItems = currentState.items + item
+            saveShoppingList(updatedItems)
         }
     }
 
-    fun removeProduct(product: Product) {
-        viewModelScope.launch {
-            productUseCase.removeProduct(product) // Remove o produto do caso de uso
-            loadProducts() // Recarrega a lista após remover
+    fun removeItemFromShoppingList(item: String) {
+        val currentState = _state.value
+        if (currentState is ListState.Success) {
+            val updatedItems = currentState.items - item
+            saveShoppingList(updatedItems)
         }
     }
 
-    // Estados da lista
+    private fun saveShoppingList(items: List<String>) {
+        shoppingListCollection.document("userShoppingList")
+            .set(mapOf("items" to items))
+            .addOnSuccessListener {
+                _state.value = ListState.Success(items)
+            }
+            .addOnFailureListener { exception ->
+                _state.value = ListState.Error(exception.message ?: "Erro ao salvar lista")
+            }
+    }
+
+    fun analyzePrices(shoppingList: List<String>) {
+        // Implementar a lógica de análise de preços
+    }
+
     sealed class ListState {
         object Loading : ListState()
-        data class Success(val products: List<Product>) : ListState()
+        data class Success(val items: List<String>) : ListState()
         data class Error(val message: String) : ListState()
     }
 
-    // Estados da análise de preços
     sealed class PriceAnalysisState {
         object Idle : PriceAnalysisState()
         data class Success(val result: List<SupermarketComparisonResult>) : PriceAnalysisState()

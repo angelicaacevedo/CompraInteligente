@@ -14,9 +14,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,7 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import br.com.angelica.comprainteligente.model.Product
 import br.com.angelica.comprainteligente.model.SupermarketComparisonResult
 import br.com.angelica.comprainteligente.presentation.viewmodel.ListsViewModel
 import org.koin.androidx.compose.getViewModel
@@ -47,17 +46,16 @@ import org.koin.androidx.compose.getViewModel
 @Composable
 fun ShoppingListScreen(
     viewModel: ListsViewModel = getViewModel(),
-    onNavigateBack: () -> Unit,
-    onAddProductClick: () -> Unit
+    onNavigateBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState() // Estado da lista de produtos
     val priceAnalysisState by viewModel.priceAnalysisState.collectAsState() // Estado da análise de preços
-    var searchQuery by remember { mutableStateOf("") }
+    var newItem by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Listas de Compras") },
+                title = { Text("Lista de Compras") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
@@ -73,22 +71,50 @@ fun ShoppingListScreen(
                     .padding(16.dp)
             ) {
 
-                // Campo de busca para adicionar produto
-                SearchOrAddProductField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    onAddProductClick = onAddProductClick
+                // Campo de entrada para adicionar itens à lista de compras
+                OutlinedTextField(
+                    value = newItem,
+                    onValueChange = { newItem = it },
+                    label = { Text("Adicionar Item") },
+                    leadingIcon = {
+                        Icon(Icons.Default.AddShoppingCart, contentDescription = "Adicionar Item")
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White, shape = RoundedCornerShape(8.dp)),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = Color.Green,
+                        unfocusedBorderColor = Color.Gray,
+                        cursorColor = Color.Green
+                    ),
+                    shape = RoundedCornerShape(8.dp)
                 )
+                Button(
+                    onClick = {
+                        if (newItem.isNotEmpty()) {
+                            viewModel.addItemToShoppingList(newItem)
+                            newItem = ""
+                        }
+                    },
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .align(Alignment.End),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Adicionar Item")
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Adicionar")
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Exibição da lista de produtos adicionados
+                // Exibição da lista de itens adicionados
                 when (state) {
                     is ListsViewModel.ListState.Loading -> Text("Carregando lista...")
                     is ListsViewModel.ListState.Success -> {
-                        val products = (state as ListsViewModel.ListState.Success).products
-                        ProductList(products, onRemoveProductClick = { product ->
-                            viewModel.removeProduct(product)
+                        val items = (state as ListsViewModel.ListState.Success).items
+                        ShoppingList(items, onRemoveItemClick = { item ->
+                            viewModel.removeItemFromShoppingList(item)
                         })
                     }
 
@@ -100,7 +126,7 @@ fun ShoppingListScreen(
                 // Botão de Analisar Preços
                 AnalyzePricesButton(onClick = {
                     val shoppingList =
-                        (state as? ListsViewModel.ListState.Success)?.products ?: emptyList()
+                        (state as? ListsViewModel.ListState.Success)?.items ?: emptyList()
                     viewModel.analyzePrices(shoppingList)
                 })
 
@@ -123,56 +149,17 @@ fun ShoppingListScreen(
 }
 
 @Composable
-fun SearchOrAddProductField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    onAddProductClick: () -> Unit
-) {
-    Column {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            label = { Text("Buscar ou Adicionar Produto") },
-            leadingIcon = {
-                Icon(Icons.Default.Search, contentDescription = "Buscar")
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White, shape = RoundedCornerShape(8.dp)),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                cursorColor = Color.Black,
-                focusedIndicatorColor = Color.Black,
-            ),
-            shape = RoundedCornerShape(8.dp)
-        )
-        Button(
-            onClick = onAddProductClick,
-            modifier = Modifier
-                .padding(top = 8.dp)
-                .align(Alignment.End),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Adicionar Produto")
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("Adicionar Produto")
-        }
-    }
-}
-
-@Composable
-fun ProductList(products: List<Product>, onRemoveProductClick: (Product) -> Unit) {
+fun ShoppingList(items: List<String>, onRemoveItemClick: (String) -> Unit) {
     LazyColumn {
-        items(products.size) { index ->
-            val product = products[index]
-            ProductRow(product, onRemoveProductClick)
+        items(items.size) { index ->
+            val item = items[index]
+            ShoppingListItem(item, onRemoveItemClick)
         }
     }
 }
 
 @Composable
-fun ProductRow(product: Product, onRemoveProductClick: (Product) -> Unit) {
+fun ShoppingListItem(item: String, onRemoveItemClick: (String) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -181,13 +168,13 @@ fun ProductRow(product: Product, onRemoveProductClick: (Product) -> Unit) {
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = product.name, style = MaterialTheme.typography.bodyLarge)
-            Text(text = product.description, style = MaterialTheme.typography.bodyMedium)
-            Text(text = "Preço: R$ ${product.price}", style = MaterialTheme.typography.bodyMedium)
-        }
-        IconButton(onClick = { onRemoveProductClick(product) }) {
-            Icon(Icons.Default.Delete, contentDescription = "Remover Produto")
+        Text(
+            text = item,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.weight(1f)
+        )
+        IconButton(onClick = { onRemoveItemClick(item) }) {
+            Icon(Icons.Default.Delete, contentDescription = "Remover Item")
         }
     }
 }

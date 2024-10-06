@@ -71,7 +71,6 @@ fun HomeScreen(navController: NavController) {
                                 Text(product.name, style = MaterialTheme.typography.bodySmall)
                                 Text(product.description)
                                 Text("R$ ${product.price}")
-                                Text(product.supermarket)
                             }
                         }
                     }

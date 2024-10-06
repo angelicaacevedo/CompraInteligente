@@ -38,7 +38,7 @@ class PriceAnalyzerRepository(
         val supermarketTotals = mutableMapOf<String, Double>()
 
         // Para cada supermercado, calcular o preço total da lista de compras
-        products.groupBy { it.supermarket }.forEach { (supermarket, productsAtSupermarket) ->
+        products.groupBy { it.name }.forEach { (supermarket, productsAtSupermarket) ->
             val totalPrice = shoppingList.sumOf { shoppingProduct ->
                 val productPrice = productsAtSupermarket.find { it.name == shoppingProduct.name }?.price
                 productPrice ?: 0.0
