@@ -6,20 +6,29 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import br.com.angelica.comprainteligente.presentation.view.AddProductScreen
 import br.com.angelica.comprainteligente.presentation.view.HomeScreen
-import br.com.angelica.comprainteligente.presentation.view.ListsScreen
 import br.com.angelica.comprainteligente.presentation.view.LoginScreen
 import br.com.angelica.comprainteligente.presentation.view.ProductDetailsScreen
 import br.com.angelica.comprainteligente.presentation.view.RegisterScreen
+import br.com.angelica.comprainteligente.presentation.view.ShoppingListScreen
 
 @Composable
 fun NavGraph() {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "Login") {
+    NavHost(navController = navController, startDestination = "home") {
         composable("login") { LoginScreen(navController) }
         composable("register") { RegisterScreen(navController) }
         composable("home") { HomeScreen(navController) }
-        composable("lists") { ListsScreen() }
-        composable("add_product") { AddProductScreen() }
+        composable("lists") {
+            ShoppingListScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onAddProductClick = { navController.navigate("add_product") }
+            )
+        }
+        composable("add_product") {
+            AddProductScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
         composable("products_details/{productId}") { backStackEntry ->
             val productId = backStackEntry.arguments?.getString("productId") ?: ""
             ProductDetailsScreen(productId)

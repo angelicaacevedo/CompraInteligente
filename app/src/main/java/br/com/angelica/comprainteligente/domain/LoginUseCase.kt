@@ -1,6 +1,6 @@
 package br.com.angelica.comprainteligente.domain
 
-import br.com.angelica.comprainteligente.data.AuthRepository
+import br.com.angelica.comprainteligente.data.auth.AuthRepository
 import com.google.firebase.auth.FirebaseUser
 
 class LoginUseCase(private val authRepository: AuthRepository) {

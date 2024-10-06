@@ -41,8 +41,6 @@ class LoginViewModel(private val loginUseCase: LoginUseCase) : ViewModel() {
         }
     }
 
-
-
     private fun validateInput(email: String, password: String): Boolean {
         var isValid = true
 

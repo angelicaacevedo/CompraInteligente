@@ -2,13 +2,13 @@ package br.com.angelica.comprainteligente.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import br.com.angelica.comprainteligente.domain.GetProductDetailUseCase
+import br.com.angelica.comprainteligente.domain.ProductUseCase
 import br.com.angelica.comprainteligente.model.Product
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 class ProductDetailsViewModel(
-    private val getProductDetailUseCase: GetProductDetailUseCase
+    private val productUseCase: ProductUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ProductDetailState>(ProductDetailState.Loading)
@@ -16,7 +16,7 @@ class ProductDetailsViewModel(
 
     fun loadProductDetails(productId: String) {
         viewModelScope.launch {
-            val result = getProductDetailUseCase(productId)
+            val result = productUseCase.getProductDetails(productId)
             _state.value = if (result.isSuccess) {
                 ProductDetailState.Success(result.getOrNull() ?: Product())
             } else {
@@ -25,11 +25,9 @@ class ProductDetailsViewModel(
         }
     }
 
-
     sealed class ProductDetailState {
         object Loading : ProductDetailState()
         data class Success(val product: Product) : ProductDetailState()
         data class Error(val message: String) : ProductDetailState()
     }
-
 }

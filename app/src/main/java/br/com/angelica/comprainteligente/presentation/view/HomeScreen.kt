@@ -21,7 +21,6 @@ import org.koin.androidx.compose.getViewModel
 fun HomeScreen(navController: NavController) {
     var searchQuery by remember { mutableStateOf("") }
     val homeViewModel: HomeViewModel = getViewModel()
-    val navigationViewModel: NavigationViewModel = getViewModel()
     val state by homeViewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {

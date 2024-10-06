@@ -1,4 +1,4 @@
-package br.com.angelica.comprainteligente.data
+package br.com.angelica.comprainteligente.data.product
 
 import br.com.angelica.comprainteligente.model.Product
 import com.google.firebase.firestore.FirebaseFirestore
@@ -35,6 +35,15 @@ class FirestoreProductRepository : ProductRepository {
             } else {
                 Result.failure(Exception("Product not found"))
             }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun removeProduct(product: Product): Result<Unit> { // Função de remoção
+        return try {
+            db.collection("products").document(product.name).delete().await()
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }

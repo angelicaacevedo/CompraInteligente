@@ -2,16 +2,14 @@ package br.com.angelica.comprainteligente.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import br.com.angelica.comprainteligente.domain.AddProductUseCase
-import br.com.angelica.comprainteligente.domain.GetProductsUseCase
+import br.com.angelica.comprainteligente.domain.ProductUseCase
 import br.com.angelica.comprainteligente.model.Product
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class HomeViewModel(
-    private val getProductsUseCase: GetProductsUseCase,
-    private val addProductUseCase: AddProductUseCase
+    private val productUseCase: ProductUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow<HomeState>(HomeState.Idle)
     val state: StateFlow<HomeState> = _state
@@ -27,7 +25,7 @@ class HomeViewModel(
     private fun loadProducts() {
         viewModelScope.launch {
             _state.value = HomeState.Loading
-            val result = getProductsUseCase()
+            val result = productUseCase.getProducts()
             _state.value = if (result.isSuccess) {
                 HomeState.ProductsLoaded(result.getOrNull()!!)
             } else {
@@ -39,7 +37,7 @@ class HomeViewModel(
     private fun loadFeaturedProducts() {
         viewModelScope.launch {
             _state.value = HomeState.Loading
-            val result = getProductsUseCase()
+            val result = productUseCase.getProducts()
             _state.value = if (result.isSuccess) {
                 HomeState.FeatureProductsLoaded(result.getOrNull()!!)
             } else {
@@ -51,7 +49,7 @@ class HomeViewModel(
     private fun addProduct(product: Product) {
         viewModelScope.launch {
             _state.value = HomeState.Loading
-            val result = addProductUseCase(product)
+            val result = productUseCase.addProduct(product)
             _state.value = if (result.isSuccess) {
                 HomeState.ProductAdded(product)
             } else {
