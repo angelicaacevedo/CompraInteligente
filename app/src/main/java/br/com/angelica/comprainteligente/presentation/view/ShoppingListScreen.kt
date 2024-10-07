@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.ArrowBack
@@ -58,7 +59,7 @@ fun ShoppingListScreen(
                 title = { Text("Lista de Compras") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
                     }
                 }
             )
@@ -82,10 +83,10 @@ fun ShoppingListScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Color.White, shape = RoundedCornerShape(8.dp)),
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = Color.Green,
-                        unfocusedBorderColor = Color.Gray,
-                        cursorColor = Color.Green
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        cursorColor = Color.Black
                     ),
                     shape = RoundedCornerShape(8.dp)
                 )
