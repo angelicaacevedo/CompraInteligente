@@ -1,31 +1,25 @@
 package br.com.angelica.comprainteligente.presentation.viewmodel
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import br.com.angelica.comprainteligente.domain.AddProductUseCase
+import br.com.angelica.comprainteligente.domain.ProductUseCase
 import br.com.angelica.comprainteligente.model.Product
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
-class AddProductViewModel(private val addProductUseCase: AddProductUseCase) : ViewModel() {
-    private val _state = MutableStateFlow<AddProductState>(AddProductState.Idle)
-    val state: MutableStateFlow<AddProductState> = _state
+class AddProductViewModel : ViewModel() {
+    private val _productList = MutableLiveData<List<Product>>()
+    val productList: LiveData<List<Product>> get() = _productList
 
-    fun addProduct(product: Product) {
-        viewModelScope.launch {
-            val result = addProductUseCase(product)
-            _state.value = if (result.isSuccess) {
-                AddProductState.Success
-            } else {
-                AddProductState.Error(result.exceptionOrNull()?.message ?: "Erro desconhecido")
-            }
-        }
+    init {
+        _productList.value = mutableListOf()
     }
 
-
-    sealed class AddProductState {
-        object Idle : AddProductState()
-        object Success : AddProductState()
-        data class Error(val message: String) : AddProductState()
+    fun addProduct(product: Product) {
+        val currentList = _productList.value?.toMutableList() ?: mutableListOf()
+        currentList.add(product)
+        _productList.value = currentList
     }
 }

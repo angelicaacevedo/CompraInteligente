@@ -21,7 +21,6 @@ import org.koin.androidx.compose.getViewModel
 fun HomeScreen(navController: NavController) {
     var searchQuery by remember { mutableStateOf("") }
     val homeViewModel: HomeViewModel = getViewModel()
-    val navigationViewModel: NavigationViewModel = getViewModel()
     val state by homeViewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -72,7 +71,6 @@ fun HomeScreen(navController: NavController) {
                                 Text(product.name, style = MaterialTheme.typography.bodySmall)
                                 Text(product.description)
                                 Text("R$ ${product.price}")
-                                Text(product.supermarket)
                             }
                         }
                     }

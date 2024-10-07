@@ -1,4 +1,4 @@
-package br.com.angelica.comprainteligente.data
+package br.com.angelica.comprainteligente.data.auth
 
 import com.google.firebase.auth.FirebaseUser
 

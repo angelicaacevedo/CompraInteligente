@@ -32,7 +32,6 @@ fun ProductDetailsScreen(productId: String, viewModel: ProductDetailsViewModel =
                 Text(text = product.name)
                 Text(text = product.description)
                 Text(text = "Preço: ${product.price}")
-                Text(text = "Supermercado: ${product.supermarket}")
             }
         }
 
