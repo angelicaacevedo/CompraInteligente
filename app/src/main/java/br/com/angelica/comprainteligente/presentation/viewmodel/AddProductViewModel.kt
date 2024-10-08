@@ -1,25 +1,22 @@
 package br.com.angelica.comprainteligente.presentation.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.angelica.comprainteligente.domain.ProductUseCase
 import br.com.angelica.comprainteligente.model.Product
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
-class AddProductViewModel : ViewModel() {
-    private val _productList = MutableLiveData<List<Product>>()
-    val productList: LiveData<List<Product>> get() = _productList
-
-    init {
-        _productList.value = mutableListOf()
-    }
-
-    fun addProduct(product: Product) {
-        val currentList = _productList.value?.toMutableList() ?: mutableListOf()
-        currentList.add(product)
-        _productList.value = currentList
+class AddProductViewModel(
+    private val productUseCase: ProductUseCase
+) : ViewModel() {
+    fun addProductToFirestore(product: Product, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            val result = productUseCase.addProduct(product)
+            if (result.isSuccess) {
+                onSuccess()
+            } else {
+                onError(result.exceptionOrNull()?.message ?: "Erro desconhecido")
+            }
+        }
     }
 }

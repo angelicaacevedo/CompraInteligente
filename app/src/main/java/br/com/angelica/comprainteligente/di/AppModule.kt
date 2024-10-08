@@ -40,5 +40,5 @@ val appModule = module {
     viewModel { NavigationViewModel() }
     viewModel { ListsViewModel() }
     viewModel { ProductDetailsViewModel(get()) }
-    viewModel { AddProductViewModel() }
+    viewModel { AddProductViewModel(get()) }
 }
