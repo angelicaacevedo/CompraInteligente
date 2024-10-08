@@ -99,7 +99,7 @@ fun ShoppingListScreen(
                     modifier = Modifier
                         .padding(top = 8.dp)
                         .align(Alignment.End),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Adicionar Item")
                     Spacer(modifier = Modifier.width(4.dp))
@@ -184,7 +184,7 @@ fun AnalyzePricesButton(onClick: () -> Unit) {
     Button(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
+        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
     ) {
         Text(text = "Analisar Preços", color = Color.White)
     }

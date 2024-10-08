@@ -14,10 +14,12 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -40,7 +42,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import br.com.angelica.comprainteligente.model.Product
-import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigationWithFAB
+import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigation
 import br.com.angelica.comprainteligente.presentation.viewmodel.HomeViewModel
 import org.koin.androidx.compose.getViewModel
 
@@ -62,13 +64,16 @@ fun HomeScreen(navController: NavController) {
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color(0xFF4CAF50), // Cor Verde Claro para o TopAppBar
                     titleContentColor = Color.White
-                )
+                ),
+                actions = {
+                    IconButton(onClick = { navController.navigate("profile") }) {
+                        Icon(Icons.Default.Person, contentDescription = "Perfil", tint = Color.White)
+                    }
+                }
             )
         },
         bottomBar = {
-            CustomBottomNavigationWithFAB(navController) {
-                navController.navigate("add_product")
-            }
+            CustomBottomNavigation(navController)
         }
     ) { innerPadding ->
         Column(
@@ -101,7 +106,7 @@ fun SearchBar(searchQuery: String, onSearchQueryChange: (String) -> Unit) {
         label = { Text("Pesquisar") },
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.LightGray.copy(alpha = 0.2f), shape = RoundedCornerShape(8.dp)),
+            .background(Color.LightGray.copy(alpha = 0.2f), shape = RoundedCornerShape(15.dp)),
         leadingIcon = {
             Icon(Icons.Default.Search, contentDescription = "Pesquisar")
         },

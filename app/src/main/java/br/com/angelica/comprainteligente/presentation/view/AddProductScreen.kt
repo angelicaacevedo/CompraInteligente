@@ -125,7 +125,7 @@ fun AddProductScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
                 ) {
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("Adicionar Produto", color = Color.White)
