@@ -6,7 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.angelica.comprainteligente.domain.RegisterUseCase
-import br.com.angelica.comprainteligente.presentation.common.Validator
+import br.com.angelica.comprainteligente.utils.ValidatorForm
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,11 +42,11 @@ class RegisterViewModel(private val registerUseCase: RegisterUseCase) : ViewMode
             confirmPasswordError = null
 
             // Validações
-            if (!Validator.isEmailValid(email)) {
+            if (!ValidatorForm.isEmailValid(email)) {
                 emailError = "Email inválido"
             }
 
-            if (!Validator.isPasswordStrong(password)) {
+            if (!ValidatorForm.isPasswordStrong(password)) {
                 passwordError = "A senha deve ter pelo menos 6 caracteres"
             }
 

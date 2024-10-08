@@ -1,9 +1,7 @@
 package br.com.angelica.comprainteligente.domain
 
-import br.com.angelica.comprainteligente.data.price.PriceAnalyzer
 import br.com.angelica.comprainteligente.data.product.ProductRepository
 import br.com.angelica.comprainteligente.model.Product
-import br.com.angelica.comprainteligente.model.SupermarketComparisonResult
 
 class ProductUseCase(
     private val productRepository: ProductRepository
@@ -18,10 +16,6 @@ class ProductUseCase(
 
     suspend fun getProductDetails(productId: String): Result<Product> {
         return productRepository.getProductDetails(productId)
-    }
-
-    suspend fun removeProduct(product: Product): Result<Unit> {
-        return productRepository.removeProduct(product)
     }
 }
 

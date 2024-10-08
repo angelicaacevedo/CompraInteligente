@@ -15,9 +15,8 @@ class PriceAnalyzerRepository(
                 ?: return Result.failure(Exception("Erro ao carregar produtos"))
 
             // 2. Filtrar produtos que estão na lista de compras
-            val filteredProducts = productsInSupermarkets.filter { product ->
-                shoppingList.any { it.name == product.name }
-            }
+            val filteredProducts =
+                filterProductsByShoppingList(productsInSupermarkets, shoppingList)
 
             // 3. Calcular o preço total em cada supermercado
             val supermarketResults = calculateSupermarketPrices(filteredProducts, shoppingList)
@@ -31,6 +30,15 @@ class PriceAnalyzerRepository(
         }
     }
 
+    private fun filterProductsByShoppingList(
+        products: List<Product>,
+        shoppingList: List<Product>
+    ): List<Product> {
+        return products.filter { product ->
+            shoppingList.any { it.name == product.name }
+        }
+    }
+
     private fun calculateSupermarketPrices(
         products: List<Product>,
         shoppingList: List<Product>
@@ -40,7 +48,8 @@ class PriceAnalyzerRepository(
         // Para cada supermercado, calcular o preço total da lista de compras
         products.groupBy { it.name }.forEach { (supermarket, productsAtSupermarket) ->
             val totalPrice = shoppingList.sumOf { shoppingProduct ->
-                val productPrice = productsAtSupermarket.find { it.name == shoppingProduct.name }?.price
+                val productPrice =
+                    productsAtSupermarket.find { it.name == shoppingProduct.name }?.price
                 productPrice ?: 0.0
             }
             supermarketTotals[supermarket] = totalPrice
@@ -64,8 +73,7 @@ class PriceAnalyzerRepository(
     }
 
     private fun selectBestSupermarket(results: List<SupermarketComparisonResult>): List<SupermarketComparisonResult> {
-        val sortedByPrice = results.sortedBy { it.totalPrice }
-        val bestResult = sortedByPrice.firstOrNull()
+        val bestResult = results.minByOrNull { it.totalPrice }
 
         return results.map {
             it.copy(isBestChoice = it == bestResult)
