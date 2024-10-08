@@ -3,7 +3,7 @@ package br.com.angelica.comprainteligente.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.angelica.comprainteligente.domain.LoginUseCase
-import br.com.angelica.comprainteligente.presentation.common.Validator
+import br.com.angelica.comprainteligente.utils.ValidatorForm
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -44,14 +44,14 @@ class LoginViewModel(private val loginUseCase: LoginUseCase) : ViewModel() {
     private fun validateInput(email: String, password: String): Boolean {
         var isValid = true
 
-        if (!Validator.isEmailValid(email)) {
+        if (!ValidatorForm.isEmailValid(email)) {
             _emailError.value = "Email inválido"
             isValid = false
         } else {
             _emailError.value = null
         }
 
-        if (!Validator.isPasswordStrong(password)) {
+        if (!ValidatorForm.isPasswordStrong(password)) {
             _passwordError.value = "A senha deve ter pelo menos 6 caracteres"
             isValid = false
         } else {

@@ -1,7 +1,6 @@
-package br.com.angelica.comprainteligente.presentation.common
+package br.com.angelica.comprainteligente.utils
 
-// Validator.kt
-object Validator {
+object ValidatorForm {
 
     fun isEmailValid(email: String): Boolean {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()

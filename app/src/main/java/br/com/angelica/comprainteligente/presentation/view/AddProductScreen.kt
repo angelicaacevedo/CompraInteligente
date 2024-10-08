@@ -103,15 +103,20 @@ fun AddProductScreen(
                     onClick = {
                         val price = productPrice.replace(",", ".").toDoubleOrNull()
                         if (productName.isNotEmpty() && price != null) {
-                            viewModel.addProduct(
-                                Product(
-                                    name = productName,
-                                    description = productDescription,
-                                    price = price
-                                )
+                            val product = Product(
+                                name = productName,
+                                description = productDescription,
+                                price = price
                             )
-                            Toast.makeText(context, "Produto adicionado com sucesso!", Toast.LENGTH_SHORT).show()
-                            onNavigateBack()
+                            viewModel.addProductToFirestore(product,
+                                onSuccess = {
+                                    Toast.makeText(context, "Produto adicionado com sucesso!", Toast.LENGTH_SHORT).show()
+                                    onNavigateBack()
+                                },
+                                onError = { error ->
+                                    Toast.makeText(context, "Erro ao adicionar: $error", Toast.LENGTH_SHORT).show()
+                                }
+                            )
                         } else {
                             if (price == null) {
                                 isPriceError = true

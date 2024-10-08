@@ -14,7 +14,6 @@ import br.com.angelica.comprainteligente.presentation.viewmodel.AddProductViewMo
 import br.com.angelica.comprainteligente.presentation.viewmodel.HomeViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ListsViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.LoginViewModel
-import br.com.angelica.comprainteligente.presentation.viewmodel.NavigationViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductDetailsViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.RegisterViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -26,7 +25,6 @@ val appModule = module {
     single<ProductRepository> { FirestoreProductRepository() }
     single<PriceAnalyzer> { PriceAnalyzerRepository(get()) }
 
-
     // Use Cases
     factory { ProductUseCase(get()) }
     factory { LoginUseCase(get()) }
@@ -37,8 +35,7 @@ val appModule = module {
     viewModel { LoginViewModel(get()) }
     viewModel { RegisterViewModel(get()) }
     viewModel { HomeViewModel(get()) }
-    viewModel { NavigationViewModel() }
     viewModel { ListsViewModel() }
     viewModel { ProductDetailsViewModel(get()) }
-    viewModel { AddProductViewModel() }
+    viewModel { AddProductViewModel(get()) }
 }

@@ -8,42 +8,29 @@ class FirestoreProductRepository : ProductRepository {
     private val db = FirebaseFirestore.getInstance()
 
     override suspend fun getProducts(): Result<List<Product>> {
-        return try {
+        return executeFirestoreOperation {
             val snapshot = db.collection("products").get().await()
-            val products = snapshot.documents.map { it.toObject(Product::class.java)!! }
-            Result.success(products)
-        } catch (e: Exception) {
-            Result.failure(e)
+            snapshot.documents.map { it.toObject(Product::class.java)!! }
         }
     }
 
     override suspend fun addProduct(product: Product): Result<Unit> {
-        return try {
+        return executeFirestoreOperation {
             db.collection("products").add(product).await()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+            Unit
         }
     }
 
     override suspend fun getProductDetails(productId: String): Result<Product> {
-        return try {
+        return executeFirestoreOperation {
             val document = db.collection("products").document(productId).get().await()
-            val product = document.toObject(Product::class.java)
-            if (product != null) {
-                Result.success(product)
-            } else {
-                Result.failure(Exception("Product not found"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
+            document.toObject(Product::class.java) ?: throw Exception("Produto não encontrado")
         }
     }
 
-    override suspend fun removeProduct(product: Product): Result<Unit> { // Função de remoção
+    private suspend fun <T> executeFirestoreOperation(operation: suspend () -> T): Result<T> {
         return try {
-            db.collection("products").document(product.name).delete().await()
-            Result.success(Unit)
+            Result.success(operation())
         } catch (e: Exception) {
             Result.failure(e)
         }
