@@ -17,5 +17,8 @@ class ProductUseCase(
     suspend fun getProductDetails(productId: String): Result<Product> {
         return productRepository.getProductDetails(productId)
     }
+    suspend fun getPriceHistory(productName: String): Result<List<Product>> {
+        return productRepository.getPriceHistory(productName)
+    }
 }
 

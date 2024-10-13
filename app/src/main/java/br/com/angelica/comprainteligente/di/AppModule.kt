@@ -17,6 +17,7 @@ import br.com.angelica.comprainteligente.presentation.viewmodel.LoginViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductDetailsViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProfileViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.RegisterViewModel
+import br.com.angelica.comprainteligente.presentation.viewmodel.ReportsViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
@@ -39,5 +40,6 @@ val appModule = module {
     viewModel { ListsViewModel() }
     viewModel { ProductDetailsViewModel(get()) }
     viewModel { AddProductViewModel(get()) }
+    viewModel { ReportsViewModel(get()) }
     viewModel { ProfileViewModel(get()) }
 }

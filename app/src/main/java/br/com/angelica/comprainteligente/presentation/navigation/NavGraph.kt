@@ -10,6 +10,7 @@ import br.com.angelica.comprainteligente.presentation.view.LoginScreen
 import br.com.angelica.comprainteligente.presentation.view.ProductDetailsScreen
 import br.com.angelica.comprainteligente.presentation.view.ProfileScreen
 import br.com.angelica.comprainteligente.presentation.view.RegisterScreen
+import br.com.angelica.comprainteligente.presentation.view.ReportsScreen
 import br.com.angelica.comprainteligente.presentation.view.ShoppingListScreen
 
 @Composable
@@ -33,7 +34,7 @@ fun NavGraph() {
             val productId = backStackEntry.arguments?.getString("productId") ?: ""
             ProductDetailsScreen(productId)
         }
-        composable("reports") { /* Tela para relatórios */ }
-        composable("profile") { ProfileScreen(navController) } // Adicionado ProfileScreen
+        composable("reports") { ReportsScreen(navController) }
+        composable("profile") { ProfileScreen(navController) }
     }
 }
