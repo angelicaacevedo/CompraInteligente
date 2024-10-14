@@ -62,7 +62,11 @@ fun PersonalizeScreen(
                 ),
                 actions = {
                     IconButton(onClick = { navController.navigate("profile") }) {
-                        Icon(Icons.Default.Person, contentDescription = "Perfil", tint = Color.White)
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription = "Perfil",
+                            tint = Color.White
+                        )
                     }
                 }
             )
@@ -71,93 +75,94 @@ fun PersonalizeScreen(
             CustomBottomNavigation(navController)
         }
     ) { innerPadding ->
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding)
-    ) {
-        Text("Categorias de Produtos", style = MaterialTheme.typography.titleMedium)
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
         ) {
-            OutlinedTextField(
-                value = newCategory,
-                onValueChange = { newCategory = it },
-                placeholder = { Text("Nova Categoria") },
-                singleLine = true,
-                modifier = Modifier.weight(1f)
-            )
-            Button(
-                onClick = {
-                    if (newCategory.isNotBlank()) {
-                        viewModel.addCategory(newCategory)
-                        newCategory = ""
-                    }
-                },
-                modifier = Modifier
-                    .padding(start = 8.dp)
-                    .clip(RoundedCornerShape(2.dp)) // Menos arredondado
+            Text("Categorias de Produtos", style = MaterialTheme.typography.titleMedium)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Adicionar")
+                OutlinedTextField(
+                    value = newCategory,
+                    onValueChange = { newCategory = it },
+                    placeholder = { Text("Nova Categoria") },
+                    singleLine = true,
+                    modifier = Modifier.weight(1f)
+                )
+                Button(
+                    onClick = {
+                        if (newCategory.isNotBlank()) {
+                            viewModel.addCategory(newCategory)
+                            newCategory = ""
+                        }
+                    },
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .clip(RoundedCornerShape(2.dp)) // Menos arredondado
+                ) {
+                    Text("Adicionar")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            categories.forEach { category ->
+                CategoryItem(category, onRemove = { viewModel.removeCategory(category) })
+            }
+
+            errorMessage?.let {
+                Text(it, color = Color.Red, modifier = Modifier.padding(top = 8.dp))
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("Produtos Favoritos", style = MaterialTheme.typography.titleMedium)
+            favoriteProducts.forEach { product ->
+                FavoriteProductItem(product)
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        categories.forEach { category ->
-            CategoryItem(category, onRemove = { viewModel.removeCategory(category) })
-        }
-
-        errorMessage?.let {
-            Text(it, color = Color.Red, modifier = Modifier.padding(top = 8.dp))
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text("Produtos Favoritos", style = MaterialTheme.typography.titleMedium)
-        favoriteProducts.forEach { product ->
-            FavoriteProductItem(product)
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+            CustomBottomNavigation(navController)
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-        CustomBottomNavigation(navController)
-    }
-}
-
-@Composable
-fun CategoryItem(category: String, onRemove: () -> Unit) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        color = Color(0xFFB4DF9A), // Verde claro
-        shape = MaterialTheme.shapes.medium
-    ) {
-        Row(
+    @Composable
+    fun CategoryItem(category: String, onRemove: () -> Unit) {
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(vertical = 4.dp),
+            color = Color(0xFFB4DF9A), // Verde claro
+            shape = MaterialTheme.shapes.medium
         ) {
-            Text(category, style = MaterialTheme.typography.bodyLarge)
-            Spacer(modifier = Modifier.weight(1f))
-            IconButton(onClick = onRemove) {
-                Icon(Icons.Default.Delete, contentDescription = "Remover")
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(category, style = MaterialTheme.typography.bodyLarge)
+                Spacer(modifier = Modifier.weight(1f))
+                IconButton(onClick = onRemove) {
+                    Icon(Icons.Default.Delete, contentDescription = "Remover")
+                }
             }
         }
     }
-}
 
-@Composable
-fun FavoriteProductItem(product: Product) {
-    Row(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
-        Text(product.name, style = MaterialTheme.typography.bodyLarge)
-        Spacer(modifier = Modifier.weight(1f))
-        Icon(Icons.Default.Star, contentDescription = "Favorito", tint = Color.Yellow)
+    @Composable
+    fun FavoriteProductItem(product: Product) {
+        Row(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
+            Text(product.name, style = MaterialTheme.typography.bodyLarge)
+            Spacer(modifier = Modifier.weight(1f))
+            Icon(Icons.Default.Star, contentDescription = "Favorito", tint = Color.Yellow)
+        }
     }
 }
