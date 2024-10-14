@@ -1,6 +1,5 @@
 package br.com.angelica.comprainteligente.presentation.view
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,8 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -25,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,76 +47,93 @@ fun PersonalizeScreen(
     navController: NavController,
     viewModel: PersonalizeViewModel = getViewModel()
 ) {
-    val categories by viewModel.categories.collectAsState()
-    val favoriteProducts by viewModel.favoriteProducts.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
+    val viewState by viewModel.viewState.collectAsState()
     var newCategory by remember { mutableStateOf("") }
+    val scaffoldState = rememberScaffoldState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp)
-    ) {
-        TopAppBar(
-            title = { Text("Personalização") },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color(0xFF4CAF50), // Cor Verde Claro para o TopAppBar
-                titleContentColor = Color.White
-            ),
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text("Categorias de Produtos", style = MaterialTheme.typography.titleMedium)
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            OutlinedTextField(
-                value = newCategory,
-                onValueChange = { newCategory = it },
-                placeholder = { Text("Nova Categoria") },
-                singleLine = true,
-                modifier = Modifier.weight(1f)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Personalização") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF4CAF50),
+                    titleContentColor = Color.White
+                ),
             )
-            Button(
-                onClick = {
-                    if (newCategory.isNotBlank()) {
-                        viewModel.addCategory(newCategory)
-                        newCategory = ""
-                    }
-                },
-                modifier = Modifier
-                    .padding(start = 8.dp)
-                    .clip(RoundedCornerShape(2.dp)) // Menos arredondado
+        },
+        bottomBar = {
+            CustomBottomNavigation(navController)
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(24.dp)
+        ) {
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text("Categorias de Produtos", style = MaterialTheme.typography.titleMedium)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Adicionar")
+                OutlinedTextField(
+                    value = newCategory,
+                    onValueChange = { newCategory = it },
+                    placeholder = { Text("Nova Categoria") },
+                    singleLine = true,
+                    modifier = Modifier.weight(1f)
+                )
+                Button(
+                    onClick = {
+                        if (newCategory.isNotBlank()) {
+                            viewModel.onEvent(
+                                PersonalizeViewModel.PersonalizeViewEvent.AddCategory(
+                                    newCategory
+                                )
+                            )
+                            newCategory = ""
+                        }
+                    },
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .clip(RoundedCornerShape(4.dp)) // Menos arredondado
+                ) {
+                    Text("Adicionar")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            viewState.categories.forEach { category ->
+                CategoryItem(
+                    category,
+                    onRemove = {
+                        viewModel.onEvent(
+                            PersonalizeViewModel.PersonalizeViewEvent.RemoveCategory(category)
+                        )
+                    })
+            }
+
+            viewState.errorMessage?.let {
+                LaunchedEffect(it) {
+                    scaffoldState.snackbarHostState.showSnackbar(it)
+                    viewModel.onEvent(PersonalizeViewModel.PersonalizeViewEvent.ClearErrorMessage)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("Produtos Favoritos", style = MaterialTheme.typography.titleMedium)
+            viewState.favoriteProducts.forEach { product ->
+                FavoriteProductItem(product)
             }
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        categories.forEach { category ->
-            CategoryItem(category, onRemove = { viewModel.removeCategory(category) })
-        }
-
-        errorMessage?.let {
-            Text(it, color = Color.Red, modifier = Modifier.padding(top = 8.dp))
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text("Produtos Favoritos", style = MaterialTheme.typography.titleMedium)
-        favoriteProducts.forEach { product ->
-            FavoriteProductItem(product)
-        }
-    }
-
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-        CustomBottomNavigation(navController)
     }
 }
 
@@ -146,9 +163,11 @@ fun CategoryItem(category: String, onRemove: () -> Unit) {
 
 @Composable
 fun FavoriteProductItem(product: Product) {
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .padding(8.dp)) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
         Text(product.name, style = MaterialTheme.typography.bodyLarge)
         Spacer(modifier = Modifier.weight(1f))
         Icon(Icons.Default.Star, contentDescription = "Favorito", tint = Color.Yellow)
