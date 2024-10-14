@@ -2,6 +2,8 @@ package br.com.angelica.comprainteligente.di
 
 import br.com.angelica.comprainteligente.data.auth.AuthRepository
 import br.com.angelica.comprainteligente.data.auth.FirebaseAuthRepository
+import br.com.angelica.comprainteligente.data.category.CategoryRepository
+import br.com.angelica.comprainteligente.data.category.FirestoreCategoryRepository
 import br.com.angelica.comprainteligente.data.price.PriceAnalyzer
 import br.com.angelica.comprainteligente.data.price.PriceAnalyzerRepository
 import br.com.angelica.comprainteligente.data.product.FirestoreProductRepository
@@ -14,6 +16,7 @@ import br.com.angelica.comprainteligente.presentation.viewmodel.AddProductViewMo
 import br.com.angelica.comprainteligente.presentation.viewmodel.HomeViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ListsViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.LoginViewModel
+import br.com.angelica.comprainteligente.presentation.viewmodel.PersonalizeViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductDetailsViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProfileViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.RegisterViewModel
@@ -26,6 +29,7 @@ val appModule = module {
     single<AuthRepository> { FirebaseAuthRepository() }
     single<ProductRepository> { FirestoreProductRepository() }
     single<PriceAnalyzer> { PriceAnalyzerRepository(get()) }
+    single<CategoryRepository> { FirestoreCategoryRepository() }
 
     // Use Cases
     factory { ProductUseCase(get()) }
@@ -42,4 +46,5 @@ val appModule = module {
     viewModel { AddProductViewModel(get()) }
     viewModel { ReportsViewModel(get()) }
     viewModel { ProfileViewModel(get()) }
+    viewModel { PersonalizeViewModel(get(), get()) }
 }

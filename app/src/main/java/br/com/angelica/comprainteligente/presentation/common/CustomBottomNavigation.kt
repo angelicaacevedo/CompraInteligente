@@ -7,6 +7,7 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -25,7 +26,8 @@ fun CustomBottomNavigation(navController: NavController) {
             BottomNavItem("home", Icons.Default.Home, "Início"),
             BottomNavItem("lists", Icons.AutoMirrored.Filled.List, "Listas"),
             BottomNavItem("add_product", Icons.Default.Add, "Adicionar Produto"), // Ícone de Adicionar Produto no centro
-            BottomNavItem("reports", Icons.Default.BarChart, "Relatórios")
+            BottomNavItem("reports", Icons.Default.BarChart, "Relatórios"),
+            BottomNavItem("personalize", Icons.Default.Settings, "Personalizar") // Novo item de Personalizar
         )
 
         // Obtém a rota atual para indicar a tela selecionada
@@ -56,7 +58,6 @@ fun CustomBottomNavigation(navController: NavController) {
         }
     }
 }
-
 
 data class BottomNavItem(
     val route: String,

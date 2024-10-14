@@ -7,6 +7,7 @@ import androidx.navigation.compose.rememberNavController
 import br.com.angelica.comprainteligente.presentation.view.AddProductScreen
 import br.com.angelica.comprainteligente.presentation.view.HomeScreen
 import br.com.angelica.comprainteligente.presentation.view.LoginScreen
+import br.com.angelica.comprainteligente.presentation.view.PersonalizeScreen
 import br.com.angelica.comprainteligente.presentation.view.ProductDetailsScreen
 import br.com.angelica.comprainteligente.presentation.view.ProfileScreen
 import br.com.angelica.comprainteligente.presentation.view.RegisterScreen
@@ -16,7 +17,7 @@ import br.com.angelica.comprainteligente.presentation.view.ShoppingListScreen
 @Composable
 fun NavGraph() {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(navController = navController, startDestination = "home") {
         composable("login") { LoginScreen(navController) }
         composable("register") { RegisterScreen(navController) }
         composable("home") { HomeScreen(navController) }
@@ -36,5 +37,6 @@ fun NavGraph() {
         }
         composable("reports") { ReportsScreen(navController) }
         composable("profile") { ProfileScreen(navController) }
+        composable("personalize") { PersonalizeScreen(navController) }
     }
 }
