@@ -81,7 +81,9 @@ fun CartScreen(navController: NavController, viewModel: CartViewModel = getViewM
                     item {
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(
-                            onClick = { /* Lógica de finalização de compra */ },
+                            onClick = {
+                                navController.navigate("checkout")
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp)

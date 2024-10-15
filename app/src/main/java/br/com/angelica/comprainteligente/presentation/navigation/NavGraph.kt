@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import br.com.angelica.comprainteligente.presentation.view.AddProductScreen
 import br.com.angelica.comprainteligente.presentation.view.CartScreen
+import br.com.angelica.comprainteligente.presentation.view.CheckoutScreen
 import br.com.angelica.comprainteligente.presentation.view.HomeScreen
 import br.com.angelica.comprainteligente.presentation.view.LoginScreen
 import br.com.angelica.comprainteligente.presentation.view.PersonalizeScreen
@@ -25,5 +26,6 @@ fun NavGraph() {
         composable("reports") { ReportsScreen(navController) }
         composable("profile") { ProfileScreen(navController) }
         composable("personalize") { PersonalizeScreen(navController) }
+        composable("checkout") { CheckoutScreen(navController) }
     }
 }
