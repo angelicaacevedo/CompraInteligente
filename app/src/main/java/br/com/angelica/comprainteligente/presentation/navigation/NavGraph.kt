@@ -8,7 +8,6 @@ import br.com.angelica.comprainteligente.presentation.view.AddProductScreen
 import br.com.angelica.comprainteligente.presentation.view.HomeScreen
 import br.com.angelica.comprainteligente.presentation.view.LoginScreen
 import br.com.angelica.comprainteligente.presentation.view.PersonalizeScreen
-import br.com.angelica.comprainteligente.presentation.view.ProductDetailsScreen
 import br.com.angelica.comprainteligente.presentation.view.ProfileScreen
 import br.com.angelica.comprainteligente.presentation.view.RegisterScreen
 import br.com.angelica.comprainteligente.presentation.view.ReportsScreen
@@ -26,15 +25,7 @@ fun NavGraph() {
                 onNavigateBack = { navController.popBackStack() },
             )
         }
-        composable("add_product") {
-            AddProductScreen(
-                onNavigateBack = { navController.popBackStack() }
-            )
-        }
-        composable("products_details/{productId}") { backStackEntry ->
-            val productId = backStackEntry.arguments?.getString("productId") ?: ""
-            ProductDetailsScreen(productId)
-        }
+        composable("add_product") { AddProductScreen(navController) }
         composable("reports") { ReportsScreen(navController) }
         composable("profile") { ProfileScreen(navController) }
         composable("personalize") { PersonalizeScreen(navController) }

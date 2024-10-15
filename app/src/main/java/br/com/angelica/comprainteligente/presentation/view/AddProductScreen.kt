@@ -1,26 +1,38 @@
 package br.com.angelica.comprainteligente.presentation.view
 
 import android.widget.Toast
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AddShoppingCart
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -29,7 +41,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import br.com.angelica.comprainteligente.model.Product
+import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigation
 import br.com.angelica.comprainteligente.presentation.common.CustomTextField
 import br.com.angelica.comprainteligente.presentation.viewmodel.AddProductViewModel
 import org.koin.androidx.compose.getViewModel
@@ -37,100 +51,232 @@ import org.koin.androidx.compose.getViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddProductScreen(
+    navController: NavController,
     viewModel: AddProductViewModel = getViewModel(),
-    onNavigateBack: () -> Unit
 ) {
     var productName by remember { mutableStateOf("") }
-    var productDescription by remember { mutableStateOf("") }
     var productPrice by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf("") }
+    val categories by viewModel.categories.observeAsState(emptyList())
     var isPriceError by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Adicionar Produto") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
-                    }
-                }
+                title = { Text("Adicionar Produtos") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF4CAF50),
+                    titleContentColor = Color.White
+                ),
             )
         },
-        content = { paddingValues ->
-            Column(
+        bottomBar = {
+            CustomBottomNavigation(navController)
+        },
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(
+                text = "Nome do Produto",
+                style = MaterialTheme.typography.titleMedium,
+            )
+            CustomTextField(
+                value = productName,
+                onValueChange = { productName = it },
+                label = "",
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .fillMaxWidth()
+                    .border(
+                        1.dp,
+                        Color.LightGray,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Preço",
+                style = MaterialTheme.typography.titleMedium,
+            )
+            CustomTextField(
+                value = productPrice,
+                onValueChange = {
+                    productPrice = it
+                    isPriceError = false
+                },
+                label = "",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        1.dp,
+                        Color.LightGray,
+                        shape = RoundedCornerShape(8.dp)
+                    ),
+                isError = isPriceError,
+                errorMessage = "Preço inválido",
+                isNumeric = true
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Categoria",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            CategoryDropdownMenu(
+                selectedCategory = selectedCategory,
+                onCategorySelected = { selectedCategory = it },
+                categories = categories,
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                CustomTextField(
-                    value = productName,
-                    onValueChange = { productName = it },
-                    label = "Nome do Produto",
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                CustomTextField(
-                    value = productDescription,
-                    onValueChange = { productDescription = it },
-                    label = "Descrição do Produto",
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                CustomTextField(
-                    value = productPrice,
-                    onValueChange = {
-                        productPrice = it
-                        isPriceError = false
-                    },
-                    label = "Preço do Produto",
-                    modifier = Modifier.fillMaxWidth(),
-                    isError = isPriceError,
-                    errorMessage = "Preço inválido",
-                    isNumeric = true
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
                 Button(
                     onClick = {
                         val price = productPrice.replace(",", ".").toDoubleOrNull()
-                        if (productName.isNotEmpty() && price != null) {
+                        if (productName.isNotEmpty() && price != null && selectedCategory.isNotEmpty()) {
                             val product = Product(
                                 name = productName,
-                                description = productDescription,
-                                price = price
+                                price = price,
+                                category = selectedCategory
                             )
                             viewModel.addProductToFirestore(product,
                                 onSuccess = {
-                                    Toast.makeText(context, "Produto adicionado com sucesso!", Toast.LENGTH_SHORT).show()
-                                    onNavigateBack()
+                                    Toast.makeText(
+                                        context,
+                                        "Produto adicionado com sucesso!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 },
                                 onError = { error ->
-                                    Toast.makeText(context, "Erro ao adicionar: $error", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        "Erro ao adicionar: $error",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             )
                         } else {
                             if (price == null) {
                                 isPriceError = true
                             }
-                            Toast.makeText(context, "Por favor, preencha todos os campos corretamente.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "Por favor, preencha todos os campos corretamente.",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                    modifier = Modifier
+                        .wrapContentSize()
+                        .border(
+                            1.dp,
+                            Color.Gray,
+                            shape = RoundedCornerShape(8.dp)
+                        ),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White)
                 ) {
+                    Icon(
+                        imageVector = Icons.Filled.AddShoppingCart,
+                        contentDescription = "Adicionar ao Carrinho",
+                        tint = Color.Black
+                    )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Adicionar Produto", color = Color.White)
+                    Text("Adicionar ao Carrinho", color = Color.Black)
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(
+                    onClick = {
+                        // Ação ao clicar no botão de favorito
+                    },
+                    modifier = Modifier
+                        .wrapContentSize()
+                        .border(
+                            1.dp,
+                            Color.Gray,
+                            shape = RoundedCornerShape(10.dp)
+                        ),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Star,
+                        contentDescription = "Favorito",
+                        tint = Color.Black
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Favorito", color = Color.Black)
                 }
             }
         }
-    )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CategoryDropdownMenu(
+    selectedCategory: String,
+    onCategorySelected: (String) -> Unit,
+    categories: List<String>
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Column {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded }
+        ) {
+            TextField(
+                value = selectedCategory,
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.LightGray
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        1.dp,
+                        Color.LightGray,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .menuAnchor()
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                categories.forEach { category ->
+                    DropdownMenuItem(
+                        text = { Text(category) },
+                        onClick = {
+                            onCategorySelected(category)
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+    }
 }

@@ -17,7 +17,6 @@ import br.com.angelica.comprainteligente.presentation.viewmodel.HomeViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ListsViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.LoginViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.PersonalizeViewModel
-import br.com.angelica.comprainteligente.presentation.viewmodel.ProductDetailsViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProfileViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.RegisterViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ReportsViewModel
@@ -42,8 +41,7 @@ val appModule = module {
     viewModel { RegisterViewModel(get()) }
     viewModel { HomeViewModel(get()) }
     viewModel { ListsViewModel() }
-    viewModel { ProductDetailsViewModel(get()) }
-    viewModel { AddProductViewModel(get()) }
+    viewModel { AddProductViewModel(get(), get()) }
     viewModel { ReportsViewModel(get()) }
     viewModel { ProfileViewModel(get()) }
     viewModel { PersonalizeViewModel(get(), get()) }
