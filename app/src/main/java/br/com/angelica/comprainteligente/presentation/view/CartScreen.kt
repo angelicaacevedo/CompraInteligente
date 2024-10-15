@@ -120,7 +120,7 @@ fun ProductCard(product: Product, viewModel: CartViewModel) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .padding(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         border = BorderStroke(1.dp, Color.LightGray)
     ) {
