@@ -36,6 +36,8 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -62,13 +64,18 @@ fun AddProductScreen(
     viewModel: AddProductViewModel = getViewModel(),
 ) {
     val context = LocalContext.current
-    val categories by viewModel.categories.observeAsState(emptyList())
+    val categories by viewModel.categories.collectAsState()
     val scrollState = rememberScrollState()
 
     var productName by remember { mutableStateOf("") }
     var productPrice by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("") }
     var isPriceError by remember { mutableStateOf(false) }
+
+    // Chama fetchCategories quando a tela for exibida
+    LaunchedEffect(Unit) {
+        viewModel.fetchCategories()
+    }
 
     Scaffold(
         topBar = {

@@ -7,20 +7,23 @@ import androidx.lifecycle.viewModelScope
 import br.com.angelica.comprainteligente.data.category.CategoryRepository
 import br.com.angelica.comprainteligente.domain.ProductUseCase
 import br.com.angelica.comprainteligente.model.Product
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class AddProductViewModel(
     private val productUseCase: ProductUseCase,
     private val categoryRepository: CategoryRepository
 ) : ViewModel() {
-    private val _categories = MutableLiveData<List<String>>()
-    val categories: LiveData<List<String>> = _categories
+    private val _categories = MutableStateFlow<List<String>>(emptyList())
+    val categories: StateFlow<List<String>> = _categories.asStateFlow()
 
     init {
         fetchCategories()
     }
 
-    private fun fetchCategories() {
+    fun fetchCategories() {
         viewModelScope.launch {
             val result = categoryRepository.getCategories()
             if (result.isSuccess) {
