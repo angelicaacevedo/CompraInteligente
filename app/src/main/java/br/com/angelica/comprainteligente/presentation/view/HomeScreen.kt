@@ -170,8 +170,6 @@ fun ProductCard(product: Product) {
     ) {
         Text(product.name, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Spacer(modifier = Modifier.height(4.dp))
-        Text(product.description, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
-        Spacer(modifier = Modifier.height(8.dp))
         Text("R$ ${product.price}", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
     }
 }

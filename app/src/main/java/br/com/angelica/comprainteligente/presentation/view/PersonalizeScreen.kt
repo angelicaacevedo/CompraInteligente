@@ -1,5 +1,10 @@
 package br.com.angelica.comprainteligente.presentation.view
 
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.border
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -7,12 +12,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,6 +57,8 @@ fun PersonalizeScreen(
     val viewState by viewModel.viewState.collectAsState()
     var newCategory by remember { mutableStateOf("") }
     val scaffoldState = rememberScaffoldState()
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
 
     Scaffold(
         topBar = {
@@ -101,8 +110,14 @@ fun PersonalizeScreen(
                         }
                     },
                     modifier = Modifier
-                        .padding(start = 8.dp)
-                        .clip(RoundedCornerShape(4.dp)) // Menos arredondado
+                        .wrapContentSize()
+                        .border(
+                            1.dp,
+                            Color.Gray,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .indication(interactionSource, LocalIndication.current),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White)
                 ) {
                     Text("Adicionar")
                 }
@@ -143,7 +158,7 @@ fun CategoryItem(category: String, onRemove: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        color = Color(0xFFB4DF9A), // Verde claro
+        color = Color(0xFFE9E8E8),
         shape = MaterialTheme.shapes.medium
     ) {
         Row(

@@ -1,7 +1,12 @@
 package br.com.angelica.comprainteligente.presentation.view
 
 import android.widget.Toast
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -39,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -145,7 +152,7 @@ fun AddProductScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Button(
+                ClickableButton(
                     onClick = {
                         val price = productPrice.replace(",", ".").toDoubleOrNull()
                         if (productName.isNotEmpty() && price != null && selectedCategory.isNotEmpty()) {
@@ -181,51 +188,55 @@ fun AddProductScreen(
                             ).show()
                         }
                     },
-                    modifier = Modifier
-                        .wrapContentSize()
-                        .border(
-                            1.dp,
-                            Color.Gray,
-                            shape = RoundedCornerShape(8.dp)
-                        ),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.AddShoppingCart,
-                        contentDescription = "Adicionar ao Carrinho",
-                        tint = Color.Black
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Adicionar ao Carrinho", color = Color.Black)
-                }
+                    text = "Adicionar ao Carrinho",
+                    icon = Icons.Filled.AddShoppingCart
+                )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Button(
+                ClickableButton(
                     onClick = {
                         // Ação ao clicar no botão de favorito
                     },
-                    modifier = Modifier
-                        .wrapContentSize()
-                        .border(
-                            1.dp,
-                            Color.Gray,
-                            shape = RoundedCornerShape(10.dp)
-                        ),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Star,
-                        contentDescription = "Favorito",
-                        tint = Color.Black
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Favorito", color = Color.Black)
-                }
+                    text = "Favorito",
+                    icon = Icons.Filled.Star
+                )
             }
         }
     }
 }
+
+@Composable
+fun ClickableButton(
+    onClick: () -> Unit,
+    text: String,
+    icon: ImageVector
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .wrapContentSize()
+            .border(
+                1.dp,
+                Color.Gray,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .indication(interactionSource, LocalIndication.current),
+        colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = text,
+            tint = if (isPressed) Color.Gray else Color.Black
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(text, color = if (isPressed) Color.Gray else Color.Black)
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
