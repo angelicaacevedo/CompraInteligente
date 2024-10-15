@@ -64,19 +64,41 @@ fun CartScreen(navController: NavController, viewModel: CartViewModel = getViewM
             )
 
             is CartViewModel.CartState.Success -> {
-                Column(modifier = Modifier.padding(paddingValues)) {
-                    CartList(products = state.products, viewModel)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = { /* Lógica de finalização de compra */ },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                    ) {
-                        Text("Finalizar Compra")
+                LazyColumn(
+                    modifier = Modifier.padding(paddingValues)
+                ) {
+                    items(state.products) { product ->
+                        if (!product.isFavorite) {
+                            ProductCard(product, viewModel)
+                        }
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    FavoriteProductsSection(products = state.products, viewModel)
+
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = { /* Lógica de finalização de compra */ },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            Text("Finalizar Compra")
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    item {
+                        Text(
+                            text = "Produtos Favoritos",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+
+                    items(state.products) { product ->
+                        if (product.isFavorite) {
+                            ProductCard(product, viewModel)
+                        }
+                    }
                 }
             }
 
@@ -84,33 +106,6 @@ fun CartScreen(navController: NavController, viewModel: CartViewModel = getViewM
                 "Error: ${state.message}",
                 modifier = Modifier.padding(paddingValues)
             )
-        }
-    }
-}
-
-@Composable
-fun CartList(products: List<Product>, viewModel: CartViewModel) {
-    LazyColumn {
-        items(products) { product ->
-            if (!product.isFavorite) {
-                ProductCard(product, viewModel)
-            }
-        }
-    }
-}
-
-@Composable
-fun FavoriteProductsSection(products: List<Product>, viewModel: CartViewModel) {
-    Text(
-        text = "Produtos Favoritos",
-        style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(16.dp)
-    )
-    LazyColumn {
-        items(products) { product ->
-            if (product.isFavorite) {
-                ProductCard(product, viewModel)
-            }
         }
     }
 }
@@ -131,11 +126,22 @@ fun ProductCard(product: Product, viewModel: CartViewModel) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = product.name,
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.bodyMedium
-            )
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = product.name,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = "Preço: R$ ${product.price}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Text(
+                    text = "Categoria: ${product.category}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
 
             Row(
                 verticalAlignment = Alignment.CenterVertically

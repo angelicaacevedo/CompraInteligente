@@ -1,7 +1,6 @@
 package br.com.angelica.comprainteligente.data.product
 
 import br.com.angelica.comprainteligente.model.Product
-import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
@@ -17,8 +16,9 @@ class FirestoreProductRepository : ProductRepository {
 
     override suspend fun addProduct(product: Product): Result<Unit> {
         return executeFirestoreOperation {
-            val productWithTimestamp = product.copy(timestamp = Timestamp.now())
-            db.collection("products").add(productWithTimestamp).await()
+            val newProductRef = db.collection("products").document()
+            val productWithId = product.copy(id = newProductRef.id)
+            newProductRef.set(productWithId).await()
             Unit
         }
     }
@@ -41,7 +41,10 @@ class FirestoreProductRepository : ProductRepository {
         }
     }
 
-    override suspend fun changeProductFavoriteStatus(productId: String, isFavorite: Boolean): Result<Unit> {
+    override suspend fun changeProductFavoriteStatus(
+        productId: String,
+        isFavorite: Boolean
+    ): Result<Unit> {
         return executeFirestoreOperation {
             db.collection("products").document(productId).update("isFavorite", isFavorite).await()
             Unit

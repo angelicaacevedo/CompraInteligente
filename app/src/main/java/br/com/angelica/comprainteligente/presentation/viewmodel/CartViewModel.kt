@@ -22,7 +22,10 @@ class CartViewModel(
         when (intent) {
             is CartIntent.LoadCart -> fetchCartProducts()
             is CartIntent.RemoveProduct -> removeProductFromCart(intent.productId)
-            is CartIntent.ChangeProductFavoriteStatus -> changeFavoriteStatus(intent.productId, intent.isFavorite)
+            is CartIntent.ChangeProductFavoriteStatus -> changeFavoriteStatus(
+                intent.productId,
+                intent.isFavorite
+            )
         }
     }
 
@@ -39,8 +42,13 @@ class CartViewModel(
 
     private fun removeProductFromCart(productId: String) {
         viewModelScope.launch {
-            productUseCase.removeProduct(productId)
-            fetchCartProducts()
+            val result = productUseCase.removeProduct(productId)
+            if (result.isSuccess) {
+                fetchCartProducts()
+            } else {
+                _state.value =
+                    CartState.Error(result.exceptionOrNull()?.message ?: "Erro ao remover produto")
+            }
         }
     }
 
@@ -60,6 +68,7 @@ class CartViewModel(
     sealed class CartIntent {
         object LoadCart : CartIntent()
         data class RemoveProduct(val productId: String) : CartIntent()
-        data class ChangeProductFavoriteStatus(val productId: String, val isFavorite: Boolean) : CartIntent()
+        data class ChangeProductFavoriteStatus(val productId: String, val isFavorite: Boolean) :
+            CartIntent()
     }
 }
