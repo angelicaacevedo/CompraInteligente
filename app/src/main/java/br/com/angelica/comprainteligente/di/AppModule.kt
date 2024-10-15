@@ -8,6 +8,9 @@ import br.com.angelica.comprainteligente.data.price.PriceAnalyzer
 import br.com.angelica.comprainteligente.data.price.PriceAnalyzerRepository
 import br.com.angelica.comprainteligente.data.product.FirestoreProductRepository
 import br.com.angelica.comprainteligente.data.product.ProductRepository
+import br.com.angelica.comprainteligente.data.purchase.FirestoreRecentPurchaseRepository
+import br.com.angelica.comprainteligente.data.purchase.RecentPurchaseRepository
+import br.com.angelica.comprainteligente.domain.GetRecentPurchasesUseCase
 import br.com.angelica.comprainteligente.domain.LoginUseCase
 import br.com.angelica.comprainteligente.domain.PriceAnalyzerUseCase
 import br.com.angelica.comprainteligente.domain.ProductUseCase
@@ -29,18 +32,20 @@ val appModule = module {
     single<ProductRepository> { FirestoreProductRepository() }
     single<PriceAnalyzer> { PriceAnalyzerRepository(get()) }
     single<CategoryRepository> { FirestoreCategoryRepository() }
+    single<RecentPurchaseRepository> { FirestoreRecentPurchaseRepository() }
 
     // Use Cases
     factory { ProductUseCase(get()) }
     factory { LoginUseCase(get()) }
     factory { RegisterUseCase(get()) }
     factory { PriceAnalyzerUseCase(get()) }
+    factory { GetRecentPurchasesUseCase(get()) }
 
     // ViewModels
     viewModel { LoginViewModel(get()) }
     viewModel { RegisterViewModel(get()) }
-    viewModel { HomeViewModel(get()) }
     viewModel { CartViewModel(get()) }
+    viewModel { HomeViewModel(get(), get()) }
     viewModel { AddProductViewModel(get(), get()) }
     viewModel { ReportsViewModel(get()) }
     viewModel { ProfileViewModel(get()) }
