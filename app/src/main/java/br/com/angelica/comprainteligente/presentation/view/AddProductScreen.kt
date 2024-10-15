@@ -177,7 +177,6 @@ fun AddProductScreen(
                                         "Produto adicionado com sucesso!",
                                         Toast.LENGTH_SHORT
                                     ).show()
-                                    navController.navigate("cart")
                                 },
                                 onError = { error ->
                                     Toast.makeText(

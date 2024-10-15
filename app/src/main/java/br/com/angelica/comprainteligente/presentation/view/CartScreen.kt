@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,6 +42,10 @@ import org.koin.androidx.compose.getViewModel
 @Composable
 fun CartScreen(navController: NavController, viewModel: CartViewModel = getViewModel()) {
     val state = viewModel.state.value
+
+    LaunchedEffect(Unit) {
+        viewModel.handleIntent(CartViewModel.CartIntent.LoadCart)
+    }
 
     Scaffold(
         topBar = {
