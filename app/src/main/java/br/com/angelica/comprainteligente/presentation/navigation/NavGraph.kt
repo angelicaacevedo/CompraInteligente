@@ -21,7 +21,7 @@ fun NavGraph() {
         composable("login") { LoginScreen(navController) }
         composable("register") { RegisterScreen(navController) }
         composable("home") { HomeScreen(navController) }
-        composable("lists") {
+        composable("cart") {
             ShoppingListScreen(
                 onNavigateBack = { navController.popBackStack() },
             )

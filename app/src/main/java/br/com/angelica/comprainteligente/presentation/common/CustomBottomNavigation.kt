@@ -1,5 +1,6 @@
 package br.com.angelica.comprainteligente.presentation.common
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.icons.Icons
@@ -8,8 +9,13 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.ShoppingCartCheckout
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -24,9 +30,9 @@ fun CustomBottomNavigation(navController: NavController) {
     ) {
         val items = listOf(
             BottomNavItem("home", Icons.Default.Home, "Início"),
-            BottomNavItem("lists", Icons.AutoMirrored.Filled.List, "Listas"),
-            BottomNavItem("add_product", Icons.Default.Add, "Adicionar Produto"), // Ícone de Adicionar Produto no centro
-            BottomNavItem("reports", Icons.Default.BarChart, "Relatórios"),
+            BottomNavItem("cart", Icons.Default.ShoppingCart, "Carrinho"),
+            BottomNavItem("add_product", Icons.Default.Add, "Adicionar"), // Ícone de Adicionar Produto no centro
+            BottomNavItem("reports", Icons.Default.BarChart, "Análise"),
             BottomNavItem("personalize", Icons.Default.Settings, "Personalizar") // Novo item de Personalizar
         )
 
@@ -36,11 +42,19 @@ fun CustomBottomNavigation(navController: NavController) {
         items.forEachIndexed { index, item ->
             BottomNavigationItem(
                 icon = {
-                    Icon(
-                        imageVector = item.icon,
-                        contentDescription = item.title,
-                        tint = Color.White
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = item.title,
+                            tint = if (currentRoute == item.route) Color.Yellow else Color.White
+                        )
+                        Text(
+                            text = item.title ?: "",
+                            color = Color.White,
+                            style = MaterialTheme.typography.labelSmall
+
+                        )
+                    }
                 },
                 selected = currentRoute == item.route, // Verifica se a rota atual corresponde ao item
                 onClick = {
