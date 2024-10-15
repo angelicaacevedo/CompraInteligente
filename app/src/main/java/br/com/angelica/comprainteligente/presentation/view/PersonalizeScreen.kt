@@ -57,8 +57,6 @@ fun PersonalizeScreen(
     val viewState by viewModel.viewState.collectAsState()
     var newCategory by remember { mutableStateOf("") }
     val scaffoldState = rememberScaffoldState()
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
 
     Scaffold(
         topBar = {
@@ -110,14 +108,8 @@ fun PersonalizeScreen(
                         }
                     },
                     modifier = Modifier
-                        .wrapContentSize()
-                        .border(
-                            1.dp,
-                            Color.Gray,
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        .indication(interactionSource, LocalIndication.current),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                        .padding(start = 8.dp)
+                        .clip(RoundedCornerShape(4.dp)) // Menos arredondado
                 ) {
                     Text("Adicionar")
                 }
@@ -151,7 +143,6 @@ fun PersonalizeScreen(
         }
     }
 }
-
 @Composable
 fun CategoryItem(category: String, onRemove: () -> Unit) {
     Surface(

@@ -14,11 +14,16 @@ class ProductUseCase(
         return productRepository.addProduct(product)
     }
 
-    suspend fun getProductDetails(productId: String): Result<Product> {
-        return productRepository.getProductDetails(productId)
-    }
     suspend fun getPriceHistory(productName: String): Result<List<Product>> {
         return productRepository.getPriceHistory(productName)
+    }
+
+    suspend fun removeProduct(productId: String): Result<Unit> {
+        return productRepository.removeProduct(productId)
+    }
+
+    suspend fun changeProductFavoriteStatus(productId: String, isFavorite: Boolean): Result<Unit> {
+        return productRepository.changeProductFavoriteStatus(productId, isFavorite)
     }
 }
 

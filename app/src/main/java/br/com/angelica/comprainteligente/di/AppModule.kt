@@ -13,8 +13,8 @@ import br.com.angelica.comprainteligente.domain.PriceAnalyzerUseCase
 import br.com.angelica.comprainteligente.domain.ProductUseCase
 import br.com.angelica.comprainteligente.domain.RegisterUseCase
 import br.com.angelica.comprainteligente.presentation.viewmodel.AddProductViewModel
+import br.com.angelica.comprainteligente.presentation.viewmodel.CartViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.HomeViewModel
-import br.com.angelica.comprainteligente.presentation.viewmodel.ListsViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.LoginViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.PersonalizeViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProfileViewModel
@@ -40,7 +40,7 @@ val appModule = module {
     viewModel { LoginViewModel(get()) }
     viewModel { RegisterViewModel(get()) }
     viewModel { HomeViewModel(get()) }
-    viewModel { ListsViewModel() }
+    viewModel { CartViewModel(get()) }
     viewModel { AddProductViewModel(get(), get()) }
     viewModel { ReportsViewModel(get()) }
     viewModel { ProfileViewModel(get()) }

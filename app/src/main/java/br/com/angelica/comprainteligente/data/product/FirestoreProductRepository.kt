@@ -23,13 +23,6 @@ class FirestoreProductRepository : ProductRepository {
         }
     }
 
-    override suspend fun getProductDetails(productId: String): Result<Product> {
-        return executeFirestoreOperation {
-            val document = db.collection("products").document(productId).get().await()
-            document.toObject(Product::class.java) ?: throw Exception("Produto não encontrado")
-        }
-    }
-
     override suspend fun getPriceHistory(productName: String): Result<List<Product>> {
         return executeFirestoreOperation {
             val snapshot = db.collection("products")
@@ -38,6 +31,20 @@ class FirestoreProductRepository : ProductRepository {
                 .get()
                 .await()
             snapshot.documents.map { it.toObject(Product::class.java)!! }
+        }
+    }
+
+    override suspend fun removeProduct(productId: String): Result<Unit> {
+        return executeFirestoreOperation {
+            db.collection("products").document(productId).delete().await()
+            Unit
+        }
+    }
+
+    override suspend fun changeProductFavoriteStatus(productId: String, isFavorite: Boolean): Result<Unit> {
+        return executeFirestoreOperation {
+            db.collection("products").document(productId).update("isFavorite", isFavorite).await()
+            Unit
         }
     }
 
