@@ -4,13 +4,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.ShoppingCartCheckout
+import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,15 +23,15 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 @Composable
 fun CustomBottomNavigation(navController: NavController) {
     BottomNavigation(
-        backgroundColor = Color(0xFF4CAF50), // Cor verde clara para o background da bottom navigation
+        backgroundColor = Color(0xFF4CAF50),
         elevation = 8.dp
     ) {
         val items = listOf(
             BottomNavItem("home", Icons.Default.Home, "Início"),
             BottomNavItem("cart", Icons.Default.ShoppingCart, "Carrinho"),
-            BottomNavItem("add_product", Icons.Default.Add, "Adicionar"), // Ícone de Adicionar Produto no centro
+            BottomNavItem("add_product", Icons.Outlined.AddCircleOutline, "Adicionar"),
             BottomNavItem("reports", Icons.Default.BarChart, "Análise"),
-            BottomNavItem("personalize", Icons.Default.Settings, "Personalizar") // Novo item de Personalizar
+            BottomNavItem("personalize", Icons.Default.Settings, "Personalizar")
         )
 
         // Obtém a rota atual para indicar a tela selecionada
@@ -56,7 +54,7 @@ fun CustomBottomNavigation(navController: NavController) {
                         )
                     }
                 },
-                selected = currentRoute == item.route, // Verifica se a rota atual corresponde ao item
+                selected = currentRoute == item.route,
                 onClick = {
                     navController.navigate(item.route) {
                         popUpTo(navController.graph.startDestinationId) {
@@ -66,8 +64,8 @@ fun CustomBottomNavigation(navController: NavController) {
                         restoreState = true
                     }
                 },
-                selectedContentColor = Color.Blue, // Cor do ícone/texto quando selecionado
-                unselectedContentColor = Color.Gray // Cor do ícone/texto quando não selecionado
+                selectedContentColor = Color.Blue,
+                unselectedContentColor = Color.Gray
             )
         }
     }

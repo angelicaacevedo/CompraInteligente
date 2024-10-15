@@ -11,9 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -48,7 +47,7 @@ fun CartScreen(navController: NavController, viewModel: CartViewModel = getViewM
             TopAppBar(
                 title = { Text("Carrinho") },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF4CAF50), // Cor Verde Claro para o TopAppBar
+                    containerColor = Color(0xFF4CAF50),
                     titleContentColor = Color.White
                 )
             )
@@ -122,41 +121,25 @@ fun ProductCard(product: Product, viewModel: CartViewModel) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent), // Fundo transparente
-        border = BorderStroke(1.dp, Color.LightGray) // Borda bem suave
-        // Remover o elevation
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        border = BorderStroke(1.dp, Color.LightGray)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp), // Aumentando o padding para conforto
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically // Alinhando ícones e texto
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Nome do produto
             Text(
                 text = product.name,
-                modifier = Modifier.weight(1f), // Ocupa o máximo de espaço possível
+                modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.bodyMedium
             )
 
-            // Ícones de delete e favorite
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(
-                    onClick = {
-                        viewModel.handleIntent(
-                            CartViewModel.CartIntent.RemoveProduct(product.id)
-                        )
-                    }
-                ) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = "Delete",
-                        tint = Color.Black // Ícone de delete preto
-                    )
-                }
                 IconButton(
                     onClick = {
                         viewModel.handleIntent(
@@ -170,7 +153,21 @@ fun ProductCard(product: Product, viewModel: CartViewModel) {
                     Icon(
                         if (product.isFavorite) Icons.Filled.Star else Icons.Outlined.Star,
                         contentDescription = "Favorite",
-                        tint = Color.Yellow // Ícone de favorite amarelo
+                        tint = Color.Yellow
+                    )
+                }
+
+                IconButton(
+                    onClick = {
+                        viewModel.handleIntent(
+                            CartViewModel.CartIntent.RemoveProduct(product.id)
+                        )
+                    }
+                ) {
+                    Icon(
+                        Icons.Outlined.Delete,
+                        contentDescription = "Delete",
+                        tint = Color.Black
                     )
                 }
             }

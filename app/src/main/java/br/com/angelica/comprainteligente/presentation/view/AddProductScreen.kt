@@ -1,10 +1,7 @@
 package br.com.angelica.comprainteligente.presentation.view
 
 import android.widget.Toast
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -20,10 +17,8 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddShoppingCart
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -199,7 +194,7 @@ fun AddProductScreen(
                         // Ação ao clicar no botão de favorito
                     },
                     text = "Favorito",
-                    icon = Icons.Filled.Star
+                    icon = Icons.Outlined.Star
                 )
             }
         }
@@ -219,21 +214,14 @@ fun ClickableButton(
         onClick = onClick,
         modifier = Modifier
             .wrapContentSize()
-            .border(
-                1.dp,
-                Color.Gray,
-                shape = RoundedCornerShape(8.dp)
-            )
-            .indication(interactionSource, LocalIndication.current),
-        colors = ButtonDefaults.buttonColors(containerColor = Color.White)
     ) {
         Icon(
             imageVector = icon,
             contentDescription = text,
-            tint = if (isPressed) Color.Gray else Color.Black
+            tint = if (isPressed) Color.Gray else Color.White
         )
         Spacer(modifier = Modifier.width(4.dp))
-        Text(text, color = if (isPressed) Color.Gray else Color.Black)
+        Text(text, color = if (isPressed) Color.Gray else Color.White)
     }
 }
 
