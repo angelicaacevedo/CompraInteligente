@@ -1,5 +1,6 @@
 package br.com.angelica.comprainteligente.presentation.view
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -44,20 +46,11 @@ fun CartScreen(navController: NavController, viewModel: CartViewModel = getViewM
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Carringo") },
+                title = { Text("Carrinho") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color(0xFF4CAF50), // Cor Verde Claro para o TopAppBar
                     titleContentColor = Color.White
-                ),
-                actions = {
-                    IconButton(onClick = { navController.navigate("profile") }) {
-                        Icon(
-                            Icons.Default.Person,
-                            contentDescription = "Perfil",
-                            tint = Color.White
-                        )
-                    }
-                }
+                )
             )
         },
         bottomBar = {
@@ -111,7 +104,7 @@ fun CartList(products: List<Product>, viewModel: CartViewModel) {
 fun FavoriteProductsSection(products: List<Product>, viewModel: CartViewModel) {
     Text(
         text = "Produtos Favoritos",
-        style = MaterialTheme.typography.bodyMedium,
+        style = MaterialTheme.typography.titleMedium,
         modifier = Modifier.padding(16.dp)
     )
     LazyColumn {
@@ -129,36 +122,55 @@ fun ProductCard(product: Product, viewModel: CartViewModel) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent), // Fundo transparente
+        border = BorderStroke(1.dp, Color.LightGray) // Borda bem suave
+        // Remover o elevation
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(horizontal = 16.dp, vertical = 8.dp), // Aumentando o padding para conforto
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically // Alinhando ícones e texto
         ) {
-            Text(product.name)
-            Row {
-                IconButton(onClick = {
-                    viewModel.handleIntent(
-                        CartViewModel.CartIntent.RemoveProduct(
-                            product.id
+            // Nome do produto
+            Text(
+                text = product.name,
+                modifier = Modifier.weight(1f), // Ocupa o máximo de espaço possível
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            // Ícones de delete e favorite
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = {
+                        viewModel.handleIntent(
+                            CartViewModel.CartIntent.RemoveProduct(product.id)
                         )
+                    }
+                ) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "Delete",
+                        tint = Color.Black // Ícone de delete preto
                     )
-                }) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete")
                 }
-                IconButton(onClick = {
-                    viewModel.handleIntent(
-                        CartViewModel.CartIntent.ChangeProductFavoriteStatus(
-                            product.id,
-                            !product.isFavorite
+                IconButton(
+                    onClick = {
+                        viewModel.handleIntent(
+                            CartViewModel.CartIntent.ChangeProductFavoriteStatus(
+                                product.id,
+                                !product.isFavorite
+                            )
                         )
-                    )
-                }) {
+                    }
+                ) {
                     Icon(
                         if (product.isFavorite) Icons.Filled.Star else Icons.Outlined.Star,
-                        contentDescription = "Favorite"
+                        contentDescription = "Favorite",
+                        tint = Color.Yellow // Ícone de favorite amarelo
                     )
                 }
             }
