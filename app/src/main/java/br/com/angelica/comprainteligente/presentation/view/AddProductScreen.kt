@@ -1,11 +1,13 @@
 package br.com.angelica.comprainteligente.presentation.view
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,7 +16,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.outlined.Star
@@ -43,6 +47,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import br.com.angelica.comprainteligente.model.Product
 import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigation
@@ -56,12 +61,14 @@ fun AddProductScreen(
     navController: NavController,
     viewModel: AddProductViewModel = getViewModel(),
 ) {
+    val context = LocalContext.current
+    val categories by viewModel.categories.observeAsState(emptyList())
+    val scrollState = rememberScrollState()
+
     var productName by remember { mutableStateOf("") }
     var productPrice by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("") }
-    val categories by viewModel.categories.observeAsState(emptyList())
     var isPriceError by remember { mutableStateOf(false) }
-    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -81,6 +88,7 @@ fun AddProductScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(scrollState)
                 .padding(paddingValues)
                 .padding(16.dp),
             verticalArrangement = Arrangement.Top,
@@ -241,7 +249,7 @@ fun CategoryDropdownMenu(
             onExpandedChange = { expanded = !expanded }
         ) {
             TextField(
-                value = selectedCategory,
+                value = if (selectedCategory.isEmpty()) "Selecione a Categoria" else selectedCategory,
                 onValueChange = {},
                 readOnly = true,
                 trailingIcon = {
@@ -264,7 +272,11 @@ fun CategoryDropdownMenu(
             )
             ExposedDropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onDismissRequest = { expanded = false },
+                modifier = Modifier
+                    .background(Color.Transparent)
+                    .width(IntrinsicSize.Max)
+                    .zIndex(1f)
             ) {
                 categories.forEach { category ->
                     DropdownMenuItem(
