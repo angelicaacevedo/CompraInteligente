@@ -1,7 +1,5 @@
 package br.com.angelica.comprainteligente.presentation.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.angelica.comprainteligente.data.category.CategoryRepository
