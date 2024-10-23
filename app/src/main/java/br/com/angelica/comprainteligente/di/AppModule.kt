@@ -8,6 +8,7 @@ import br.com.angelica.comprainteligente.data.repository.product.ProductReposito
 import br.com.angelica.comprainteligente.data.repository.product.ProductRepositoryImpl
 import br.com.angelica.comprainteligente.data.repository.supermarket.SupermarketRepository
 import br.com.angelica.comprainteligente.data.repository.supermarket.SupermarketRepositoryImpl
+import br.com.angelica.comprainteligente.domain.usecase.GetCategoriesUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetProductInfoFromBarcodeUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetSupermarketSuggestionsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.LoginUserUseCase
@@ -68,8 +69,9 @@ val appModule = module {
     factory { GetProductInfoFromBarcodeUseCase(get()) }
     factory { GetSupermarketSuggestionsUseCase(get()) }
     factory { RegisterProductUseCase(get()) }
+    factory { GetCategoriesUseCase(get()) }
 
     // ViewModels
     viewModel { AuthViewModel(get(), get(), get()) }
-    viewModel { ProductViewModel(get(), get(), get()) }
+    viewModel { ProductViewModel(get(), get(), get(), get()) }
 }

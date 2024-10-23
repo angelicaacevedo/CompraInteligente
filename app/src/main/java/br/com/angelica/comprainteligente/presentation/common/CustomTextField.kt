@@ -8,6 +8,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusState
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -24,7 +26,8 @@ fun CustomTextField(
     errorMessage: String? = null,
     isPassword: Boolean = false,
     isNumeric: Boolean = false,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    onFocusChanged: (FocusState) -> Unit = {}
 ) {
     val visualTransformation =
         if (isPassword) PasswordVisualTransformation() else VisualTransformation.None
@@ -41,7 +44,10 @@ fun CustomTextField(
         keyboardOptions = keyboardOptions,
         modifier = modifier
             .padding(8.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .onFocusChanged { focusState ->
+                onFocusChanged(focusState)
+            },
         colors = TextFieldDefaults.colors(
             focusedContainerColor = Color.Transparent,
             unfocusedContainerColor = Color.Transparent,

@@ -2,9 +2,11 @@ package br.com.angelica.comprainteligente.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.angelica.comprainteligente.domain.usecase.GetCategoriesUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetProductInfoFromBarcodeUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetSupermarketSuggestionsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.RegisterProductUseCase
+import br.com.angelica.comprainteligente.model.Category
 import br.com.angelica.comprainteligente.model.Price
 import br.com.angelica.comprainteligente.model.Product
 import br.com.angelica.comprainteligente.model.remote.ProductDetails
@@ -16,7 +18,8 @@ import kotlinx.coroutines.launch
 class ProductViewModel(
     private val getProductInfoFromBarcodeUseCase: GetProductInfoFromBarcodeUseCase,
     private val getSupermarketSuggestionsUseCase: GetSupermarketSuggestionsUseCase,
-    private val registerProductUseCase: RegisterProductUseCase
+    private val registerProductUseCase: RegisterProductUseCase,
+    private val getCategoriesUseCase: GetCategoriesUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ProductState>(ProductState.Idle)
@@ -33,6 +36,7 @@ class ProductViewModel(
             )
 
             is ProductIntent.LoadSuggestions -> loadSuggestions(intent.query)
+            is ProductIntent.LoadCategories -> loadCategories(intent.query)
         }
     }
 
@@ -57,6 +61,21 @@ class ProductViewModel(
                 ProductState.SuggestionsLoaded(suggestions)
             } else {
                 ProductState.Error("Nenhum supermercado encontrado")
+            }
+        }
+    }
+
+    private fun loadCategories(query: String) {
+        viewModelScope.launch {
+            _state.value = ProductState.Loading
+            val result = getCategoriesUseCase.execute()
+            if (result.isSuccess) {
+                val categories = result.getOrNull()?.filter {
+                    it.name.contains(query, ignoreCase = true) // Filtra as categorias
+                } ?: emptyList()
+                _state.value = ProductState.CategoriesLoaded(categories)
+            } else {
+                _state.value = ProductState.Error("Erro ao carregar categorias.")
             }
         }
     }
@@ -95,14 +114,16 @@ class ProductViewModel(
     sealed class ProductState {
         object Idle : ProductState()
         object Loading : ProductState()
+        object ProductRegistered : ProductState()
         data class ProductScanned(val productDetails: ProductDetails?) : ProductState()
         data class SuggestionsLoaded(val suggestions: List<String>) : ProductState()
-        object ProductRegistered : ProductState()
         data class Error(val message: String) : ProductState()
+        data class CategoriesLoaded(val categories: List<Category>) : ProductState()
     }
 
     // Intenções da ViewModel
     sealed class ProductIntent {
+        data class LoadCategories(val query: String) : ProductIntent()  // Novo com parâmetro
         data class ScanProduct(val barcode: String) : ProductIntent()
         data class RegisterProduct(
             val barcode: String,

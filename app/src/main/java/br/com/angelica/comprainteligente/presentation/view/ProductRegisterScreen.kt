@@ -9,6 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +21,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import br.com.angelica.comprainteligente.model.Category
 import br.com.angelica.comprainteligente.presentation.common.CustomTextField
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductViewModel
 import coil.annotation.ExperimentalCoilApi
@@ -55,7 +59,11 @@ fun ProductRegisterScreen(
     var productPrice by remember { mutableStateOf("") }
     var barcode by remember { mutableStateOf("") }
     var selectedSupermarket by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf("") }
     var suggestions by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
+
+    var expanded by remember { mutableStateOf(false) }  // Controla o estado do DropdownMenu
+    val categorySuggestions by remember { mutableStateOf<List<Category>>(emptyList()) }
 
     // Variável para controlar se o usuário tentou submeter o formulário
     var isFormSubmitted by remember { mutableStateOf(false) }
@@ -89,23 +97,29 @@ fun ProductRegisterScreen(
             barcodeScannerLauncher.launch(options)
         } else {
             // Permissão negada, exibir mensagem de erro
-            Toast.makeText(context, "Permissão da câmera é necessária para escanear o código de barras", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                "Permissão da câmera é necessária para escanear o código de barras",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
     LaunchedEffect(state) {
         when (state) {
             is ProductViewModel.ProductState.ProductScanned -> {
-                val productDetails = (state as ProductViewModel.ProductState.ProductScanned).productDetails
+                val productDetails =
+                    (state as ProductViewModel.ProductState.ProductScanned).productDetails
                 productName = productDetails?.product_name ?: "Produto não encontrado"
                 productImageUrl = productDetails?.image_url ?: ""
             }
 
             is ProductViewModel.ProductState.SuggestionsLoaded -> {
-                suggestions = (state as ProductViewModel.ProductState.SuggestionsLoaded).suggestions.map { suggestion ->
-                    val parts = suggestion.split(",")
-                    parts[0] to parts.getOrElse(1) { "" }
-                }
+                suggestions =
+                    (state as ProductViewModel.ProductState.SuggestionsLoaded).suggestions.map { suggestion ->
+                        val parts = suggestion.split(",")
+                        parts[0] to parts.getOrElse(1) { "" }
+                    }
             }
 
             is ProductViewModel.ProductState.ProductRegistered -> onProductRegistered()
@@ -139,7 +153,12 @@ fun ProductRegisterScreen(
                 label = "Código de Barras",
                 isError = isFormSubmitted && barcode.isEmpty(),
                 errorMessage = "Campo obrigatório",
-                enabled = isBarcodeEditable  // Controla se o campo pode ser editado
+                enabled = isBarcodeEditable,  // Controla se o campo pode ser editado
+                onFocusChanged = { focusState ->
+                    if (!focusState.isFocused && barcode.isNotEmpty()) {
+                        viewModel.handleIntent(ProductViewModel.ProductIntent.ScanProduct(barcode))
+                    }
+                }
             )
         }
 
@@ -165,17 +184,20 @@ fun ProductRegisterScreen(
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(if (productName.isEmpty()) "Escanear Código de Barras" else "Produto: $productName")
+                Text("Escanear Código de Barras")
             }
         }
 
         // Exibir nome e descrição do produto obtido da API
         if (productName.isNotEmpty()) {
             item {
-                Text(
-                    text = "Nome do Produto: $productName",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                CustomTextField(
+                    value = productName,
+                    onValueChange = { productName = it },
+                    label = "Nome do Produto",
+                    isError = isFormSubmitted && barcode.isEmpty(),
+                    errorMessage = "Campo obrigatório",
+                    enabled = isBarcodeEditable  // Controla se o campo pode ser editado
                 )
             }
         }
@@ -233,7 +255,11 @@ fun ProductRegisterScreen(
                         .padding(8.dp)
                 ) {
                     Text(text = name, color = Color.Black)  // Nome do supermercado
-                    Text(text = address, color = Color.Gray, style = MaterialTheme.typography.bodySmall)  // Endereço do supermercado
+                    Text(
+                        text = address,
+                        color = Color.Gray,
+                        style = MaterialTheme.typography.bodySmall
+                    )  // Endereço do supermercado
                 }
             }
         }

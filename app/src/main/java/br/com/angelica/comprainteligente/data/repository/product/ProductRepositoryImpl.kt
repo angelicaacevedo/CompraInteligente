@@ -1,6 +1,7 @@
 package br.com.angelica.comprainteligente.data.repository.product
 
 import br.com.angelica.comprainteligente.data.remote.OpenFoodFactsApi
+import br.com.angelica.comprainteligente.model.Category
 import br.com.angelica.comprainteligente.model.Price
 import br.com.angelica.comprainteligente.model.Product
 import br.com.angelica.comprainteligente.model.remote.ProductDetails
@@ -72,6 +73,18 @@ class ProductRepositoryImpl(
             priceCollection.document(newPriceId).set(price).await()
 
             Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getCategories(): Result<List<Category>> {
+        return try {
+            val categoriesSnapshot = firestore.collection("categories").get().await()
+            val categories = categoriesSnapshot.documents.mapNotNull { document ->
+                document.toObject(Category::class.java)
+            }
+            Result.success(categories)
         } catch (e: Exception) {
             Result.failure(e)
         }
