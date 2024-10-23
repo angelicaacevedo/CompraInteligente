@@ -3,8 +3,7 @@ package br.com.angelica.comprainteligente
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.navigation.compose.rememberNavController
-import br.com.angelica.comprainteligente.presentation.navigation.NavGraph
+import br.com.angelica.comprainteligente.presentation.navigation.AppNavigation
 import br.com.angelica.comprainteligente.theme.CompraInteligenteTheme
 
 class MainActivity : ComponentActivity() {
@@ -12,7 +11,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             CompraInteligenteTheme {
-                NavGraph()
+                AppNavigation()
             }
         }
     }

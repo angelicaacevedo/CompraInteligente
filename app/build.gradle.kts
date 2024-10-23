@@ -88,6 +88,20 @@ dependencies {
     implementation(libs.koin.android.v340)
     implementation(libs.koin.androidx.compose.v344)
 
+    // Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+
+    // Place API
+    implementation(libs.places)
+
+    // ZXing
+    implementation(libs.journeyapps.zxing.android.embedded)
+    implementation(libs.core)
+
+    // Updload the image Coil
+    implementation(libs.coil.compose)
+
     // Testing dependencies
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

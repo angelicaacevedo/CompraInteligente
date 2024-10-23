@@ -23,7 +23,8 @@ fun CustomTextField(
     isError: Boolean = false,
     errorMessage: String? = null,
     isPassword: Boolean = false,
-    isNumeric: Boolean = false
+    isNumeric: Boolean = false,
+    enabled: Boolean = true
 ) {
     val visualTransformation =
         if (isPassword) PasswordVisualTransformation() else VisualTransformation.None
@@ -38,7 +39,7 @@ fun CustomTextField(
         isError = isError,
         visualTransformation = visualTransformation,
         keyboardOptions = keyboardOptions,
-        modifier = Modifier
+        modifier = modifier
             .padding(8.dp)
             .fillMaxWidth(),
         colors = TextFieldDefaults.colors(
@@ -49,8 +50,10 @@ fun CustomTextField(
             unfocusedIndicatorColor = Color.Gray,
             errorIndicatorColor = Color.Red,
             cursorColor = Color.Black,
-            errorCursorColor = Color.Red
-        )
+            errorCursorColor = Color.Red,
+            disabledContainerColor = Color.LightGray,
+        ),
+        enabled = enabled
     )
     if (isError && !errorMessage.isNullOrEmpty()) {
         Text(

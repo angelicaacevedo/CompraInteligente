@@ -3,10 +3,9 @@ package br.com.angelica.comprainteligente.model
 import com.google.firebase.Timestamp
 
 data class Product(
-    val id: String = "",
-    val name: String = "",
-    val price: Double = 0.0,
-    val category: String = "",
-    val timestamp: Timestamp = Timestamp.now(),
-    val isFavorite: Boolean = false
+    val id: String = "",                   // ID único do produto
+    val name: String = "",                 // Nome do produto
+    val categoryId: String = "",           // ID da categoria associada
+    val imageUrl: String = "",              // URL da imagem do produto
+    val updateData: Timestamp = Timestamp.now() // Data de atualização do produto
 )

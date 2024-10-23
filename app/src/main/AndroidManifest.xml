@@ -2,7 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Permissões necessárias -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:name=".MainApplication"
@@ -13,6 +20,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.CompraInteligente"
         tools:targetApi="31">
+
+        <!-- Chave da API do Google PaGORAlaces -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyBdExxtobm1IW4hfSbmJbLWlmfPa40skQk" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
