@@ -2,6 +2,7 @@ package br.com.angelica.comprainteligente.presentation.view
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
 import org.koin.androidx.compose.getViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductListScreen(
     onBack: () -> Unit,
@@ -44,25 +44,14 @@ fun ProductListScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
-    // Carrega as listas de produtos quando o componente é inicializado
+    // Carrega as listas de produtos apneas quando a tela for carregada pela primeira vez
     LaunchedEffect(Unit) {
         viewModel.handleIntent(ProductListViewModel.ProductListIntent.LoadLists)
     }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Historico de Listas", modifier = Modifier.fillMaxWidth()) },
-                navigationIcon = {
-                    IconButton(onClick = { onBack() }) {
-                        Icon(imageVector = Icons.AutoMirrored.Default.ArrowBack, contentDescription = "Voltar")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    titleContentColor = Color.Black,
-                    containerColor = Color.White,
-                )
-            )
+            ProductListTopBar(onBack)
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onNavigateToCreateList) {
@@ -72,65 +61,105 @@ fun ProductListScreen(
     ) { paddingValues ->
         when (state) {
             is ProductListViewModel.ProductListState.Loading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
+                ProductListLoadingProgress(paddingValues)
             }
 
             is ProductListViewModel.ProductListState.ListsLoaded -> {
-                val lists = (state as ProductListViewModel.ProductListState.ListsLoaded).lists
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                ) {
-                    items(lists) { list ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp),
-                            elevation = CardDefaults.cardElevation(4.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(text = list.name, style = MaterialTheme.typography.titleMedium)
-                                IconButton(onClick = {
-                                    viewModel.handleIntent(
-                                        ProductListViewModel.ProductListIntent.DeleteList(
-                                            list.id
-                                        )
-                                    )
-                                }) {
-                                    Icon(Icons.Default.Delete, contentDescription = "Deletar Lista")
-                                }
-                            }
-                        }
-                    }
-                }
+                ProductListCard(state, paddingValues, viewModel)
             }
 
             is ProductListViewModel.ProductListState.Error -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Error: ${(state as ProductListViewModel.ProductListState.Error).message}")
-                }
+                ProductListErrorMessage(paddingValues, state)
             }
 
             else -> Unit
         }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun ProductListTopBar(onBack: () -> Unit) {
+    TopAppBar(
+        title = { Text("Historico de Listas", modifier = Modifier.fillMaxWidth()) },
+        navigationIcon = {
+            IconButton(onClick = { onBack() }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                    contentDescription = "Voltar"
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            titleContentColor = Color.Black,
+            containerColor = Color.White,
+        )
+    )
+}
+
+@Composable
+private fun ProductListLoadingProgress(paddingValues: PaddingValues) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun ProductListCard(
+    state: ProductListViewModel.ProductListState,
+    paddingValues: PaddingValues,
+    viewModel: ProductListViewModel
+) {
+    val lists = (state as ProductListViewModel.ProductListState.ListsLoaded).lists
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+    ) {
+        items(lists) { list ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = list.name, style = MaterialTheme.typography.titleMedium)
+                    IconButton(onClick = {
+                        viewModel.handleIntent(
+                            ProductListViewModel.ProductListIntent.DeleteList(list.id)
+                        )
+                    }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Deletar Lista")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProductListErrorMessage(
+    paddingValues: PaddingValues,
+    state: ProductListViewModel.ProductListState
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues),
+        contentAlignment = Alignment.Center
+    ) {
+        Text("Error: ${(state as ProductListViewModel.ProductListState.Error).message}")
     }
 }

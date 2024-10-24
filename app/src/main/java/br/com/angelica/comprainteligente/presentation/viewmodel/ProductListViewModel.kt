@@ -22,6 +22,10 @@ class ProductListViewModel(
     private val _state = MutableStateFlow<ProductListState>(ProductListState.Idle)
     val state: StateFlow<ProductListState> = _state
 
+    init {
+        loadUserLists()
+    }
+
     fun handleIntent(intent: ProductListIntent) {
         when (intent) {
             is ProductListIntent.LoadLists -> loadUserLists()
@@ -45,7 +49,6 @@ class ProductListViewModel(
 
     private fun createNewList(name: String, productIds: List<String>) {
         viewModelScope.launch {
-            _state.value = ProductListState.Loading
             val result = createListUseCase.execute(name, productIds)
             if (result.isSuccess) {
                 _state.value = ProductListState.ListCreated(true)
@@ -57,7 +60,6 @@ class ProductListViewModel(
 
     private fun deleteList(listId: String) {
         viewModelScope.launch {
-            _state.value = ProductListState.Loading
             val result = deleteListUseCase.execute(listId)
             if (result.isSuccess) {
                 loadUserLists()
@@ -77,6 +79,10 @@ class ProductListViewModel(
                 _state.value = ProductListState.Error("Failed to load suggestions")
             }
         }
+    }
+
+    fun resetState() {
+        _state.value = ProductListState.Idle
     }
 
     sealed class ProductListIntent {

@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -26,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,13 +53,24 @@ fun NewListScreen(
     var selectedProductIds by remember { mutableStateOf<List<String>>(emptyList()) }
     var selectedProducts by remember { mutableStateOf<List<Product>>(emptyList()) }
 
+    // Verifica se a lista foi criada com sucesso e dispara a navegação
+    LaunchedEffect(state) {
+        if (state is ProductListViewModel.ProductListState.ListCreated && (state as ProductListViewModel.ProductListState.ListCreated).success) {
+            onListCreated()
+            viewModel.resetState() // Reseta o estado após a navegação
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(text = "Crie uma Nova Lista", modifier = Modifier.fillMaxWidth()) },
                 navigationIcon = {
-                    IconButton(onClick = { onBack() }) {  // Adicionando o botão de voltar
-                        Icon(imageVector = Icons.AutoMirrored.Default.ArrowBack, contentDescription = "Voltar")
+                    IconButton(onClick = { onBack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                            contentDescription = "Voltar"
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -95,7 +106,8 @@ fun NewListScreen(
 
             // Exibir sugestões de produtos e permitir a seleção de múltiplos itens
             if (state is ProductListViewModel.ProductListState.SuggestionsLoaded) {
-                val suggestions = (state as ProductListViewModel.ProductListState.SuggestionsLoaded).suggestions
+                val suggestions =
+                    (state as ProductListViewModel.ProductListState.SuggestionsLoaded).suggestions
 
                 LazyColumn {
                     items(suggestions) { product ->
@@ -145,7 +157,6 @@ fun NewListScreen(
                                         .padding(end = 8.dp)  // Adiciona um espaçamento para o ícone
                                 )
 
-                                // Ícone de deletar o produto
                                 IconButton(onClick = {
                                     selectedProducts = selectedProducts.filter { it != product }
                                 }) {
