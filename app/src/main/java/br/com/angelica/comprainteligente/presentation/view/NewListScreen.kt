@@ -2,7 +2,7 @@ package br.com.angelica.comprainteligente.presentation.view
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import br.com.angelica.comprainteligente.model.Product
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
+import br.com.angelica.comprainteligente.utils.CustomAlertDialog
 import org.koin.androidx.compose.getViewModel
 
 @Composable
@@ -65,78 +66,101 @@ fun NewListScreen(
             NewListTopBar(onBack)
         }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            OutlinedTextField(
-                value = listName,
-                onValueChange = { listName = it },
-                label = { Text("Nome da Lista") }
-            )
+            item {
+                OutlinedTextField(
+                    value = listName,
+                    onValueChange = { listName = it },
+                    label = { Text("Nome da Lista") }
+                )
+            }
 
-            OutlinedTextField(
-                value = query.uppercase(),
-                onValueChange = {
-                    query = it
-                    viewModel.handleIntent(
-                        ProductListViewModel.ProductListIntent.GetProductSuggestions(it)
-                    )
-                },
-                label = { Text("Adicionar Produto") }
-            )
+            item {
+                OutlinedTextField(
+                    value = query.uppercase(),
+                    onValueChange = {
+                        query = it
+                        viewModel.handleIntent(
+                            ProductListViewModel.ProductListIntent.GetProductSuggestions(it)
+                        )
+                    },
+                    label = { Text("Adicionar Produto") }
+                )
+            }
 
             // Exibir sugestões de produtos e permitir a seleção de múltiplos itens
             if (state is ProductListViewModel.ProductListState.SuggestionsLoaded) {
                 val suggestions =
                     (state as ProductListViewModel.ProductListState.SuggestionsLoaded).suggestions
-
-                LazyColumn {
-                    items(suggestions) { product ->
-                        Text(
-                            text = product.name,
-                            modifier = Modifier.clickable {
-                                // Armazenamos os IDs dos produtos selecionados
-                                selectedProductIds = selectedProductIds + product.id
-                                // Adicionamos o produto à lista de produtos selecionados
-                                selectedProducts = selectedProducts + product
-                                query = "" // Limpa a barra de pesquisa
-                            }
-                        )
-                    }
+                items(suggestions) { product ->
+                    Text(
+                        text = product.name,
+                        modifier = Modifier.clickable {
+                            // Armazenamos os IDs dos produtos selecionados
+                            selectedProductIds = selectedProductIds + product.id
+                            // Adicionamos o produto à lista de produtos selecionados
+                            selectedProducts = selectedProducts + product
+                            query = "" // Limpa a barra de pesquisa
+                        }
+                    )
                 }
             }
 
             // Lista de produtos selecionados
             if (selectedProducts.isNotEmpty()) {
-                Text(
-                    text = "Produtos selecionados:",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 16.dp)
-                )
+                item {
+                    Text(
+                        text = "Produtos selecionados:",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                }
 
-                LazyColumn {
-                    items(selectedProducts) { product ->
-                        SelectedProductItemCard(product) { removedProduct ->
-                            // Remover o produto da lista de produtos e IDs selecionados
-                            selectedProducts = selectedProducts.filter { it != removedProduct }
-                            selectedProductIds =
-                                selectedProductIds.filter { it != removedProduct.id }
-                        }
+                items(selectedProducts) { product ->
+                    SelectedProductItemCard(product) { removedProduct ->
+                        // Remover o produto da lista de produtos e IDs selecionados
+                        selectedProducts = selectedProducts.filter { it != removedProduct }
+                        selectedProductIds =
+                            selectedProductIds.filter { it != removedProduct.id }
                     }
                 }
+            } else {
+                item { NoProductsSelectedMessage() }
             }
 
-            CreateListButton(viewModel, listName, selectedProductIds)
+            item { CreateListButton(viewModel, listName, selectedProductIds) }
 
             if (state is ProductListViewModel.ProductListState.ListCreated && (state as ProductListViewModel.ProductListState.ListCreated).success) {
                 onListCreated()
             }
         }
     }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun NewListTopBar(onBack: () -> Unit) {
+    TopAppBar(
+        title = { Text(text = "Crie uma Nova Lista", modifier = Modifier.fillMaxWidth()) },
+        navigationIcon = {
+            IconButton(onClick = { onBack() }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                    contentDescription = "Voltar"
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            titleContentColor = Color.Black,
+            containerColor = Color.White,
+        )
+    )
 }
 
 @Composable
@@ -182,37 +206,51 @@ private fun CreateListButton(
     listName: String,
     selectedProductIds: List<String>
 ) {
+
+    var showDialog by remember { mutableStateOf(false) }
     Button(
         onClick = {
-            viewModel.handleIntent(
-                ProductListViewModel.ProductListIntent.CreateNewList(
-                    listName,
-                    selectedProductIds
+            if (listName.isNotBlank() && selectedProductIds.isNotEmpty()) {
+                viewModel.handleIntent(
+                    ProductListViewModel.ProductListIntent.CreateNewList(
+                        listName,
+                        selectedProductIds
+                    )
                 )
-            )
+            } else {
+                showDialog = true
+            }
         },
-        modifier = Modifier.padding(top = 16.dp)
+        modifier = Modifier.padding(top = 16.dp, bottom = 24.dp)
     ) {
         Text("Criar Lista")
+    }
+
+    if (showDialog) {
+        CustomAlertDialog(
+            title = "ATENÇÃO",
+            message = if (listName.isBlank()) {
+                "O nome da lista não pode estar vazio. Por favor, insira um nome."
+            } else {
+                "Por favor, selecione pelo menos um produto."
+            },
+            onDismiss = { showDialog = false },
+            onConfirm = { showDialog = false },
+            confirmButtonText = "Entendi",
+            dismissButtonText = "Cancelar"
+        )
     }
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
-private fun NewListTopBar(onBack: () -> Unit) {
-    TopAppBar(
-        title = { Text(text = "Crie uma Nova Lista", modifier = Modifier.fillMaxWidth()) },
-        navigationIcon = {
-            IconButton(onClick = { onBack() }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                    contentDescription = "Voltar"
-                )
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            titleContentColor = Color.Black,
-            containerColor = Color.White,
-        )
-    )
+private fun NoProductsSelectedMessage() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text = "Nenhum produto selecionado", style = MaterialTheme.typography.bodyMedium)
+    }
 }
+
