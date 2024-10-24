@@ -65,7 +65,7 @@ fun NewListScreen(
             )
 
             OutlinedTextField(
-                value = query,
+                value = query.uppercase(),
                 onValueChange = {
                     query = it
                     viewModel.handleIntent(
@@ -87,6 +87,9 @@ fun NewListScreen(
                         Text(
                             text = product.name,
                             modifier = Modifier.clickable {
+                                // Atualizamos o campo de pesquisa com o nome selecionado
+                                query = product.name
+                                // Adicionamos o produto à lista de produtos selecionados
                                 selectedProducts = selectedProducts + product
                             }
                         )
