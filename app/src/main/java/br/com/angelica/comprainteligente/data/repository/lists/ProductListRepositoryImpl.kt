@@ -7,7 +7,7 @@ import kotlinx.coroutines.tasks.await
 
 class ProductListRepositoryImpl(
     private val firestore: FirebaseFirestore
-): ProductListRepository {
+) : ProductListRepository {
 
     private val productListCollection = firestore.collection("product_lists")
     private val productCollection = firestore.collection("products")
@@ -15,7 +15,14 @@ class ProductListRepositoryImpl(
     override suspend fun fetchUserLists(): Result<List<ProductList>> {
         return try {
             val querySnapshot = productListCollection.get().await()
-            val lists = querySnapshot.documents.mapNotNull { it.toObject(ProductList::class.java) }
+            // Mapeie manualmente os documentos, capturando o ID do documento Firestore
+            val lists = querySnapshot.documents.map { document ->
+                ProductList(
+                    id = document.id,  // Aqui estamos usando o ID gerado pelo Firestore
+                    name = document.getString("name") ?: "",
+                    productIds = document.get("productIds") as? List<String> ?: emptyList()
+                )
+            }
             Result.success(lists)
         } catch (e: Exception) {
             Result.failure(e)

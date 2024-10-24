@@ -52,7 +52,7 @@ class ProductListViewModel(
             val result = createListUseCase.execute(name, productIds)
             if (result.isSuccess) {
                 _state.value = ProductListState.ListCreated(true)
-            } else  {
+            } else {
                 _state.value = ProductListState.Error("Failed to create list")
             }
         }
