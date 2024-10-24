@@ -62,6 +62,7 @@ fun AppNavigation() {
         // Product List History Screen
         composable("list_history") {
             ProductListScreen(
+                onBack = { navController.popBackStack() },
                 onNavigateToCreateList = {
                     navController.navigate("create_list")
                 }
@@ -71,6 +72,7 @@ fun AppNavigation() {
         // Create New List Screen
         composable("create_list") {
             NewListScreen(
+                onBack = { navController.popBackStack() },
                 onListCreated = {
                     navController.navigate("list_history")
                 }
