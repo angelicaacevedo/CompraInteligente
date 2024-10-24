@@ -5,7 +5,7 @@ import br.com.angelica.comprainteligente.model.Category
 
 class GetCategoriesUseCase(private val productRepository: ProductRepository) {
 
-    suspend fun execute(): Result<List<Category>> {
-        return productRepository.getCategories()
-    }
+//    suspend fun execute(): Result<List<Category>> {
+//        return productRepository.getCategories()
+//    }
 }

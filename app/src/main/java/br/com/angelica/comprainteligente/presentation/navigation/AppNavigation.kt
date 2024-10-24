@@ -7,6 +7,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import br.com.angelica.comprainteligente.presentation.view.HomeScreen
 import br.com.angelica.comprainteligente.presentation.view.LoginScreen
+import br.com.angelica.comprainteligente.presentation.view.NewListScreen
+import br.com.angelica.comprainteligente.presentation.view.ProductListScreen
 import br.com.angelica.comprainteligente.presentation.view.ProductRegisterScreen
 import br.com.angelica.comprainteligente.presentation.view.RegisterScreen
 
@@ -15,6 +17,7 @@ fun AppNavigation() {
     val navController: NavHostController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "home") {
+        // Login Screen
         composable("login") {
             LoginScreen(
                 onLoginSuccess = {
@@ -27,6 +30,8 @@ fun AppNavigation() {
                 }
             )
         }
+
+        // Register Screen
         composable("register") {
             RegisterScreen(
                 onRegisterSuccess = {
@@ -39,13 +44,35 @@ fun AppNavigation() {
                 }
             )
         }
+
+        // Home Screen
         composable("home") {
             HomeScreen(navController = navController)
         }
+
+        // Product Register Screen
         composable("add_product") {
             ProductRegisterScreen(
                 onProductRegistered = {
-                    navController.navigate("home") // Retorna à home após cadastrar o produto
+                    navController.navigate("home")
+                }
+            )
+        }
+
+        // Product List History Screen
+        composable("list_history") {
+            ProductListScreen(
+                onNavigateToCreateList = {
+                    navController.navigate("create_list")
+                }
+            )
+        }
+
+        // Create New List Screen
+        composable("create_list") {
+            NewListScreen(
+                onListCreated = {
+                    navController.navigate("list_history")
                 }
             )
         }

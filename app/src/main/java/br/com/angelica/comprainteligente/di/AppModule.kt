@@ -4,17 +4,23 @@ import br.com.angelica.comprainteligente.data.remote.CorreiosApi
 import br.com.angelica.comprainteligente.data.remote.OpenFoodFactsApi
 import br.com.angelica.comprainteligente.data.repository.auth.AuthRepository
 import br.com.angelica.comprainteligente.data.repository.auth.AuthRepositoryImpl
+import br.com.angelica.comprainteligente.data.repository.lists.ProductListRepository
+import br.com.angelica.comprainteligente.data.repository.lists.ProductListRepositoryImpl
 import br.com.angelica.comprainteligente.data.repository.product.ProductRepository
 import br.com.angelica.comprainteligente.data.repository.product.ProductRepositoryImpl
 import br.com.angelica.comprainteligente.data.repository.supermarket.SupermarketRepository
 import br.com.angelica.comprainteligente.data.repository.supermarket.SupermarketRepositoryImpl
+import br.com.angelica.comprainteligente.domain.usecase.CreateListUseCase
+import br.com.angelica.comprainteligente.domain.usecase.FetchUserListsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetCategoriesUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetProductInfoFromBarcodeUseCase
+import br.com.angelica.comprainteligente.domain.usecase.GetProductSuggestionsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetSupermarketSuggestionsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.LoginUserUseCase
 import br.com.angelica.comprainteligente.domain.usecase.RegisterProductUseCase
 import br.com.angelica.comprainteligente.domain.usecase.RegisterUserUseCase
 import br.com.angelica.comprainteligente.presentation.viewmodel.AuthViewModel
+import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductViewModel
 import com.google.android.libraries.places.api.Places
 import com.google.firebase.auth.FirebaseAuth
@@ -62,6 +68,7 @@ val appModule = module {
     single<AuthRepository> { AuthRepositoryImpl(get(), get()) }
     single<ProductRepository> { ProductRepositoryImpl(get(), get()) }
     single<SupermarketRepository> { SupermarketRepositoryImpl(get()) }
+    single<ProductListRepository> { ProductListRepositoryImpl(get()) }
 
     // Use Cases
     factory { RegisterUserUseCase(get()) }
@@ -70,8 +77,12 @@ val appModule = module {
     factory { GetSupermarketSuggestionsUseCase(get()) }
     factory { RegisterProductUseCase(get()) }
     factory { GetCategoriesUseCase(get()) }
+    factory { FetchUserListsUseCase(get()) }
+    factory { CreateListUseCase(get()) }
+    factory { GetProductSuggestionsUseCase(get()) }
 
     // ViewModels
     viewModel { AuthViewModel(get(), get(), get()) }
     viewModel { ProductViewModel(get(), get(), get()) }
+    viewModel { ProductListViewModel(get(), get(), get()) }
 }

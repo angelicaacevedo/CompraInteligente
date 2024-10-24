@@ -4,10 +4,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -28,7 +28,7 @@ fun CustomBottomNavigation(navController: NavController) {
     ) {
         val items = listOf(
             BottomNavItem("home", Icons.Default.Home, "Início"),
-            BottomNavItem("cart", Icons.Default.ShoppingCart, "Carrinho"),
+            BottomNavItem("list_history", Icons.AutoMirrored.Default.List, "Listas"),
             BottomNavItem("add_product", Icons.Outlined.AddCircleOutline, "Adicionar"),
             BottomNavItem("reports", Icons.Default.BarChart, "Análise"),
             BottomNavItem("personalize", Icons.Default.Settings, "Personalizar")
