@@ -39,7 +39,6 @@ import br.com.angelica.comprainteligente.model.Product
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
 import org.koin.androidx.compose.getViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewListScreen(
     onBack: () -> Unit,
@@ -63,21 +62,7 @@ fun NewListScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(text = "Crie uma Nova Lista", modifier = Modifier.fillMaxWidth()) },
-                navigationIcon = {
-                    IconButton(onClick = { onBack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                            contentDescription = "Voltar"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    titleContentColor = Color.Black,
-                    containerColor = Color.White,
-                )
-            )
+            NewListTopBar(onBack)
         }
     ) { paddingValues ->
         Column(
@@ -135,59 +120,99 @@ fun NewListScreen(
 
                 LazyColumn {
                     items(selectedProducts) { product ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp, horizontal = 8.dp),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                // Aqui o texto será quebrado em várias linhas se for muito longo
-                                Text(
-                                    text = product.name,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    modifier = Modifier
-                                        .weight(1f)  // Faz com que o texto ocupe o espaço disponível no Row
-                                        .padding(end = 8.dp)  // Adiciona um espaçamento para o ícone
-                                )
-
-                                IconButton(onClick = {
-                                    selectedProducts = selectedProducts.filter { it != product }
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Delete,
-                                        contentDescription = "Remover produto"
-                                    )
-                                }
-                            }
+                        SelectedProductItemCard(product) { removedProduct ->
+                            // Remover o produto da lista de produtos e IDs selecionados
+                            selectedProducts = selectedProducts.filter { it != removedProduct }
+                            selectedProductIds =
+                                selectedProductIds.filter { it != removedProduct.id }
                         }
                     }
                 }
             }
 
-            Button(
-                onClick = {
-                    viewModel.handleIntent(
-                        ProductListViewModel.ProductListIntent.CreateNewList(
-                            listName,
-                            selectedProductIds
-                        )
-                    )
-                },
-                modifier = Modifier.padding(top = 16.dp)
-            ) {
-                Text("Criar Lista")
-            }
+            CreateListButton(viewModel, listName, selectedProductIds)
 
             if (state is ProductListViewModel.ProductListState.ListCreated && (state as ProductListViewModel.ProductListState.ListCreated).success) {
                 onListCreated()
             }
         }
     }
+}
+
+@Composable
+private fun SelectedProductItemCard(
+    product: Product,
+    onRemoveProduct: (Product) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp, horizontal = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Aqui o texto será quebrado em várias linhas se for muito longo
+            Text(
+                text = product.name,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier
+                    .weight(1f)  // Faz com que o texto ocupe o espaço disponível no Row
+                    .padding(end = 8.dp)  // Adiciona um espaçamento para o ícone
+            )
+
+            IconButton(onClick = { onRemoveProduct(product) }) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Remover produto"
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CreateListButton(
+    viewModel: ProductListViewModel,
+    listName: String,
+    selectedProductIds: List<String>
+) {
+    Button(
+        onClick = {
+            viewModel.handleIntent(
+                ProductListViewModel.ProductListIntent.CreateNewList(
+                    listName,
+                    selectedProductIds
+                )
+            )
+        },
+        modifier = Modifier.padding(top = 16.dp)
+    ) {
+        Text("Criar Lista")
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun NewListTopBar(onBack: () -> Unit) {
+    TopAppBar(
+        title = { Text(text = "Crie uma Nova Lista", modifier = Modifier.fillMaxWidth()) },
+        navigationIcon = {
+            IconButton(onClick = { onBack() }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                    contentDescription = "Voltar"
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            titleContentColor = Color.Black,
+            containerColor = Color.White,
+        )
+    )
 }
