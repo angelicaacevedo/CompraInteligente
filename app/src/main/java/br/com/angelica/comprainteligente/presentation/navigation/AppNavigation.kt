@@ -53,6 +53,7 @@ fun AppNavigation() {
         // Product Register Screen
         composable("add_product") {
             ProductRegisterScreen(
+                onBack = { navController.popBackStack() },
                 onProductRegistered = {
                     navController.navigate("home")
                 }
