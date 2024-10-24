@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -24,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import br.com.angelica.comprainteligente.model.Product
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
 import org.koin.androidx.compose.getViewModel
@@ -87,11 +89,28 @@ fun NewListScreen(
                         Text(
                             text = product.name,
                             modifier = Modifier.clickable {
-                                // Atualizamos o campo de pesquisa com o nome selecionado
-                                query = product.name
                                 // Adicionamos o produto à lista de produtos selecionados
                                 selectedProducts = selectedProducts + product
+                                query = "" // Limpa a barra de pesquisa
                             }
+                        )
+                    }
+                }
+            }
+
+            // Lista de produtos selecionados
+            if (selectedProducts.isNotEmpty()) {
+                Text(
+                    text = "Produtos selecionados:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 16.dp)
+                )
+                LazyColumn {
+                    items(selectedProducts) { product ->
+                        Text(
+                            text = product.name,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(vertical = 4.dp)
                         )
                     }
                 }
