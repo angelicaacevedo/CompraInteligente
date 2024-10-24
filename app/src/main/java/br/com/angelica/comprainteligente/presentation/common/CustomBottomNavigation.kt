@@ -5,9 +5,9 @@ import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -30,8 +30,8 @@ fun CustomBottomNavigation(navController: NavController) {
             BottomNavItem("home", Icons.Default.Home, "Início"),
             BottomNavItem("list_history", Icons.AutoMirrored.Default.List, "Listas"),
             BottomNavItem("add_product", Icons.Outlined.AddCircleOutline, "Adicionar"),
-            BottomNavItem("reports", Icons.Default.BarChart, "Análise"),
-            BottomNavItem("personalize", Icons.Default.Settings, "Personalizar")
+            BottomNavItem("personalize", Icons.Default.AttachMoney, "Preços"),
+            BottomNavItem("reports", Icons.AutoMirrored.Default.TrendingUp, "Inflação")
         )
 
         // Obtém a rota atual para indicar a tela selecionada

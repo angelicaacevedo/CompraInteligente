@@ -47,6 +47,7 @@ fun NewListScreen(
 
     var listName by remember { mutableStateOf("") }
     var query by remember { mutableStateOf("") }
+    var selectedProductIds by remember { mutableStateOf<List<String>>(emptyList()) }
     var selectedProducts by remember { mutableStateOf<List<Product>>(emptyList()) }
 
     Scaffold(
@@ -93,6 +94,8 @@ fun NewListScreen(
                         Text(
                             text = product.name,
                             modifier = Modifier.clickable {
+                                // Armazenamos os IDs dos produtos selecionados
+                                selectedProductIds = selectedProductIds + product.id
                                 // Adicionamos o produto à lista de produtos selecionados
                                 selectedProducts = selectedProducts + product
                                 query = "" // Limpa a barra de pesquisa
@@ -154,7 +157,7 @@ fun NewListScreen(
                     viewModel.handleIntent(
                         ProductListViewModel.ProductListIntent.CreateNewList(
                             listName,
-                            selectedProducts
+                            selectedProductIds
                         )
                     )
                 },

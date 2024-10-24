@@ -22,9 +22,11 @@ class ProductListRepositoryImpl(
         }
     }
 
-    override suspend fun createList(listName: String, products: List<Product>): Result<Unit> {
+    override suspend fun createList(listName: String, productIds: List<String>): Result<Unit> {
         return try {
-            val newList = ProductList(name = listName, products = products)
+            // Adicionar o id da lista da ProductList
+            val newListId = productListCollection.document().id
+            val newList = ProductList(id = newListId, name = listName, productIds = productIds)
             productListCollection.add(newList).await()
             Result.success(Unit)
         } catch (e: Exception) {

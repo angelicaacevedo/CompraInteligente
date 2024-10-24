@@ -23,7 +23,7 @@ class ProductListViewModel(
     fun handleIntent(intent: ProductListIntent) {
         when (intent) {
             is ProductListIntent.LoadLists -> loadUserLists()
-            is ProductListIntent.CreateNewList -> createNewList(intent.name, intent.products)
+            is ProductListIntent.CreateNewList -> createNewList(intent.name, intent.productIds)
             is ProductListIntent.GetProductSuggestions -> fetchProductSuggestions(intent.query)
         }
     }
@@ -40,10 +40,10 @@ class ProductListViewModel(
         }
     }
 
-    private fun createNewList(name: String, products: List<Product>) {
+    private fun createNewList(name: String, productIds: List<String>) {
         viewModelScope.launch {
             _state.value = ProductListState.Loading
-            val result = createListUseCase.execute(name, products)
+            val result = createListUseCase.execute(name, productIds)
             if (result.isSuccess) {
                 _state.value = ProductListState.ListCreated(true)
             } else  {
@@ -66,7 +66,7 @@ class ProductListViewModel(
 
     sealed class ProductListIntent {
         object LoadLists : ProductListIntent()
-        data class CreateNewList(val name: String, val products: List<Product>) : ProductListIntent()
+        data class CreateNewList(val name: String, val productIds: List<String>) : ProductListIntent()
         data class GetProductSuggestions(val query: String) : ProductListIntent()
     }
 
