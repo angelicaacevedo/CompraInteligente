@@ -1,5 +1,6 @@
 package br.com.angelica.comprainteligente.presentation.view
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,8 +41,9 @@ import org.koin.androidx.compose.getViewModel
 @Composable
 fun ProductListScreen(
     onBack: () -> Unit,
-    viewModel: ProductListViewModel = getViewModel(),
-    onNavigateToCreateList: () -> Unit
+    onNavigateToCreateList: () -> Unit,
+    onNavigateToListItems: (List<String>) -> Unit,
+    viewModel: ProductListViewModel = getViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -61,7 +63,7 @@ fun ProductListScreen(
             }
 
             is ProductListViewModel.ProductListState.ListsLoaded -> {
-                ProductListCard(state, paddingValues, viewModel)
+                ProductListCard(state, paddingValues, viewModel,onNavigateToListItems)
             }
 
             is ProductListViewModel.ProductListState.Error -> {
@@ -122,11 +124,11 @@ private fun ProductListLoadingProgress(paddingValues: PaddingValues) {
 private fun ProductListCard(
     state: ProductListViewModel.ProductListState,
     paddingValues: PaddingValues,
-    viewModel: ProductListViewModel
+    viewModel: ProductListViewModel,
+    onNavigateToListItems: (List<String>) -> Unit  // Novo parâmetro para navegação
 ) {
     val lists = (state as ProductListViewModel.ProductListState.ListsLoaded).lists
     if (lists.isEmpty()) {
-        // Exibe a mensagem personalizada se a lista estiver vazia
         EmptyProductListMessage(paddingValues)
     } else {
         LazyColumn(
@@ -138,7 +140,8 @@ private fun ProductListCard(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .clickable { onNavigateToListItems(list.productIds) },  // Clique para abrir a lista de produtos
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {
                     Row(

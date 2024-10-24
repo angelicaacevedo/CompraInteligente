@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.angelica.comprainteligente.domain.usecase.CreateListUseCase
 import br.com.angelica.comprainteligente.domain.usecase.DeleteListUseCase
+import br.com.angelica.comprainteligente.domain.usecase.FetchProductsByListUseCase
 import br.com.angelica.comprainteligente.domain.usecase.FetchUserListsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetProductSuggestionsUseCase
 import br.com.angelica.comprainteligente.model.Product
@@ -16,7 +17,8 @@ class ProductListViewModel(
     private val fetchUserListsUseCase: FetchUserListsUseCase,
     private val createListUseCase: CreateListUseCase,
     private val deleteListUseCase: DeleteListUseCase,
-    private val getProductSuggestionsUseCase: GetProductSuggestionsUseCase
+    private val getProductSuggestionsUseCase: GetProductSuggestionsUseCase,
+    private val fetchProductsByListUseCase: FetchProductsByListUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ProductListState>(ProductListState.Idle)
@@ -32,6 +34,7 @@ class ProductListViewModel(
             is ProductListIntent.CreateNewList -> createNewList(intent.name, intent.productIds)
             is ProductListIntent.GetProductSuggestions -> fetchProductSuggestions(intent.query)
             is ProductListIntent.DeleteList -> deleteList(intent.listId)
+            is ProductListIntent.ViewProductsInList -> loadProductsFromList(intent.productIds)
         }
     }
 
@@ -54,6 +57,18 @@ class ProductListViewModel(
                 _state.value = ProductListState.ListCreated(true)
             } else {
                 _state.value = ProductListState.Error("Failed to create list")
+            }
+        }
+    }
+
+    fun loadProductsFromList(productIds: List<String>) {
+        viewModelScope.launch {
+            _state.value = ProductListState.Loading
+            val result = fetchProductsByListUseCase.execute(productIds)
+            if (result.isSuccess) {
+                _state.value = ProductListState.ProductsLoaded(result.getOrNull() ?: emptyList())
+            } else {
+                _state.value = ProductListState.Error("Failed to load products")
             }
         }
     }
@@ -90,6 +105,7 @@ class ProductListViewModel(
         data class CreateNewList(val name: String, val productIds: List<String>) : ProductListIntent()
         data class DeleteList(val listId: String) : ProductListIntent()
         data class GetProductSuggestions(val query: String) : ProductListIntent()
+        data class ViewProductsInList(val productIds: List<String>) : ProductListIntent()  // Nova intenção
     }
 
     sealed class ProductListState {
@@ -98,6 +114,7 @@ class ProductListViewModel(
         data class ListsLoaded(val lists: List<ProductList>) : ProductListState()
         data class ListCreated(val success: Boolean) : ProductListState()
         data class SuggestionsLoaded(val suggestions: List<Product>) : ProductListState()
+        data class ProductsLoaded(val products: List<Product>) : ProductListState()
         data class Error(val message: String) : ProductListState()
     }
 }

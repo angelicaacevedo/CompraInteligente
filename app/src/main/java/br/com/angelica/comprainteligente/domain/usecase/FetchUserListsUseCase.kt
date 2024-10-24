@@ -8,6 +8,12 @@ class FetchUserListsUseCase(private val repository: ProductListRepository) {
     suspend fun execute(): Result<List<ProductList>> = repository.fetchUserLists()
 }
 
+class FetchProductsByListUseCase(private val repository: ProductListRepository) {
+    suspend fun execute(productIds: List<String>): Result<List<Product>> {
+        return repository.fetchProductsByIds(productIds)
+    }
+}
+
 class CreateListUseCase(private val repository: ProductListRepository) {
     suspend fun execute(listName: String, productIds: List<String>): Result<Unit> {
         return repository.createList(listName, productIds)

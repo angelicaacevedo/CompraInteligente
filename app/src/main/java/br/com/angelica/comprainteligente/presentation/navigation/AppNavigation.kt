@@ -2,10 +2,13 @@ package br.com.angelica.comprainteligente.presentation.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import br.com.angelica.comprainteligente.presentation.view.HomeScreen
+import br.com.angelica.comprainteligente.presentation.view.ListDetailScreen
 import br.com.angelica.comprainteligente.presentation.view.LoginScreen
 import br.com.angelica.comprainteligente.presentation.view.NewListScreen
 import br.com.angelica.comprainteligente.presentation.view.ProductListScreen
@@ -66,6 +69,9 @@ fun AppNavigation() {
                 onBack = { navController.popBackStack() },
                 onNavigateToCreateList = {
                     navController.navigate("create_list")
+                },
+                onNavigateToListItems = { productIds ->
+                    navController.navigate("list_items/${productIds.joinToString(",")}")
                 }
             )
         }
@@ -77,6 +83,19 @@ fun AppNavigation() {
                 onListCreated = {
                     navController.navigate("list_history")
                 }
+            )
+        }
+
+        // Navegação para a tela de itens da lista
+        composable(
+            "list_items/{productIds}",
+            arguments = listOf(navArgument("productIds") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val productIds =
+                backStackEntry.arguments?.getString("productIds")?.split(",") ?: emptyList()
+            ListDetailScreen(
+                productIds = productIds,
+                onBack = { navController.popBackStack() }
             )
         }
     }

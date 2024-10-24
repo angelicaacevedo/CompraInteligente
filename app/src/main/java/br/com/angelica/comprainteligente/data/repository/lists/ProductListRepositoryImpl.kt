@@ -3,6 +3,7 @@ package br.com.angelica.comprainteligente.data.repository.lists
 import br.com.angelica.comprainteligente.model.Product
 import br.com.angelica.comprainteligente.model.ProductList
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
@@ -13,6 +14,24 @@ class ProductListRepositoryImpl(
 
     private val productListCollection = firestore.collection("product_lists")
     private val productCollection = firestore.collection("products")
+
+    override suspend fun fetchProductsByIds(productIds: List<String>): Result<List<Product>> {
+        return try {
+            if (productIds.isNotEmpty()) {
+                val querySnapshot = productCollection
+                    .whereIn(FieldPath.documentId(), productIds)
+                    .get()
+                    .await()
+
+                val products = querySnapshot.documents.mapNotNull { it.toObject(Product::class.java) }
+                Result.success(products)
+            } else {
+                Result.success(emptyList())
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
     override suspend fun fetchUserLists(): Result<List<ProductList>> {
         return try {
