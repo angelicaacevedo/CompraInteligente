@@ -3,13 +3,20 @@ package br.com.angelica.comprainteligente.presentation.view
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -71,18 +78,15 @@ fun NewListScreen(
                 onValueChange = {
                     query = it
                     viewModel.handleIntent(
-                        ProductListViewModel.ProductListIntent.GetProductSuggestions(
-                            it
-                        )
+                        ProductListViewModel.ProductListIntent.GetProductSuggestions(it)
                     )
                 },
                 label = { Text("Adicionar Produto") }
             )
 
-            // Aqui verificamos se o estado é SuggestionsLoaded corretamente
+            // Exibir sugestões de produtos e permitir a seleção de múltiplos itens
             if (state is ProductListViewModel.ProductListState.SuggestionsLoaded) {
-                val suggestions =
-                    (state as ProductListViewModel.ProductListState.SuggestionsLoaded).suggestions
+                val suggestions = (state as ProductListViewModel.ProductListState.SuggestionsLoaded).suggestions
 
                 LazyColumn {
                     items(suggestions) { product ->
@@ -105,25 +109,57 @@ fun NewListScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(top = 16.dp)
                 )
+
                 LazyColumn {
                     items(selectedProducts) { product ->
-                        Text(
-                            text = product.name,
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.padding(vertical = 4.dp)
-                        )
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp, horizontal = 8.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // Aqui o texto será quebrado em várias linhas se for muito longo
+                                Text(
+                                    text = product.name,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    modifier = Modifier
+                                        .weight(1f)  // Faz com que o texto ocupe o espaço disponível no Row
+                                        .padding(end = 8.dp)  // Adiciona um espaçamento para o ícone
+                                )
+
+                                // Ícone de deletar o produto
+                                IconButton(onClick = {
+                                    selectedProducts = selectedProducts.filter { it != product }
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Remover produto"
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
 
-            Button(onClick = {
-                viewModel.handleIntent(
-                    ProductListViewModel.ProductListIntent.CreateNewList(
-                        listName,
-                        selectedProducts
+            Button(
+                onClick = {
+                    viewModel.handleIntent(
+                        ProductListViewModel.ProductListIntent.CreateNewList(
+                            listName,
+                            selectedProducts
+                        )
                     )
-                )
-            }) {
+                },
+                modifier = Modifier.padding(top = 16.dp)
+            ) {
                 Text("Criar Lista")
             }
 
