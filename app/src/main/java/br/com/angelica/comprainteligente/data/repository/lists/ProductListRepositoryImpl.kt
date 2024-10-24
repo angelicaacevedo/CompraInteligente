@@ -2,7 +2,9 @@ package br.com.angelica.comprainteligente.data.repository.lists
 
 import br.com.angelica.comprainteligente.model.Product
 import br.com.angelica.comprainteligente.model.ProductList
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 
 class ProductListRepositoryImpl(
@@ -14,13 +16,17 @@ class ProductListRepositoryImpl(
 
     override suspend fun fetchUserLists(): Result<List<ProductList>> {
         return try {
-            val querySnapshot = productListCollection.get().await()
-            // Mapeie manualmente os documentos, capturando o ID do documento Firestore
+            val querySnapshot = productListCollection
+                .orderBy("data", Query.Direction.DESCENDING) // ordena pela data de inserção
+                .get()
+                .await()
+
             val lists = querySnapshot.documents.map { document ->
                 ProductList(
                     id = document.id,  // Aqui estamos usando o ID gerado pelo Firestore
                     name = document.getString("name") ?: "",
-                    productIds = document.get("productIds") as? List<String> ?: emptyList()
+                    productIds = document.get("productIds") as? List<String> ?: emptyList(),
+                    data = document.getTimestamp("data") ?: Timestamp.now()
                 )
             }
             Result.success(lists)
