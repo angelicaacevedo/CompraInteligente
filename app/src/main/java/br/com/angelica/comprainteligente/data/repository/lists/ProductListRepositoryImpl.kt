@@ -34,6 +34,15 @@ class ProductListRepositoryImpl(
         }
     }
 
+    override suspend fun deleteList(listId: String): Result<Unit> {
+        return try {
+            productListCollection.document(listId).delete().await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun getSuggestions(query: String): Result<List<Product>> {
         return try {
             val querySnapshot = productCollection

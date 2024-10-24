@@ -3,6 +3,7 @@ package br.com.angelica.comprainteligente.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.angelica.comprainteligente.domain.usecase.CreateListUseCase
+import br.com.angelica.comprainteligente.domain.usecase.DeleteListUseCase
 import br.com.angelica.comprainteligente.domain.usecase.FetchUserListsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetProductSuggestionsUseCase
 import br.com.angelica.comprainteligente.model.Product
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 class ProductListViewModel(
     private val fetchUserListsUseCase: FetchUserListsUseCase,
     private val createListUseCase: CreateListUseCase,
+    private val deleteListUseCase: DeleteListUseCase,
     private val getProductSuggestionsUseCase: GetProductSuggestionsUseCase
 ) : ViewModel() {
 
@@ -25,6 +27,7 @@ class ProductListViewModel(
             is ProductListIntent.LoadLists -> loadUserLists()
             is ProductListIntent.CreateNewList -> createNewList(intent.name, intent.productIds)
             is ProductListIntent.GetProductSuggestions -> fetchProductSuggestions(intent.query)
+            is ProductListIntent.DeleteList -> deleteList(intent.listId)
         }
     }
 
@@ -52,6 +55,18 @@ class ProductListViewModel(
         }
     }
 
+    private fun deleteList(listId: String) {
+        viewModelScope.launch {
+            _state.value = ProductListState.Loading
+            val result = deleteListUseCase.execute(listId)
+            if (result.isSuccess) {
+                loadUserLists()
+            } else {
+                _state.value = ProductListState.Error("Failed to delete list")
+            }
+        }
+    }
+
     private fun fetchProductSuggestions(query: String) {
         viewModelScope.launch {
             _state.value = ProductListState.Loading
@@ -67,6 +82,7 @@ class ProductListViewModel(
     sealed class ProductListIntent {
         object LoadLists : ProductListIntent()
         data class CreateNewList(val name: String, val productIds: List<String>) : ProductListIntent()
+        data class DeleteList(val listId: String) : ProductListIntent()
         data class GetProductSuggestions(val query: String) : ProductListIntent()
     }
 

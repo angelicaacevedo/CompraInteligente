@@ -14,6 +14,12 @@ class CreateListUseCase(private val repository: ProductListRepository) {
     }
 }
 
+class DeleteListUseCase(private val repository: ProductListRepository) {
+    suspend fun execute(listId: String): Result<Unit> {
+        return repository.deleteList(listId)
+    }
+}
+
 class GetProductSuggestionsUseCase(private val repository: ProductListRepository) {
     suspend fun execute(query: String): Result<List<Product>> {
         return repository.getSuggestions(query)

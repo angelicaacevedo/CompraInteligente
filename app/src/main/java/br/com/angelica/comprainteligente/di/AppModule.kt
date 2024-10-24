@@ -11,6 +11,7 @@ import br.com.angelica.comprainteligente.data.repository.product.ProductReposito
 import br.com.angelica.comprainteligente.data.repository.supermarket.SupermarketRepository
 import br.com.angelica.comprainteligente.data.repository.supermarket.SupermarketRepositoryImpl
 import br.com.angelica.comprainteligente.domain.usecase.CreateListUseCase
+import br.com.angelica.comprainteligente.domain.usecase.DeleteListUseCase
 import br.com.angelica.comprainteligente.domain.usecase.FetchUserListsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetCategoriesUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetProductInfoFromBarcodeUseCase
@@ -59,7 +60,6 @@ val appModule = module {
     // OpenFoodFacts API
     single<OpenFoodFactsApi> { get<Retrofit>().create(OpenFoodFactsApi::class.java) }
 
-
     // Firebase dependencies
     single { FirebaseAuth.getInstance() }
     single { FirebaseFirestore.getInstance() }
@@ -79,10 +79,11 @@ val appModule = module {
     factory { GetCategoriesUseCase(get()) }
     factory { FetchUserListsUseCase(get()) }
     factory { CreateListUseCase(get()) }
+    factory { DeleteListUseCase(get()) }
     factory { GetProductSuggestionsUseCase(get()) }
 
     // ViewModels
     viewModel { AuthViewModel(get(), get(), get()) }
     viewModel { ProductViewModel(get(), get(), get()) }
-    viewModel { ProductListViewModel(get(), get(), get()) }
+    viewModel { ProductListViewModel(get(), get(), get(), get()) }
 }
