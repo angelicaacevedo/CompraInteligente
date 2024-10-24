@@ -53,12 +53,7 @@ fun ProductListScreen(
 
     Scaffold(
         topBar = {
-            ProductListTopBar(onBack)
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onNavigateToCreateList) {
-                Icon(Icons.Default.Add, contentDescription = "Add List")
-            }
+            ProductListTopBar(onBack, onNavigateToCreateList)
         }
     ) { paddingValues ->
         when (state) {
@@ -83,14 +78,25 @@ fun ProductListScreen(
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun ProductListTopBar(onBack: () -> Unit) {
+private fun ProductListTopBar(onBack: () -> Unit, onNavigateToCreateList: () -> Unit) {
     TopAppBar(
-        title = { Text("Histórico de Listas", modifier = Modifier.fillMaxWidth()) },
+        title = {
+            Text("Histórico de Listas", modifier = Modifier.fillMaxWidth())
+        },
         navigationIcon = {
             IconButton(onClick = { onBack() }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Default.ArrowBack,
                     contentDescription = "Voltar"
+                )
+            }
+        },
+        actions = {
+            // Adiciona o ícone de adicionar no lado direito da AppBar
+            IconButton(onClick = { onNavigateToCreateList() }) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Adicionar Lista"
                 )
             }
         },
@@ -133,7 +139,7 @@ private fun ProductListCard(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 16.dp),
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {
                     Row(
