@@ -2,11 +2,13 @@ package br.com.angelica.comprainteligente.presentation.view
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -72,7 +74,9 @@ fun ProductListScreen(
                 ProductListErrorMessage(paddingValues, state)
             }
 
-            else -> Unit
+            else -> {
+                EmptyProductListMessage(paddingValues)
+            }
         }
     }
 }
@@ -81,7 +85,7 @@ fun ProductListScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 private fun ProductListTopBar(onBack: () -> Unit) {
     TopAppBar(
-        title = { Text("Historico de Listas", modifier = Modifier.fillMaxWidth()) },
+        title = { Text("Histórico de Listas", modifier = Modifier.fillMaxWidth()) },
         navigationIcon = {
             IconButton(onClick = { onBack() }) {
                 Icon(
@@ -116,32 +120,37 @@ private fun ProductListCard(
     viewModel: ProductListViewModel
 ) {
     val lists = (state as ProductListViewModel.ProductListState.ListsLoaded).lists
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)
-    ) {
-        items(lists) { list ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                elevation = CardDefaults.cardElevation(4.dp)
-            ) {
-                Row(
+    if (lists.isEmpty()) {
+        // Exibe a mensagem personalizada se a lista estiver vazia
+        EmptyProductListMessage(paddingValues)
+    } else {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            items(lists) { list ->
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(horizontal = 16.dp, vertical = 16.dp),
+                    elevation = CardDefaults.cardElevation(4.dp)
                 ) {
-                    Text(text = list.name, style = MaterialTheme.typography.titleMedium)
-                    IconButton(onClick = {
-                        viewModel.handleIntent(
-                            ProductListViewModel.ProductListIntent.DeleteList(list.id)
-                        )
-                    }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Deletar Lista")
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = list.name, style = MaterialTheme.typography.titleMedium)
+                        IconButton(onClick = {
+                            viewModel.handleIntent(
+                                ProductListViewModel.ProductListIntent.DeleteList(list.id)
+                            )
+                        }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Deletar Lista")
+                        }
                     }
                 }
             }
@@ -161,5 +170,37 @@ private fun ProductListErrorMessage(
         contentAlignment = Alignment.Center
     ) {
         Text("Error: ${(state as ProductListViewModel.ProductListState.Error).message}")
+    }
+}
+
+@Composable
+private fun EmptyProductListMessage(paddingValues: PaddingValues) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = "Nenhuma lista adicionada",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = "Toque no botão para adicionar uma nova lista",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray
+            )
+        }
     }
 }
