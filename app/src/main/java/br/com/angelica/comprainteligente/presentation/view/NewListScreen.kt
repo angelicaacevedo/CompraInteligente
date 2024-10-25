@@ -156,7 +156,7 @@ fun NewListScreen(
                 item { NoProductsSelectedMessage() }
             }
 
-            item { CreateListButton(viewModel, listId, listName, selectedProductIds) }
+            item { ListButton(viewModel, listId, listName, selectedProductIds) }
 
             if (state is ProductListViewModel.ProductListState.ListCreated && (state as ProductListViewModel.ProductListState.ListCreated).success) {
                 onListCreated()
@@ -223,7 +223,7 @@ private fun SelectedProductItemCard(
 }
 
 @Composable
-private fun CreateListButton(
+private fun ListButton(
     viewModel: ProductListViewModel,
     listId: String?,
     listName: String,
@@ -247,7 +247,9 @@ private fun CreateListButton(
         },
         modifier = Modifier.padding(top = 16.dp, bottom = 24.dp)
     ) {
-        Text("Criar Lista")
+        Text(
+            if (listId == null) "Criar" else "Salvar"
+        )
     }
 
     if (showDialog) {

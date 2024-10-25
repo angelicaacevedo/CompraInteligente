@@ -68,13 +68,27 @@ fun AppNavigation() {
             HistoryListScreen(
                 onBack = { navController.navigate("home") },
                 onNavigateToCreateList = {
-                    navController.navigate("create_list")
+                    navController.navigate("create_list") // Navegar para a rota sem argumentos
                 },
                 onNavigateToListItems = { listId, listName, productIds -> // Passe o listName também
                     navController.navigate("list_items/${listId}/${listName}/${productIds.joinToString(",")}")
                 }
             )
         }
+
+        // Create New List Screen without arguments
+        composable("create_list") {
+            NewListScreen(
+                onBack = { navController.popBackStack() },
+                listId = null, // Não há listId porque é uma nova lista
+                listNameArg = "",
+                productIdsArg = emptyList(),
+                onListCreated = {
+                    navController.navigate("list_history")
+                }
+            )
+        }
+
 
         // Create New List Screen
         composable(
