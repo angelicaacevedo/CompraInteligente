@@ -30,7 +30,7 @@ fun CustomBottomNavigation(navController: NavController) {
             BottomNavItem("home", Icons.Default.Home, "Início"),
             BottomNavItem("list_history", Icons.AutoMirrored.Default.List, "Listas"),
             BottomNavItem("add_product", Icons.Outlined.AddCircleOutline, "Adicionar"),
-            BottomNavItem("personalize", Icons.Default.AttachMoney, "Preços"),
+            BottomNavItem("price_comparison", Icons.Default.AttachMoney, "Preços"),
             BottomNavItem("reports", Icons.AutoMirrored.Default.TrendingUp, "Inflação")
         )
 

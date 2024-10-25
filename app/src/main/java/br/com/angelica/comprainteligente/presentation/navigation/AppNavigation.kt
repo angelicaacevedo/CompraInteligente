@@ -12,6 +12,7 @@ import br.com.angelica.comprainteligente.presentation.view.ListDetailScreen
 import br.com.angelica.comprainteligente.presentation.view.LoginScreen
 import br.com.angelica.comprainteligente.presentation.view.NewListScreen
 import br.com.angelica.comprainteligente.presentation.view.HistoryListScreen
+import br.com.angelica.comprainteligente.presentation.view.PriceComparisonScreen
 import br.com.angelica.comprainteligente.presentation.view.ProductRegisterScreen
 import br.com.angelica.comprainteligente.presentation.view.RegisterScreen
 
@@ -63,6 +64,13 @@ fun AppNavigation() {
             )
         }
 
+        // Price Comparison Screen
+        composable("price_comparison") {
+            PriceComparisonScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
         // Product List History Screen
         composable("list_history") {
             HistoryListScreen(
@@ -71,7 +79,13 @@ fun AppNavigation() {
                     navController.navigate("create_list") // Navegar para a rota sem argumentos
                 },
                 onNavigateToListItems = { listId, listName, productIds -> // Passe o listName também
-                    navController.navigate("list_items/${listId}/${listName}/${productIds.joinToString(",")}")
+                    navController.navigate(
+                        "list_items/${listId}/${listName}/${
+                            productIds.joinToString(
+                                ","
+                            )
+                        }"
+                    )
                 }
             )
         }
@@ -89,7 +103,6 @@ fun AppNavigation() {
             )
         }
 
-
         // Create New List Screen
         composable(
             "create_list/{listId}/{listName}/{productIds}",
@@ -101,7 +114,8 @@ fun AppNavigation() {
         ) { backStackEntry ->
             val listId = backStackEntry.arguments?.getString("listId") ?: ""
             val listName = backStackEntry.arguments?.getString("listName") ?: ""
-            val productIds = backStackEntry.arguments?.getString("productIds")?.split(",") ?: emptyList()
+            val productIds =
+                backStackEntry.arguments?.getString("productIds")?.split(",") ?: emptyList()
 
             NewListScreen(
                 onBack = { navController.popBackStack() },
@@ -124,7 +138,8 @@ fun AppNavigation() {
             )
         ) { backStackEntry ->
             val listId = backStackEntry.arguments?.getString("listId") ?: ""
-            val productIds = backStackEntry.arguments?.getString("productIds")?.split(",") ?: emptyList()
+            val productIds =
+                backStackEntry.arguments?.getString("productIds")?.split(",") ?: emptyList()
             val listName = backStackEntry.arguments?.getString("listName") ?: ""
 
             ListDetailScreen(
