@@ -70,8 +70,8 @@ fun AppNavigation() {
                 onNavigateToCreateList = {
                     navController.navigate("create_list")
                 },
-                onNavigateToListItems = { listdId, listName, productIds -> // Passe o listName também
-                    navController.navigate("list_items/${listdId}/${listName}/${productIds.joinToString(",")}")
+                onNavigateToListItems = { listId, listName, productIds -> // Passe o listName também
+                    navController.navigate("list_items/${listId}/${listName}/${productIds.joinToString(",")}")
                 }
             )
         }
