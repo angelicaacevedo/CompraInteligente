@@ -43,21 +43,43 @@ import org.koin.androidx.compose.getViewModel
 @Composable
 fun NewListScreen(
     onBack: () -> Unit,
+    listId: String?,
+    listNameArg: String? = null,
+    productIdsArg: List<String>? = null,
     viewModel: ProductListViewModel = getViewModel(),
     onListCreated: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
 
-    var listName by remember { mutableStateOf("") }
+    var listName by remember {
+        mutableStateOf(
+            listNameArg ?: ""
+        )
+    } // preciso passar o valor do argumento da naviegação
     var query by remember { mutableStateOf("") }
     var selectedProductIds by remember { mutableStateOf<List<String>>(emptyList()) }
     var selectedProducts by remember { mutableStateOf<List<Product>>(emptyList()) }
 
-    // Verifica se a lista foi criada com sucesso e dispara a navegação
+    // Preencher a lista de produtos selecionados se já houver produtos
+    LaunchedEffect(productIdsArg) {
+        if (!productIdsArg.isNullOrEmpty()) {
+            selectedProductIds = productIdsArg
+            // Carregar os produtos com base nos IDs
+            viewModel.handleIntent(
+                ProductListViewModel.ProductListIntent.ViewProductsInList(productIdsArg)
+            )
+        }
+    }
+
+    // Atualizar os produtos selecionados com base no estado carregado
     LaunchedEffect(state) {
-        if (state is ProductListViewModel.ProductListState.ListCreated && (state as ProductListViewModel.ProductListState.ListCreated).success) {
-            onListCreated()
-            viewModel.resetState() // Reseta o estado após a navegação
+        if (state is ProductListViewModel.ProductListState.ProductsLoaded) {
+            selectedProducts = (state as ProductListViewModel.ProductListState.ProductsLoaded).products
+        }
+
+        if (state is ProductListViewModel.ProductListState.ListCreated) {
+            onListCreated() // volta para tela de historico de listas
+            viewModel.resetState() // Reseta o estado para evitar loops
         }
     }
 
@@ -134,7 +156,7 @@ fun NewListScreen(
                 item { NoProductsSelectedMessage() }
             }
 
-            item { CreateListButton(viewModel, listName, selectedProductIds) }
+            item { CreateListButton(viewModel, listId, listName, selectedProductIds) }
 
             if (state is ProductListViewModel.ProductListState.ListCreated && (state as ProductListViewModel.ProductListState.ListCreated).success) {
                 onListCreated()
@@ -203,6 +225,7 @@ private fun SelectedProductItemCard(
 @Composable
 private fun CreateListButton(
     viewModel: ProductListViewModel,
+    listId: String?,
     listName: String,
     selectedProductIds: List<String>
 ) {
@@ -212,7 +235,8 @@ private fun CreateListButton(
         onClick = {
             if (listName.isNotBlank() && selectedProductIds.isNotEmpty()) {
                 viewModel.handleIntent(
-                    ProductListViewModel.ProductListIntent.CreateNewList(
+                    ProductListViewModel.ProductListIntent.CreateOrUpdateList(
+                        listId,
                         listName,
                         selectedProductIds
                     )

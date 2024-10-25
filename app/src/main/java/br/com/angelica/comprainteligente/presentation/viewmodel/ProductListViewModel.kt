@@ -7,6 +7,7 @@ import br.com.angelica.comprainteligente.domain.usecase.DeleteListUseCase
 import br.com.angelica.comprainteligente.domain.usecase.FetchProductsByListUseCase
 import br.com.angelica.comprainteligente.domain.usecase.FetchUserListsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetProductSuggestionsUseCase
+import br.com.angelica.comprainteligente.domain.usecase.UpdateListUseCase
 import br.com.angelica.comprainteligente.model.Product
 import br.com.angelica.comprainteligente.model.ProductList
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +19,8 @@ class ProductListViewModel(
     private val createListUseCase: CreateListUseCase,
     private val deleteListUseCase: DeleteListUseCase,
     private val getProductSuggestionsUseCase: GetProductSuggestionsUseCase,
-    private val fetchProductsByListUseCase: FetchProductsByListUseCase
+    private val fetchProductsByListUseCase: FetchProductsByListUseCase,
+    private val updateListUseCase: UpdateListUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ProductListState>(ProductListState.Idle)
@@ -32,7 +34,11 @@ class ProductListViewModel(
     fun handleIntent(intent: ProductListIntent) {
         when (intent) {
             is ProductListIntent.LoadLists -> loadUserLists()
-            is ProductListIntent.CreateNewList -> createNewList(intent.name, intent.productIds)
+            is ProductListIntent.CreateOrUpdateList -> createOrUpdateList(
+                intent.listId,
+                intent.name,
+                intent.productIds
+            )
             is ProductListIntent.GetProductSuggestions -> fetchProductSuggestions(intent.query)
             is ProductListIntent.DeleteList -> deleteList(intent.listId)
             is ProductListIntent.ViewProductsInList -> loadProductsFromList(intent.productIds)
@@ -51,9 +57,16 @@ class ProductListViewModel(
         }
     }
 
-    private fun createNewList(name: String, productIds: List<String>) {
+    private fun createOrUpdateList(listId: String?, name: String, productIds: List<String>) {
         viewModelScope.launch {
-            val result = createListUseCase.execute(name, productIds)
+            val result = if (listId == null) {
+                // Criação de uma nova lista
+                createListUseCase.execute(name, productIds)
+            } else {
+                // Atualização de uma lista existente
+                updateListUseCase.execute(listId, name, productIds)
+            }
+
             if (result.isSuccess) {
                 _state.value = ProductListState.ListCreated(true)
             } else {
@@ -103,10 +116,15 @@ class ProductListViewModel(
 
     sealed class ProductListIntent {
         object LoadLists : ProductListIntent()
-        data class CreateNewList(val name: String, val productIds: List<String>) : ProductListIntent()
+        data class CreateOrUpdateList(
+            val listId: String?,
+            val name: String,
+            val productIds: List<String>
+        ) : ProductListIntent()
+
         data class DeleteList(val listId: String) : ProductListIntent()
         data class GetProductSuggestions(val query: String) : ProductListIntent()
-        data class ViewProductsInList(val productIds: List<String>) : ProductListIntent()  // Nova intenção
+        data class ViewProductsInList(val productIds: List<String>) : ProductListIntent()
     }
 
     sealed class ProductListState {

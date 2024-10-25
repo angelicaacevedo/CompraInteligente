@@ -21,6 +21,7 @@ import br.com.angelica.comprainteligente.domain.usecase.GetSupermarketSuggestion
 import br.com.angelica.comprainteligente.domain.usecase.LoginUserUseCase
 import br.com.angelica.comprainteligente.domain.usecase.RegisterProductUseCase
 import br.com.angelica.comprainteligente.domain.usecase.RegisterUserUseCase
+import br.com.angelica.comprainteligente.domain.usecase.UpdateListUseCase
 import br.com.angelica.comprainteligente.presentation.viewmodel.AuthViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductViewModel
@@ -83,9 +84,10 @@ val appModule = module {
     factory { DeleteListUseCase(get()) }
     factory { GetProductSuggestionsUseCase(get()) }
     factory { FetchProductsByListUseCase(get()) }
+    factory { UpdateListUseCase(get()) }
 
     // ViewModels
     viewModel { AuthViewModel(get(), get(), get()) }
     viewModel { ProductViewModel(get(), get(), get()) }
-    viewModel { ProductListViewModel(get(), get(), get(), get(), get()) }
+    viewModel { ProductListViewModel(get(), get(), get(), get(), get(), get()) }
 }

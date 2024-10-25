@@ -42,14 +42,16 @@ import org.koin.androidx.compose.getViewModel
 fun HistoryListScreen(
     onBack: () -> Unit,
     onNavigateToCreateList: () -> Unit,
-    onNavigateToListItems: (List<String>) -> Unit,
+    onNavigateToListItems: (String, String, List<String>) -> Unit,
     viewModel: ProductListViewModel = getViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 
     // Carrega as listas de produtos apneas quando a tela for carregada pela primeira vez
     LaunchedEffect(Unit) {
-        viewModel.handleIntent(ProductListViewModel.ProductListIntent.LoadLists)
+        if (state is ProductListViewModel.ProductListState.Idle || state is ProductListViewModel.ProductListState.ListCreated) {
+            viewModel.handleIntent(ProductListViewModel.ProductListIntent.LoadLists)
+        }
     }
 
     Scaffold(
@@ -63,7 +65,7 @@ fun HistoryListScreen(
             }
 
             is ProductListViewModel.ProductListState.ListsLoaded -> {
-                ProductListCard(state, paddingValues, viewModel,onNavigateToListItems)
+                ProductListCard(state, paddingValues, viewModel, onNavigateToListItems)
             }
 
             is ProductListViewModel.ProductListState.Error -> {
@@ -125,7 +127,7 @@ private fun ProductListCard(
     state: ProductListViewModel.ProductListState,
     paddingValues: PaddingValues,
     viewModel: ProductListViewModel,
-    onNavigateToListItems: (List<String>) -> Unit  // Novo parâmetro para navegação
+    onNavigateToListItems: (String, String, List<String>) -> Unit,
 ) {
     val lists = (state as ProductListViewModel.ProductListState.ListsLoaded).lists
     if (lists.isEmpty()) {
@@ -141,7 +143,13 @@ private fun ProductListCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .clickable { onNavigateToListItems(list.productIds) },  // Clique para abrir a lista de produtos
+                        .clickable {
+                            onNavigateToListItems(
+                                list.id,
+                                list.name,
+                                list.productIds
+                            )
+                        },  // Clique para abrir a lista de produtos
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {
                     Row(

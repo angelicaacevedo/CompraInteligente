@@ -65,6 +65,19 @@ class ProductListRepositoryImpl(
         }
     }
 
+    override suspend fun updateList(listId: String, name: String, productIds: List<String>): Result<Unit> {
+        return try {
+            val document = productListCollection.document(listId)
+            document.update(mapOf(
+                "name" to name,
+                "productIds" to productIds
+            )).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun deleteList(listId: String): Result<Unit> {
         return try {
             productListCollection.document(listId).delete().await()

@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -36,9 +37,12 @@ import org.koin.androidx.compose.getViewModel
 
 @Composable
 fun ListDetailScreen(
+    listId: String,
     productIds: List<String>,
+    listName: String,
     viewModel: ProductListViewModel = getViewModel(),
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onEditList: (String, String, List<String>) -> Unit
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -47,7 +51,12 @@ fun ListDetailScreen(
     }
 
     Scaffold(
-        topBar = { ListDetailTopBar(onBack) }
+        topBar = {
+            ListDetailTopBar(
+                onBack = onBack,
+                onEdit = { onEditList(listId, listName, productIds) }
+            )
+        }
     ) { paddingValues ->
         when (state) {
             is ProductListViewModel.ProductListState.Loading -> {
@@ -81,12 +90,17 @@ fun ListDetailScreen(
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun ListDetailTopBar(onBack: () -> Unit) {
+private fun ListDetailTopBar(onBack: () -> Unit, onEdit: () -> Unit) {
     TopAppBar(
         title = { Text("Produtos da Lista") },
         navigationIcon = {
             IconButton(onClick = { onBack() }) {
                 Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = "Voltar")
+            }
+        },
+        actions = {
+            IconButton(onClick = onEdit) {
+                Icon(Icons.Default.Edit, contentDescription = "Editar Lista")
             }
         }
     )

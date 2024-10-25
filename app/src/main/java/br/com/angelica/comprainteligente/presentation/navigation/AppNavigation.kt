@@ -70,16 +70,30 @@ fun AppNavigation() {
                 onNavigateToCreateList = {
                     navController.navigate("create_list")
                 },
-                onNavigateToListItems = { productIds ->
-                    navController.navigate("list_items/${productIds.joinToString(",")}")
+                onNavigateToListItems = { listdId, listName, productIds -> // Passe o listName também
+                    navController.navigate("list_items/${listdId}/${listName}/${productIds.joinToString(",")}")
                 }
             )
         }
 
         // Create New List Screen
-        composable("create_list") {
+        composable(
+            "create_list/{listId}/{listName}/{productIds}",
+            arguments = listOf(
+                navArgument("listId") { type = NavType.StringType },
+                navArgument("listName") { type = NavType.StringType },
+                navArgument("productIds") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val listId = backStackEntry.arguments?.getString("listId") ?: ""
+            val listName = backStackEntry.arguments?.getString("listName") ?: ""
+            val productIds = backStackEntry.arguments?.getString("productIds")?.split(",") ?: emptyList()
+
             NewListScreen(
                 onBack = { navController.popBackStack() },
+                listId = listId,
+                listNameArg = listName,
+                productIdsArg = productIds,
                 onListCreated = {
                     navController.navigate("list_history")
                 }
@@ -88,14 +102,25 @@ fun AppNavigation() {
 
         // Navegação para a tela de itens da lista
         composable(
-            "list_items/{productIds}",
-            arguments = listOf(navArgument("productIds") { type = NavType.StringType })
+            "list_items/{listId}/{listName}/{productIds}",
+            arguments = listOf(
+                navArgument("listId") { type = NavType.StringType },
+                navArgument("listName") { type = NavType.StringType },
+                navArgument("productIds") { type = NavType.StringType }
+            )
         ) { backStackEntry ->
-            val productIds =
-                backStackEntry.arguments?.getString("productIds")?.split(",") ?: emptyList()
+            val listId = backStackEntry.arguments?.getString("listId") ?: ""
+            val productIds = backStackEntry.arguments?.getString("productIds")?.split(",") ?: emptyList()
+            val listName = backStackEntry.arguments?.getString("listName") ?: ""
+
             ListDetailScreen(
+                listId = listId,
                 productIds = productIds,
-                onBack = { navController.popBackStack() }
+                listName = listName,
+                onBack = { navController.popBackStack() },
+                onEditList = { id, name, ids ->
+                    navController.navigate("create_list/$id/${name}/${ids.joinToString(",")}")
+                }
             )
         }
     }
