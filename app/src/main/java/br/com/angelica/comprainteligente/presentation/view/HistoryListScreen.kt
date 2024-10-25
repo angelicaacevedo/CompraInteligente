@@ -39,7 +39,7 @@ import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewM
 import org.koin.androidx.compose.getViewModel
 
 @Composable
-fun HistoryListScrren(
+fun HistoryListScreen(
     onBack: () -> Unit,
     onNavigateToCreateList: () -> Unit,
     onNavigateToListItems: (List<String>) -> Unit,

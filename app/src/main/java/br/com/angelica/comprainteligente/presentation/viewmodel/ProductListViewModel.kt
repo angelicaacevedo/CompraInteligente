@@ -26,6 +26,7 @@ class ProductListViewModel(
 
     init {
         loadUserLists()
+        loadProductsFromList(emptyList())
     }
 
     fun handleIntent(intent: ProductListIntent) {
@@ -61,7 +62,7 @@ class ProductListViewModel(
         }
     }
 
-    fun loadProductsFromList(productIds: List<String>) {
+    private fun loadProductsFromList(productIds: List<String>) {
         viewModelScope.launch {
             _state.value = ProductListState.Loading
             val result = fetchProductsByListUseCase.execute(productIds)

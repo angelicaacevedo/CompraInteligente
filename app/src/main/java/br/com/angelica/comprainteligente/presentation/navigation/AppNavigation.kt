@@ -11,7 +11,7 @@ import br.com.angelica.comprainteligente.presentation.view.HomeScreen
 import br.com.angelica.comprainteligente.presentation.view.ListDetailScreen
 import br.com.angelica.comprainteligente.presentation.view.LoginScreen
 import br.com.angelica.comprainteligente.presentation.view.NewListScreen
-import br.com.angelica.comprainteligente.presentation.view.HistoryListScrren
+import br.com.angelica.comprainteligente.presentation.view.HistoryListScreen
 import br.com.angelica.comprainteligente.presentation.view.ProductRegisterScreen
 import br.com.angelica.comprainteligente.presentation.view.RegisterScreen
 
@@ -65,7 +65,7 @@ fun AppNavigation() {
 
         // Product List History Screen
         composable("list_history") {
-            HistoryListScrren(
+            HistoryListScreen(
                 onBack = { navController.navigate("home") },
                 onNavigateToCreateList = {
                     navController.navigate("create_list")
