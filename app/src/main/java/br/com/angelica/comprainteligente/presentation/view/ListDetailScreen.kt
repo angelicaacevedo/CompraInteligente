@@ -40,13 +40,13 @@ fun ListDetailScreen(
     listId: String,
     productIds: List<String>,
     listName: String,
-    viewModel: ProductListViewModel = getViewModel(),
     onBack: () -> Unit,
-    onEditList: (String, String, List<String>) -> Unit
+    onEditList: (String, String, List<String>) -> Unit,
+    viewModel: ProductListViewModel = getViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(productIds) {
         viewModel.handleIntent(ProductListViewModel.ProductListIntent.ViewProductsInList(productIds))
     }
 
@@ -67,6 +67,10 @@ fun ListDetailScreen(
                 ProductListDetailCard(state, paddingValues)
             }
 
+            is ProductListViewModel.ProductListState.Empty -> {
+                EmptyListDetailMessage(paddingValues)
+            }
+
             is ProductListViewModel.ProductListState.Error -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -76,14 +80,7 @@ fun ListDetailScreen(
                 }
             }
 
-            else -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(text = "Nenhum produto encontrado")
-                }
-            }
+            else -> {}
         }
     }
 }

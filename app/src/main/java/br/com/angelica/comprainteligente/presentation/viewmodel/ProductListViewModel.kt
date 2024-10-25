@@ -28,7 +28,6 @@ class ProductListViewModel(
 
     init {
         loadUserLists()
-        loadProductsFromList(emptyList())
     }
 
     fun handleIntent(intent: ProductListIntent) {
@@ -39,6 +38,7 @@ class ProductListViewModel(
                 intent.name,
                 intent.productIds
             )
+
             is ProductListIntent.GetProductSuggestions -> fetchProductSuggestions(intent.query)
             is ProductListIntent.DeleteList -> deleteList(intent.listId)
             is ProductListIntent.ViewProductsInList -> loadProductsFromList(intent.productIds)
@@ -76,11 +76,21 @@ class ProductListViewModel(
     }
 
     private fun loadProductsFromList(productIds: List<String>) {
+        if (productIds.isEmpty()) {
+            _state.value = ProductListState.Empty
+            return
+        }
         viewModelScope.launch {
             _state.value = ProductListState.Loading
             val result = fetchProductsByListUseCase.execute(productIds)
+
             if (result.isSuccess) {
-                _state.value = ProductListState.ProductsLoaded(result.getOrNull() ?: emptyList())
+                val products = result.getOrNull().orEmpty()
+                if (products.isNotEmpty()) {
+                    _state.value = ProductListState.ProductsLoaded(products)
+                } else {
+                    _state.value = ProductListState.Empty
+                }
             } else {
                 _state.value = ProductListState.Error("Failed to load products")
             }
@@ -130,6 +140,7 @@ class ProductListViewModel(
     sealed class ProductListState {
         object Idle : ProductListState()
         object Loading : ProductListState()
+        object Empty : ProductListState()
         data class ListsLoaded(val lists: List<ProductList>) : ProductListState()
         data class ListCreated(val success: Boolean) : ProductListState()
         data class SuggestionsLoaded(val suggestions: List<Product>) : ProductListState()
