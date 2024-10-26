@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -39,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import br.com.angelica.comprainteligente.model.ProductList
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
@@ -60,7 +62,7 @@ fun PriceComparisonScreen(
     }
 
     // ModalBottomSheet que só será aberto quando o usuário clicar no TextField
-    if (sheetState.isVisible) { // Modal só aparece quando 'isVisible' é true
+    if (sheetState.isVisible) {
         ModalBottomSheet(
             sheetState = sheetState,
             onDismissRequest = { coroutineScope.launch { sheetState.hide() } },
@@ -115,17 +117,7 @@ fun PriceComparisonScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Comparador de Preços") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                            contentDescription = "Voltar"
-                        )
-                    }
-                }
-            )
+            PriceComparisonTopBar(onBackClick)
         },
         content = { paddingValues ->
             Column(
@@ -136,44 +128,76 @@ fun PriceComparisonScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-                OutlinedTextField(
-                    value = selectedList?.name ?: "Selecione uma lista",
-                    onValueChange = { },
-                    readOnly = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            coroutineScope.launch { sheetState.show() } // Exibe o modal quando o TextField é clicado
-                        },
-                    label = { Text("Lista de Compras") },
-                    trailingIcon = {
-                        IconButton(onClick = {
-                            coroutineScope.launch {
-                                if (sheetState.isVisible) {
-                                    sheetState.hide()
-                                } else {
-                                    sheetState.show()
-                                }
-                            }
-                        }) {
-                            Icon(
-                                imageVector = if (sheetState.isVisible) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                contentDescription = if (sheetState.isVisible) "Collapse" else "Expand"
-                            )
-                        }
-                    }
-                )
+                ListShoppingTextField(selectedList, coroutineScope, sheetState)
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Button(
-                    onClick = { /* SEM AÇÃO POR ENQUANTO */ },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = selectedList != null
-                ) {
-                    Text("Analisar")
-                }
+                AnalizerButton(selectedList)
             }
         }
     )
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun PriceComparisonTopBar(onBackClick: () -> Unit) {
+    TopAppBar(
+        title = { Text("Comparador de Preços") },
+        navigationIcon = {
+            IconButton(onClick = onBackClick) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                    contentDescription = "Voltar"
+                )
+            }
+        }
+    )
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ListShoppingTextField(
+    selectedList: ProductList?,
+    coroutineScope: CoroutineScope,
+    sheetState: SheetState
+) {
+    OutlinedTextField(
+        value = selectedList?.name ?: "Selecione uma lista",
+        onValueChange = { },
+        readOnly = true,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                coroutineScope.launch { sheetState.show() } // Exibe o modal quando o TextField é clicado
+            },
+        label = { Text("Lista de Compras") },
+        trailingIcon = {
+            IconButton(onClick = {
+                coroutineScope.launch {
+                    if (sheetState.isVisible) {
+                        sheetState.hide()
+                    } else {
+                        sheetState.show()
+                    }
+                }
+            }) {
+                Icon(
+                    imageVector = if (sheetState.isVisible) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = if (sheetState.isVisible) "Collapse" else "Expand"
+                )
+            }
+        }
+    )
+}
+
+@Composable
+private fun AnalizerButton(selectedList: ProductList?) {
+    Button(
+        onClick = { /* SEM AÇÃO POR ENQUANTO */ },
+        modifier = Modifier.fillMaxWidth(),
+        enabled = selectedList != null
+    ) {
+        Text("Analisar")
+    }
 }
