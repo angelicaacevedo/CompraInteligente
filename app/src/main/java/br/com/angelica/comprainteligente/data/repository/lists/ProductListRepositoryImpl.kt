@@ -65,12 +65,13 @@ class ProductListRepositoryImpl(
         }
     }
 
-    override suspend fun updateList(listId: String, name: String, productIds: List<String>): Result<Unit> {
+    override suspend fun updateList(listId: String, name: String, productIds: List<String>, data: Timestamp): Result<Unit> {
         return try {
             val document = productListCollection.document(listId)
             document.update(mapOf(
                 "name" to name,
-                "productIds" to productIds
+                "productIds" to productIds,
+                "data" to data
             )).await()
             Result.success(Unit)
         } catch (e: Exception) {

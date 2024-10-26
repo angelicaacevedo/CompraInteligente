@@ -10,6 +10,7 @@ import br.com.angelica.comprainteligente.domain.usecase.GetProductSuggestionsUse
 import br.com.angelica.comprainteligente.domain.usecase.UpdateListUseCase
 import br.com.angelica.comprainteligente.model.Product
 import br.com.angelica.comprainteligente.model.ProductList
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -60,12 +61,14 @@ class ProductListViewModel(
 
     private fun createOrUpdateList(listId: String?, name: String, productIds: List<String>) {
         viewModelScope.launch {
+            val updateData = Timestamp.now()
+
             val result = if (listId == null) {
                 // Criação de uma nova lista
                 createListUseCase.execute(name, productIds)
             } else {
                 // Atualização de uma lista existente
-                updateListUseCase.execute(listId, name, productIds)
+                updateListUseCase.execute(listId, name, productIds, updateData)
             }
 
             if (result.isSuccess) {
