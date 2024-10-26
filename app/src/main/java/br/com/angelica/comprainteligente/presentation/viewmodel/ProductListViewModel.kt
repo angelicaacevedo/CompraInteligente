@@ -4,12 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.angelica.comprainteligente.domain.usecase.CreateListUseCase
 import br.com.angelica.comprainteligente.domain.usecase.DeleteListUseCase
+import br.com.angelica.comprainteligente.domain.usecase.FetchLatestPricesForListUseCase
 import br.com.angelica.comprainteligente.domain.usecase.FetchProductsByListUseCase
 import br.com.angelica.comprainteligente.domain.usecase.FetchUserListsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetProductSuggestionsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.UpdateListUseCase
 import br.com.angelica.comprainteligente.model.Product
 import br.com.angelica.comprainteligente.model.ProductList
+import br.com.angelica.comprainteligente.model.ProductWithLatestPrice
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,7 +23,8 @@ class ProductListViewModel(
     private val deleteListUseCase: DeleteListUseCase,
     private val getProductSuggestionsUseCase: GetProductSuggestionsUseCase,
     private val fetchProductsByListUseCase: FetchProductsByListUseCase,
-    private val updateListUseCase: UpdateListUseCase
+    private val updateListUseCase: UpdateListUseCase,
+    private val fetchLatestPricesForListUseCase: FetchLatestPricesForListUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ProductListState>(ProductListState.Idle)
@@ -43,7 +46,13 @@ class ProductListViewModel(
 
             is ProductListIntent.GetProductSuggestions -> fetchProductSuggestions(intent.query)
             is ProductListIntent.DeleteList -> deleteList(intent.listId)
-            is ProductListIntent.ViewProductsInList -> loadProductsFromList(intent.productIds)
+            is ProductListIntent.ViewProductsInList -> {
+                if (intent.loadLatestPrices) {
+                    loadLatestPricesForList(intent.productIds)
+                } else {
+                    loadProductsFromList(intent.productIds)
+                }
+            }
         }
     }
 
@@ -124,6 +133,19 @@ class ProductListViewModel(
         }
     }
 
+    private fun loadLatestPricesForList(productIds: List<String>) {
+        viewModelScope.launch {
+            _state.value = ProductListState.Loading
+            val result = fetchLatestPricesForListUseCase.execute(productIds)
+            if (result.isSuccess) {
+                _state.value =
+                    ProductListState.ProductsWithLatestPricesLoaded(result.getOrNull().orEmpty())
+            } else {
+                _state.value = ProductListState.Error("Failed to load latest prices")
+            }
+        }
+    }
+
     fun resetState() {
         _state.value = ProductListState.Idle
     }
@@ -139,7 +161,12 @@ class ProductListViewModel(
 
         data class DeleteList(val listId: String) : ProductListIntent()
         data class GetProductSuggestions(val query: String) : ProductListIntent()
-        data class ViewProductsInList(val productIds: List<String>) : ProductListIntent()
+
+        // Adicionando uma flag para especificar se queremos carregar preços
+        data class ViewProductsInList(
+            val productIds: List<String>,
+            val loadLatestPrices: Boolean = false
+        ) : ProductListIntent()
     }
 
     sealed class ProductListState {
@@ -150,6 +177,9 @@ class ProductListViewModel(
         data class ListCreated(val success: Boolean) : ProductListState()
         data class SuggestionsLoaded(val suggestions: List<Product>) : ProductListState()
         data class ProductsLoaded(val products: List<Product>) : ProductListState()
+        data class ProductsWithLatestPricesLoaded(val products: List<ProductWithLatestPrice>) :
+            ProductListState()
+
         data class Error(val message: String) : ProductListState()
     }
 }

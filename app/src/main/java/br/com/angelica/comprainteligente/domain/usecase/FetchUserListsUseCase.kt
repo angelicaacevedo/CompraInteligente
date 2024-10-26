@@ -3,6 +3,7 @@ package br.com.angelica.comprainteligente.domain.usecase
 import br.com.angelica.comprainteligente.data.repository.lists.ProductListRepository
 import br.com.angelica.comprainteligente.model.Product
 import br.com.angelica.comprainteligente.model.ProductList
+import br.com.angelica.comprainteligente.model.ProductWithLatestPrice
 import com.google.firebase.Timestamp
 
 class FetchUserListsUseCase(private val repository: ProductListRepository) {
@@ -24,7 +25,12 @@ class CreateListUseCase(private val repository: ProductListRepository) {
 }
 
 class UpdateListUseCase(private val productListRepository: ProductListRepository) {
-    suspend fun execute(listId: String, name: String, productIds: List<String>, updateData: Timestamp): Result<Unit> {
+    suspend fun execute(
+        listId: String,
+        name: String,
+        productIds: List<String>,
+        updateData: Timestamp
+    ): Result<Unit> {
         return productListRepository.updateList(listId, name, productIds, updateData)
     }
 }
@@ -38,5 +44,11 @@ class DeleteListUseCase(private val repository: ProductListRepository) {
 class GetProductSuggestionsUseCase(private val repository: ProductListRepository) {
     suspend fun execute(query: String): Result<List<Product>> {
         return repository.getSuggestions(query)
+    }
+}
+
+class FetchLatestPricesForListUseCase(private val repository: ProductListRepository) {
+    suspend fun execute(productIds: List<String>): Result<List<ProductWithLatestPrice>> {
+        return repository.fetchLatestPricesForList(productIds)
     }
 }

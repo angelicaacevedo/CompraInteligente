@@ -20,7 +20,7 @@ import br.com.angelica.comprainteligente.presentation.view.RegisterScreen
 fun AppNavigation() {
     val navController: NavHostController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(navController = navController, startDestination = "home") {
         // Login Screen
         composable("login") {
             LoginScreen(

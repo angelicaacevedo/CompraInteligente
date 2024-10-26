@@ -2,6 +2,7 @@ package br.com.angelica.comprainteligente.data.repository.lists
 
 import br.com.angelica.comprainteligente.model.Product
 import br.com.angelica.comprainteligente.model.ProductList
+import br.com.angelica.comprainteligente.model.ProductWithLatestPrice
 import com.google.firebase.Timestamp
 
 interface ProductListRepository {
@@ -11,4 +12,5 @@ interface ProductListRepository {
     suspend fun getSuggestions(query: String): Result<List<Product>>
     suspend fun fetchProductsByIds(productIds: List<String>): Result<List<Product>>
     suspend fun fetchUserLists(includeProductIds: Boolean): Result<List<ProductList>>
+    suspend fun fetchLatestPricesForList(productIds: List<String>): Result<List<ProductWithLatestPrice>>
 }
