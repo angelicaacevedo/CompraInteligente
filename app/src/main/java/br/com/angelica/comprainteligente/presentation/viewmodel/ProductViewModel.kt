@@ -64,6 +64,8 @@ class ProductViewModel(
         viewModelScope.launch {
             _state.value = ProductState.Loading
 
+            val formatedPrice = price.replace(",", ".")
+
             // Criar o objeto do produto com as informações adicionais
             val product = Product(
                 id = barcode,
@@ -76,7 +78,7 @@ class ProductViewModel(
             val productPrice = Price(
                 productId = barcode,
                 supermarketId = supermarket,
-                price = price.toDouble(),
+                price = formatedPrice.toDouble(),
                 date = Timestamp.now()
             )
 
