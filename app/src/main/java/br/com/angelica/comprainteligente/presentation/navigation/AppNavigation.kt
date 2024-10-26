@@ -20,7 +20,7 @@ import br.com.angelica.comprainteligente.presentation.view.RegisterScreen
 fun AppNavigation() {
     val navController: NavHostController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "home") {
+    NavHost(navController = navController, startDestination = "login") {
         // Login Screen
         composable("login") {
             LoginScreen(
@@ -57,7 +57,7 @@ fun AppNavigation() {
         // Product Register Screen
         composable("add_product") {
             ProductRegisterScreen(
-                onBack = { navController.popBackStack() },
+                onBack = { navController.navigate("home") },
                 onProductRegistered = {
                     navController.navigate("home")
                 }
@@ -67,7 +67,7 @@ fun AppNavigation() {
         // Price Comparison Screen
         composable("price_comparison") {
             PriceComparisonScreen(
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.navigate("home") }
             )
         }
 
@@ -93,7 +93,7 @@ fun AppNavigation() {
         // Create New List Screen without arguments
         composable("create_list") {
             NewListScreen(
-                onBack = { navController.popBackStack() },
+                onBack = { navController.navigate("home") },
                 listId = null, // Não há listId porque é uma nova lista
                 listNameArg = "",
                 productIdsArg = emptyList(),
