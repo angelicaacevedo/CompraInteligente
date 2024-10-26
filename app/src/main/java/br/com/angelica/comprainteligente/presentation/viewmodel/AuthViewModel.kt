@@ -1,5 +1,6 @@
 package br.com.angelica.comprainteligente.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.angelica.comprainteligente.data.remote.CorreiosApi
@@ -24,9 +25,13 @@ class AuthViewModel(
     fun fetchAddressByCep(cep: String, onSuccess: (Address) -> Unit, onFailure: (String) -> Unit) {
         viewModelScope.launch {
             try {
+                Log.d("AuthViewModel", "Iniciando busca de endereço para o CEP: $cep")
                 val response = correiosApi.getAddressByCep(cep)
+                Log.d("AuthViewModel", "Resposta da API dos Correios: ${response.code()} - ${response.message()}")
                 if (response.isSuccessful) {
                     val addressResponse = response.body()
+                    Log.d("AuthViewModel", "Resposta de endereço recebida: $addressResponse")
+
                     if (addressResponse != null) {
                         val address = Address(
                             street = addressResponse.logradouro,
@@ -38,12 +43,19 @@ class AuthViewModel(
                         )
                         onSuccess(address)
                     } else {
+                        Log.e("AuthViewModel", "Corpo da resposta de endereço está vazio")
                         onFailure("Endereço não encontrado")
                     }
                 } else {
+                    val errorBody = response.errorBody()?.string()  // Armazena o corpo de erro como string
+                    Log.e("AuthViewModel", "Erro ao buscar o endereço: $errorBody")  // Exibe o erro completo no log
+                    onFailure("Erro ao buscar o endereço: ${errorBody ?: "Erro desconhecido"}")  //
+
+                    Log.e("AuthViewModel", "Erro ao buscar o endereço: ${response.errorBody()?.string()}")
                     onFailure("Erro ao buscar o endereço")
                 }
             } catch (e: Exception) {
+                Log.e("AuthViewModel", "Exceção ao buscar endereço: ${e.message}")
                 onFailure(e.message ?: "Erro desconhecido")
             }
         }

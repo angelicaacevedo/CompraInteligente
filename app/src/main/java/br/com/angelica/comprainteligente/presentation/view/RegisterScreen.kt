@@ -1,5 +1,6 @@
 package br.com.angelica.comprainteligente.presentation.view
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -58,6 +59,9 @@ fun RegisterScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var showErrors by remember { mutableStateOf(false) }
 
+    var lastSearchedCep by remember { mutableStateOf("") }
+
+
     // Verifica o estado de sucesso e navega para a tela "home"
     LaunchedEffect(authState) {
         if (authState is AuthViewModel.AuthState.Success) {
@@ -68,19 +72,27 @@ fun RegisterScreen(
 
     // Busca o endereço pelo CEP
     LaunchedEffect(cep) {
+        lastSearchedCep = cep  // Atualiza o CEP pesquisado para evitar buscas repetidas
+
         if (cep.length == 8) {  // Garante que o CEP tenha o tamanho correto antes da busca
+            Log.d("RegisterScreen", "CEP possui 8 dígitos. Iniciando busca de endereço.")
             authViewModel.fetchAddressByCep(
                 cep = cep,
                 onSuccess = { address ->
+                    Log.d("RegisterScreen", "Endereço encontrado: $address")
                     street = address.street
                     neighborhood = address.neighborhood
                     city = address.city
                     state = address.state
                 },
                 onFailure = {
+                    Log.e("RegisterScreen", "Falha ao buscar o endereço: $it")
                     errorMessage = "CEP inválido. Verifique e tente novamente."
                 }
             )
+        } else if (cep.length < 8) {
+            lastSearchedCep = ""
+            Log.d("RegisterScreen", "CEP não possui 8 dígitos: $cep")
         }
     }
 

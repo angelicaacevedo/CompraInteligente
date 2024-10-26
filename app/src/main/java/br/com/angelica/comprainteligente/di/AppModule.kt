@@ -1,5 +1,6 @@
 package br.com.angelica.comprainteligente.di
 
+import android.util.Log
 import br.com.angelica.comprainteligente.data.remote.CorreiosApi
 import br.com.angelica.comprainteligente.data.remote.OpenFoodFactsApi
 import br.com.angelica.comprainteligente.data.repository.auth.AuthRepository
@@ -30,13 +31,14 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 val appModule = module {
     // Retrofit instance for Correios API
-    single {
+    single(named("CorreiosRetrofit")) {
         Retrofit.Builder()
             .baseUrl("https://viacep.com.br/ws/")
             .addConverterFactory(GsonConverterFactory.create())
@@ -44,7 +46,7 @@ val appModule = module {
     }
 
     // Correios API instance
-    single<CorreiosApi> { get<Retrofit>().create(CorreiosApi::class.java) }
+    single<CorreiosApi> { get<Retrofit>(named("CorreiosRetrofit")).create(CorreiosApi::class.java) }
 
     // PlacesClient for Google Places API
     single {
@@ -52,7 +54,7 @@ val appModule = module {
     }
 
     // Retrofit para OpenFoodFacts
-    single {
+    single(named("OpenFoodFactsRetrofit")) {
         Retrofit.Builder()
             .baseUrl("https://world.openfoodfacts.org/")
             .addConverterFactory(GsonConverterFactory.create())
@@ -60,7 +62,7 @@ val appModule = module {
     }
 
     // OpenFoodFacts API
-    single<OpenFoodFactsApi> { get<Retrofit>().create(OpenFoodFactsApi::class.java) }
+    single<OpenFoodFactsApi> { get<Retrofit>(named("OpenFoodFactsRetrofit")).create(OpenFoodFactsApi::class.java) }
 
     // Firebase dependencies
     single { FirebaseAuth.getInstance() }
