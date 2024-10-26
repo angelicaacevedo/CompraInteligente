@@ -33,7 +33,7 @@ class ProductListRepositoryImpl(
         }
     }
 
-    override suspend fun fetchUserLists(): Result<List<ProductList>> {
+    override suspend fun fetchUserLists(includeProductIds: Boolean): Result<List<ProductList>> {
         return try {
             val querySnapshot = productListCollection
                 .orderBy("data", Query.Direction.DESCENDING) // ordena pela data de inserção
@@ -44,7 +44,7 @@ class ProductListRepositoryImpl(
                 ProductList(
                     id = document.id,  // Aqui estamos usando o ID gerado pelo Firestore
                     name = document.getString("name") ?: "",
-                    productIds = document.get("productIds") as? List<String> ?: emptyList(),
+                    productIds = if (includeProductIds) { document.get("productIds") as? List<String> ?: emptyList() } else { emptyList() },
                     data = document.getTimestamp("data") ?: Timestamp.now()
                 )
             }

@@ -5,7 +5,9 @@ import br.com.angelica.comprainteligente.model.Product
 import br.com.angelica.comprainteligente.model.ProductList
 
 class FetchUserListsUseCase(private val repository: ProductListRepository) {
-    suspend fun execute(): Result<List<ProductList>> = repository.fetchUserLists()
+    suspend fun execute(includeProductIds: Boolean): Result<List<ProductList>> {
+        return repository.fetchUserLists(includeProductIds)
+    }
 }
 
 class FetchProductsByListUseCase(private val repository: ProductListRepository) {

@@ -56,7 +56,7 @@ fun PriceComparisonScreen(
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
-        productListViewModel.handleIntent(ProductListViewModel.ProductListIntent.LoadLists)
+        productListViewModel.handleIntent(ProductListViewModel.ProductListIntent.LoadListsWithoutProductIds)
     }
 
     // ModalBottomSheet que só será aberto quando o usuário clicar no TextField

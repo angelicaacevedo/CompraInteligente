@@ -32,7 +32,8 @@ class ProductListViewModel(
 
     fun handleIntent(intent: ProductListIntent) {
         when (intent) {
-            is ProductListIntent.LoadLists -> loadUserLists()
+            is ProductListIntent.LoadLists -> loadUserLists(includeProductIds = true)
+            is ProductListIntent.LoadListsWithoutProductIds -> loadUserLists(includeProductIds = false)
             is ProductListIntent.CreateOrUpdateList -> createOrUpdateList(
                 intent.listId,
                 intent.name,
@@ -45,10 +46,10 @@ class ProductListViewModel(
         }
     }
 
-    private fun loadUserLists() {
+    private fun loadUserLists(includeProductIds: Boolean = true) {
         viewModelScope.launch {
             _state.value = ProductListState.Loading
-            val result = fetchUserListsUseCase.execute()
+            val result = fetchUserListsUseCase.execute(includeProductIds)
             if (result.isSuccess) {
                 _state.value = ProductListState.ListsLoaded(result.getOrNull() ?: emptyList())
             } else {
@@ -126,6 +127,7 @@ class ProductListViewModel(
 
     sealed class ProductListIntent {
         object LoadLists : ProductListIntent()
+        object LoadListsWithoutProductIds : ProductListIntent()
         data class CreateOrUpdateList(
             val listId: String?,
             val name: String,
