@@ -15,7 +15,13 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,10 +32,9 @@ import br.com.angelica.comprainteligente.presentation.common.CustomTextField
 import br.com.angelica.comprainteligente.presentation.viewmodel.AuthViewModel
 import org.koin.androidx.compose.getViewModel
 
-
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (String) -> Unit,
     onNavigateToRegister: () -> Unit,  // Função para navegar para a tela de cadastro
     authViewModel: AuthViewModel = getViewModel()
 ) {
@@ -44,8 +49,10 @@ fun LoginScreen(
     // Verifica o estado de sucesso e navega para a tela "home"
     LaunchedEffect(authState) {
         if (authState is AuthViewModel.AuthState.Success) {
-            onLoginSuccess()
+            val userId = (authState as AuthViewModel.AuthState.Success).userId
+            onLoginSuccess(userId)
             authViewModel.resetAuthState()  // Reseta o estado após o sucesso
+            println("Navigating to home with userId: $userId")  // Log para debug
         }
     }
 

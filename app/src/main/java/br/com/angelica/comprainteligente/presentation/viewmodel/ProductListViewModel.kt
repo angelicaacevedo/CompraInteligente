@@ -27,25 +27,34 @@ class ProductListViewModel(
     private val fetchLatestPricesForListUseCase: FetchLatestPricesForListUseCase
 ) : ViewModel() {
 
+    private lateinit var userId: String
+
     private val _state = MutableStateFlow<ProductListState>(ProductListState.Idle)
     val state: StateFlow<ProductListState> = _state
 
-    init {
-        loadUserLists()
+    // Inicializa o userId e carrega as listas do usuário
+    fun initialize(userId: String) {
+        this.userId = userId
+        loadUserLists(includeProductIds = false, userId = userId)
     }
 
     fun handleIntent(intent: ProductListIntent) {
         when (intent) {
-            is ProductListIntent.LoadLists -> loadUserLists(includeProductIds = true)
-            is ProductListIntent.LoadListsWithoutProductIds -> loadUserLists(includeProductIds = false)
+            is ProductListIntent.LoadLists -> loadUserLists(includeProductIds = true, intent.userId)
+            is ProductListIntent.LoadListsWithoutProductIds -> loadUserLists(
+                includeProductIds = false,
+                intent.userId
+            )
+
             is ProductListIntent.CreateOrUpdateList -> createOrUpdateList(
                 intent.listId,
                 intent.name,
-                intent.productIds
+                intent.productIds,
+                intent.userId
             )
 
             is ProductListIntent.GetProductSuggestions -> fetchProductSuggestions(intent.query)
-            is ProductListIntent.DeleteList -> deleteList(intent.listId)
+            is ProductListIntent.DeleteList -> deleteList(intent.listId, intent.userId)
             is ProductListIntent.ViewProductsInList -> {
                 if (intent.loadLatestPrices) {
                     loadLatestPricesForList(intent.productIds)
@@ -56,10 +65,10 @@ class ProductListViewModel(
         }
     }
 
-    private fun loadUserLists(includeProductIds: Boolean = true) {
+    private fun loadUserLists(includeProductIds: Boolean = true, userId: String) {
         viewModelScope.launch {
             _state.value = ProductListState.Loading
-            val result = fetchUserListsUseCase.execute(includeProductIds)
+            val result = fetchUserListsUseCase.execute(includeProductIds, userId)
             if (result.isSuccess) {
                 _state.value = ProductListState.ListsLoaded(result.getOrNull() ?: emptyList())
             } else {
@@ -68,13 +77,18 @@ class ProductListViewModel(
         }
     }
 
-    private fun createOrUpdateList(listId: String?, name: String, productIds: List<String>) {
+    private fun createOrUpdateList(
+        listId: String?,
+        name: String,
+        productIds: List<String>,
+        userId: String
+    ) {
         viewModelScope.launch {
             val updateData = Timestamp.now()
 
             val result = if (listId == null) {
                 // Criação de uma nova lista
-                createListUseCase.execute(name, productIds)
+                createListUseCase.execute(name, productIds, userId)
             } else {
                 // Atualização de uma lista existente
                 updateListUseCase.execute(listId, name, productIds, updateData)
@@ -110,11 +124,11 @@ class ProductListViewModel(
         }
     }
 
-    private fun deleteList(listId: String) {
+    private fun deleteList(listId: String, userId: String) {
         viewModelScope.launch {
             val result = deleteListUseCase.execute(listId)
             if (result.isSuccess) {
-                loadUserLists()
+                loadUserLists(includeProductIds = false, userId = userId)
             } else {
                 _state.value = ProductListState.Error("Failed to delete list")
             }
@@ -151,15 +165,16 @@ class ProductListViewModel(
     }
 
     sealed class ProductListIntent {
-        object LoadLists : ProductListIntent()
-        object LoadListsWithoutProductIds : ProductListIntent()
+        data class LoadLists(val userId: String) : ProductListIntent()
+        data class LoadListsWithoutProductIds(val userId: String) : ProductListIntent()
         data class CreateOrUpdateList(
             val listId: String?,
             val name: String,
-            val productIds: List<String>
+            val productIds: List<String>,
+            val userId: String
         ) : ProductListIntent()
 
-        data class DeleteList(val listId: String) : ProductListIntent()
+        data class DeleteList(val listId: String, val userId: String) : ProductListIntent()
         data class GetProductSuggestions(val query: String) : ProductListIntent()
 
         // Adicionando uma flag para especificar se queremos carregar preços

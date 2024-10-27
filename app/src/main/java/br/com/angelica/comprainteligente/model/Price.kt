@@ -8,5 +8,6 @@ data class Price(
     var supermarketId: String = "",
     val price: Double = 0.0,
     val date: Timestamp = Timestamp.now(),
-    val validationCount: Long = 0
+    val validationCount: Long = 0,
+    var userId: String = ""
 )

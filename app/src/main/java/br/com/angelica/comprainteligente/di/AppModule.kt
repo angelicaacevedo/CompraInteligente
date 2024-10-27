@@ -91,7 +91,7 @@ val appModule = module {
     factory { FetchLatestPricesForListUseCase(get()) }
 
     // ViewModels
-    viewModel { AuthViewModel(get(), get(), get()) }
+    viewModel { AuthViewModel(get(), get(), get(), get()) }
     viewModel { ProductViewModel(get(), get(), get()) }
     viewModel { ProductListViewModel(get(), get(), get(), get(), get(), get(), get()) }
 }

@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -69,7 +68,8 @@ import org.koin.androidx.compose.getViewModel
 @Composable
 fun PriceComparisonScreen(
     onBackClick: () -> Unit,
-    productListViewModel: ProductListViewModel = getViewModel()
+    productListViewModel: ProductListViewModel = getViewModel(),
+    userId: String
 ) {
     val state by productListViewModel.state.collectAsState()
     var selectedList by remember { mutableStateOf<ProductList?>(null) }
@@ -80,8 +80,13 @@ fun PriceComparisonScreen(
 
     // Carrega listas no inicio se ainda não estiverem carregadas
     LaunchedEffect(Unit) {
+        productListViewModel.initialize(userId)
         if (state !is ProductListViewModel.ProductListState.ListsLoaded) {
-            productListViewModel.handleIntent(ProductListViewModel.ProductListIntent.LoadLists)
+            productListViewModel.handleIntent(
+                ProductListViewModel.ProductListIntent.LoadLists(
+                    userId
+                )
+            )
         }
     }
 
@@ -137,7 +142,11 @@ fun PriceComparisonScreen(
     if (sheetState.isVisible) {
         LaunchedEffect(sheetState.isVisible) {
             // Recarrega as listas sempre que o modal é aberto
-            productListViewModel.handleIntent(ProductListViewModel.ProductListIntent.LoadLists)
+            productListViewModel.handleIntent(
+                ProductListViewModel.ProductListIntent.LoadLists(
+                    userId
+                )
+            )
         }
     }
 

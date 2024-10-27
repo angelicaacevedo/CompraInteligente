@@ -1,6 +1,5 @@
 package br.com.angelica.comprainteligente.data.repository.auth
 
-
 import br.com.angelica.comprainteligente.model.Address
 import br.com.angelica.comprainteligente.model.User
 import com.google.firebase.auth.FirebaseAuth
@@ -12,10 +11,11 @@ class AuthRepositoryImpl(
     private val firestore: FirebaseFirestore
 ) : AuthRepository {
 
-    override suspend fun register(user: User, address: Address): Result<Unit> {
+    override suspend fun register(user: User, address: Address): Result<String> {
         return try {
             // Register the user in Firebase Authentication
-            val authResult = firebaseAuth.createUserWithEmailAndPassword(user.email, user.passwordHash).await()
+            val authResult =
+                firebaseAuth.createUserWithEmailAndPassword(user.email, user.passwordHash).await()
             val userId = authResult.user?.uid ?: throw Exception("User ID not found")
 
             // Save the user and address in Firestore
@@ -33,17 +33,17 @@ class AuthRepositoryImpl(
                 )
             )
             firestore.collection("users").document(userId).set(userData).await()
-
-            Result.success(Unit)
+            Result.success(userId)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun login(email: String, password: String): Result<Unit> {
+    override suspend fun login(email: String, password: String): Result<String> {
         return try {
-            firebaseAuth.signInWithEmailAndPassword(email, password).await()
-            Result.success(Unit)
+            val authResult = firebaseAuth.signInWithEmailAndPassword(email, password).await()
+            val userId = authResult.user?.uid ?: throw Exception("User ID not found")
+            Result.success(userId)
         } catch (e: Exception) {
             Result.failure(e)
         }

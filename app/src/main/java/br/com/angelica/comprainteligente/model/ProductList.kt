@@ -6,5 +6,6 @@ data class ProductList(
     val id: String = "",
     val name: String = "",
     val productIds: List<String> = emptyList(),
-    var data: Timestamp = Timestamp.now()
+    var data: Timestamp = Timestamp.now(),
+    val userId: String = ""
 )

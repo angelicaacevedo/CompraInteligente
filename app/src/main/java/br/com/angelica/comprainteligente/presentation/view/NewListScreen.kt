@@ -43,6 +43,7 @@ import org.koin.androidx.compose.getViewModel
 @Composable
 fun NewListScreen(
     onBack: () -> Unit,
+    userId: String,
     listId: String?,
     listNameArg: String? = null,
     productIdsArg: List<String>? = null,
@@ -62,6 +63,7 @@ fun NewListScreen(
 
     // Preencher a lista de produtos selecionados se já houver produtos
     LaunchedEffect(productIdsArg) {
+        viewModel.initialize(userId)
         if (!productIdsArg.isNullOrEmpty()) {
             selectedProductIds = productIdsArg
             // Carregar os produtos com base nos IDs
@@ -74,7 +76,8 @@ fun NewListScreen(
     // Atualizar os produtos selecionados com base no estado carregado
     LaunchedEffect(state) {
         if (state is ProductListViewModel.ProductListState.ProductsLoaded) {
-            selectedProducts = (state as ProductListViewModel.ProductListState.ProductsLoaded).products
+            selectedProducts =
+                (state as ProductListViewModel.ProductListState.ProductsLoaded).products
         }
 
         if (state is ProductListViewModel.ProductListState.ListCreated) {
@@ -156,7 +159,7 @@ fun NewListScreen(
                 item { NoProductsSelectedMessage() }
             }
 
-            item { ListButton(viewModel, listId, listName, selectedProductIds) }
+            item { ListButton(viewModel, userId, listId, listName, selectedProductIds) }
 
             if (state is ProductListViewModel.ProductListState.ListCreated && (state as ProductListViewModel.ProductListState.ListCreated).success) {
                 onListCreated()
@@ -225,6 +228,7 @@ private fun SelectedProductItemCard(
 @Composable
 private fun ListButton(
     viewModel: ProductListViewModel,
+    userId: String,
     listId: String?,
     listName: String,
     selectedProductIds: List<String>
@@ -236,9 +240,10 @@ private fun ListButton(
             if (listName.isNotBlank() && selectedProductIds.isNotEmpty()) {
                 viewModel.handleIntent(
                     ProductListViewModel.ProductListIntent.CreateOrUpdateList(
-                        listId,
-                        listName,
-                        selectedProductIds
+                        listId = listId,
+                        name = listName,
+                        productIds = selectedProductIds,
+                        userId = userId
                     )
                 )
             } else {

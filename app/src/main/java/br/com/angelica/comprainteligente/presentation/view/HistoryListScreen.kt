@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
+
 import org.koin.androidx.compose.getViewModel
 
 @Composable
@@ -43,15 +44,15 @@ fun HistoryListScreen(
     onBack: () -> Unit,
     onNavigateToCreateList: () -> Unit,
     onNavigateToListItems: (String, String, List<String>) -> Unit,
-    viewModel: ProductListViewModel = getViewModel()
+    viewModel: ProductListViewModel = getViewModel(),
+    userId: String
 ) {
     val state by viewModel.state.collectAsState()
 
     // Carrega as listas de produtos apneas quando a tela for carregada pela primeira vez
     LaunchedEffect(Unit) {
-        if (state is ProductListViewModel.ProductListState.Idle || state is ProductListViewModel.ProductListState.ListCreated) {
-            viewModel.handleIntent(ProductListViewModel.ProductListIntent.LoadLists)
-        }
+        viewModel.initialize(userId)
+        viewModel.handleIntent(ProductListViewModel.ProductListIntent.LoadLists(userId))
     }
 
     Scaffold(
@@ -65,7 +66,7 @@ fun HistoryListScreen(
             }
 
             is ProductListViewModel.ProductListState.ListsLoaded -> {
-                ProductListCard(state, paddingValues, viewModel, onNavigateToListItems)
+                ProductListCard(state, paddingValues, viewModel, onNavigateToListItems, userId)
             }
 
             is ProductListViewModel.ProductListState.Error -> {
@@ -128,6 +129,7 @@ private fun ProductListCard(
     paddingValues: PaddingValues,
     viewModel: ProductListViewModel,
     onNavigateToListItems: (String, String, List<String>) -> Unit,
+    userId: String
 ) {
     val lists = (state as ProductListViewModel.ProductListState.ListsLoaded).lists
     if (lists.isEmpty()) {
@@ -162,7 +164,7 @@ private fun ProductListCard(
                         Text(text = list.name, style = MaterialTheme.typography.titleMedium)
                         IconButton(onClick = {
                             viewModel.handleIntent(
-                                ProductListViewModel.ProductListIntent.DeleteList(list.id)
+                                ProductListViewModel.ProductListIntent.DeleteList(list.id, userId)
                             )
                         }) {
                             Icon(Icons.Default.Delete, contentDescription = "Deletar Lista")

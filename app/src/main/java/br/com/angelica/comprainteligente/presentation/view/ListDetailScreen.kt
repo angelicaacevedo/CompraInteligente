@@ -37,16 +37,18 @@ import org.koin.androidx.compose.getViewModel
 
 @Composable
 fun ListDetailScreen(
+    userId: String,
     listId: String,
     productIds: List<String>,
     listName: String,
     onBack: () -> Unit,
     onEditList: (String, String, List<String>) -> Unit,
-    viewModel: ProductListViewModel = getViewModel()
+    viewModel: ProductListViewModel = getViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(productIds) {
+        viewModel.initialize(userId)
         viewModel.handleIntent(ProductListViewModel.ProductListIntent.ViewProductsInList(productIds))
     }
 
@@ -87,7 +89,10 @@ fun ListDetailScreen(
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun ListDetailTopBar(onBack: () -> Unit, onEdit: () -> Unit) {
+private fun ListDetailTopBar(
+    onBack: () -> Unit,
+    onEdit: () -> Unit
+) {
     TopAppBar(
         title = { Text("Produtos da Lista") },
         navigationIcon = {
@@ -119,7 +124,7 @@ private fun ProductListDetailCard(
     state: ProductListViewModel.ProductListState,
     paddingValues: PaddingValues
 ) {
-    val products =  (state as ProductListViewModel.ProductListState.ProductsLoaded).products
+    val products = (state as ProductListViewModel.ProductListState.ProductsLoaded).products
 
     if (products.isEmpty()) {
         EmptyListDetailMessage(paddingValues)

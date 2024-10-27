@@ -29,8 +29,10 @@ class ProductViewModel(
                 intent.barcode,
                 intent.name,
                 intent.price,
-                intent.supermarket
+                intent.supermarket,
+                intent.userId
             )
+
             is ProductIntent.LoadSuggestions -> loadSuggestions(intent.query)
         }
     }
@@ -60,7 +62,13 @@ class ProductViewModel(
         }
     }
 
-    private fun registerProduct(barcode: String, name: String, price: String, supermarket: String) {
+    private fun registerProduct(
+        barcode: String,
+        name: String,
+        price: String,
+        supermarket: String,
+        userId: String
+    ) {
         viewModelScope.launch {
             _state.value = ProductState.Loading
 
@@ -71,7 +79,8 @@ class ProductViewModel(
                 id = barcode,
                 name = name,
                 categoryId = "",    // Pode ser ajustado para adicionar uma categoria real
-                imageUrl = ""       // Pode ser ajustado para adicionar uma URL real de imagem
+                imageUrl = "",       // Pode ser ajustado para adicionar uma URL real de imagem
+                userId = userId
             )
 
             // Criar o objeto de preço
@@ -79,7 +88,8 @@ class ProductViewModel(
                 productId = barcode,
                 supermarketId = supermarket,
                 price = formatedPrice.toDouble(),
-                date = Timestamp.now()
+                date = Timestamp.now(),
+                userId = userId
             )
 
             val result = registerProductUseCase.execute(product, productPrice)
@@ -90,6 +100,10 @@ class ProductViewModel(
                 _state.value = ProductState.Error("Erro ao registrar o produto.")
             }
         }
+    }
+
+    fun resetState() {
+        _state.value = ProductState.Idle
     }
 
     // Estados da ViewModel
@@ -109,7 +123,8 @@ class ProductViewModel(
             val barcode: String,
             val name: String,
             val price: String,
-            val supermarket: String
+            val supermarket: String,
+            val userId: String
         ) : ProductIntent()
 
         data class LoadSuggestions(val query: String) : ProductIntent()

@@ -1,11 +1,12 @@
 package br.com.angelica.comprainteligente.presentation.viewmodel
 
-import android.util.Log
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import android.content.Context
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.angelica.comprainteligente.data.remote.CorreiosApi
-import br.com.angelica.comprainteligente.domain.usecase.RegisterUserUseCase
 import br.com.angelica.comprainteligente.domain.usecase.LoginUserUseCase
+import br.com.angelica.comprainteligente.domain.usecase.RegisterUserUseCase
 import br.com.angelica.comprainteligente.model.Address
 import br.com.angelica.comprainteligente.model.User
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,10 +14,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class AuthViewModel(
+    application: Application,
     private val registerUserUseCase: RegisterUserUseCase,
     private val loginUserUseCase: LoginUserUseCase,
-    private val correiosApi: CorreiosApi
-) : ViewModel() {
+    private val correiosApi: CorreiosApi,
+) : AndroidViewModel(application) {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> = _authState
@@ -25,12 +27,9 @@ class AuthViewModel(
     fun fetchAddressByCep(cep: String, onSuccess: (Address) -> Unit, onFailure: (String) -> Unit) {
         viewModelScope.launch {
             try {
-                Log.d("AuthViewModel", "Iniciando busca de endereço para o CEP: $cep")
                 val response = correiosApi.getAddressByCep(cep)
-                Log.d("AuthViewModel", "Resposta da API dos Correios: ${response.code()} - ${response.message()}")
                 if (response.isSuccessful) {
                     val addressResponse = response.body()
-                    Log.d("AuthViewModel", "Resposta de endereço recebida: $addressResponse")
 
                     if (addressResponse != null) {
                         val address = Address(
@@ -43,19 +42,14 @@ class AuthViewModel(
                         )
                         onSuccess(address)
                     } else {
-                        Log.e("AuthViewModel", "Corpo da resposta de endereço está vazio")
                         onFailure("Endereço não encontrado")
                     }
                 } else {
-                    val errorBody = response.errorBody()?.string()  // Armazena o corpo de erro como string
-                    Log.e("AuthViewModel", "Erro ao buscar o endereço: $errorBody")  // Exibe o erro completo no log
+                    val errorBody =
+                        response.errorBody()?.string()  // Armazena o corpo de erro como string
                     onFailure("Erro ao buscar o endereço: ${errorBody ?: "Erro desconhecido"}")  //
-
-                    Log.e("AuthViewModel", "Erro ao buscar o endereço: ${response.errorBody()?.string()}")
-                    onFailure("Erro ao buscar o endereço")
                 }
             } catch (e: Exception) {
-                Log.e("AuthViewModel", "Exceção ao buscar endereço: ${e.message}")
                 onFailure(e.message ?: "Erro desconhecido")
             }
         }
@@ -66,9 +60,12 @@ class AuthViewModel(
         viewModelScope.launch {
             val result = registerUserUseCase.execute(user, address)
             if (result.isSuccess) {
-                _authState.value = AuthState.Success  // Alterar o estado para sucesso
+                val userId = result.getOrNull() ?: ""
+                saveUserIdToPreferences(userId)
+                _authState.value = AuthState.Success(userId)  // Alterar o estado para sucesso
             } else {
-                _authState.value = AuthState.Error(result.exceptionOrNull()?.message ?: "Erro no cadastro")
+                _authState.value =
+                    AuthState.Error(result.exceptionOrNull()?.message ?: "Erro no cadastro")
             }
         }
     }
@@ -78,9 +75,14 @@ class AuthViewModel(
         viewModelScope.launch {
             val result = loginUserUseCase.execute(email, password)
             if (result.isSuccess) {
-                _authState.value = AuthState.Success
+                val userId = result.getOrNull() ?: ""
+                saveUserIdToPreferences(userId)
+                _authState.value = AuthState.Success(userId)
             } else {
-                _authState.value = AuthState.Error(result.exceptionOrNull()?.message ?: "Falha ao fazer login. Verifique suas credenciais.")
+                _authState.value = AuthState.Error(
+                    result.exceptionOrNull()?.message
+                        ?: "Falha ao fazer login. Verifique suas credenciais."
+                )
             }
         }
     }
@@ -88,12 +90,23 @@ class AuthViewModel(
     // Reseta o estado após sucesso ou erro
     fun resetAuthState() {
         _authState.value = AuthState.Idle
+        println("Auth state reset to Idle")  // Log para verificar o reset
+    }
+
+    // Função para salvar o userId no SharedPreferences
+    private fun saveUserIdToPreferences(userId: String) {
+        val sharedPref =
+            getApplication<Application>().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putString("userId", userId)
+            apply()
+        }
     }
 
     // Estado da autenticação
     sealed class AuthState {
         object Idle : AuthState()
-        object Success : AuthState()
+        data class Success(val userId: String) : AuthState()
         data class Error(val message: String) : AuthState()
     }
 }

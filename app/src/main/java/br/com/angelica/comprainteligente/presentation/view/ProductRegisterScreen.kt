@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import br.com.angelica.comprainteligente.presentation.common.CustomAlertDialog
 import br.com.angelica.comprainteligente.presentation.common.CustomTextField
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductViewModel
 import coil.annotation.ExperimentalCoilApi
@@ -55,10 +56,15 @@ import org.koin.androidx.compose.getViewModel
 fun ProductRegisterScreen(
     onBack: () -> Unit,
     onProductRegistered: () -> Unit,
-    viewModel: ProductViewModel = getViewModel()
+    viewModel: ProductViewModel = getViewModel(),
+    userId: String
 ) {
     val state by viewModel.state.collectAsState()
+    var showSucessDialog by remember { mutableStateOf(false) }
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
+    // Estados dos campoas de entrada
     var productName by remember { mutableStateOf("") }
     var productImageUrl by remember { mutableStateOf("") }
     var productPrice by remember { mutableStateOf("") }
@@ -123,15 +129,54 @@ fun ProductRegisterScreen(
                 isLoading = false
             }
 
-            is ProductViewModel.ProductState.ProductRegistered -> onProductRegistered()
+            is ProductViewModel.ProductState.ProductRegistered -> showSucessDialog = true
 
             is ProductViewModel.ProductState.Error -> {
-                isLoading = false
-                // Exibir mensagem de erro
+                errorMessage = (state as ProductViewModel.ProductState.Error).message
+                showErrorDialog = true
             }
-
             else -> Unit
         }
+    }
+
+    if (showSucessDialog) {
+        CustomAlertDialog(
+            title = "Produto Cadastrado",
+            message = "Produto cadastrado com sucesso! Deseja cadastrar mais um?",
+            confirmButtonText = "Sim",
+            dismissButtonText = "Não",
+            onConfirm = {
+                showSucessDialog = false
+                productName = ""
+                productImageUrl = ""
+                productPrice = ""
+                barcode = ""
+                selectedSupermarket = ""
+                isFormSubmitted = false
+                isBarcodeEditable = true
+                viewModel.resetState()
+            },
+            onDismiss = {
+                showSucessDialog = false
+                onProductRegistered()
+            }
+        )
+    }
+
+    if (showErrorDialog) {
+        CustomAlertDialog(
+            title = "Erro",
+            message = errorMessage,
+            confirmButtonText = "Ok",
+            onConfirm = {
+                showErrorDialog = false
+                viewModel.resetState()
+            },
+            onDismiss = {
+                showErrorDialog = false
+                viewModel.resetState()
+            }
+        )
     }
 
     Scaffold(
@@ -301,7 +346,8 @@ fun ProductRegisterScreen(
                                     barcode = barcode,
                                     name = productName,
                                     price = productPrice,
-                                    supermarket = selectedSupermarket
+                                    supermarket = selectedSupermarket,
+                                    userId = userId
                                 )
                             )
                         }

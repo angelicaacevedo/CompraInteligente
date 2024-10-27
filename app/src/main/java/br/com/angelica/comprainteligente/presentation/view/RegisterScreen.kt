@@ -39,7 +39,7 @@ import org.koin.androidx.compose.getViewModel
 
 @Composable
 fun RegisterScreen(
-    onRegisterSuccess: () -> Unit,
+    onRegisterSuccess: (String) -> Unit,
     onNavigateToLogin: () -> Unit,  // Função para navegar para a tela de login
     authViewModel: AuthViewModel = getViewModel()
 ) {
@@ -65,8 +65,10 @@ fun RegisterScreen(
     // Verifica o estado de sucesso e navega para a tela "home"
     LaunchedEffect(authState) {
         if (authState is AuthViewModel.AuthState.Success) {
-            onRegisterSuccess()
-            authViewModel.resetAuthState()  // Reseta o estado após o sucesso
+            val userId = (authState as AuthViewModel.AuthState.Success).userId
+            onRegisterSuccess(userId) // Passa o userId na navegação
+            authViewModel.resetAuthState()
+            println("Navigating to home with userId: $userId")  // Log para debug
         }
     }
 
@@ -214,9 +216,30 @@ fun RegisterScreen(
                     Button(
                         onClick = {
                             showErrors = true  // Mostra erros quando o botão for clicado
-                            if (validateRegisterForm(email, password, confirmPassword, username, cep, number)) {
-                                val user = User(id = "", username = username, email = email, passwordHash = password, addressId = "")
-                                val address = Address(street = street, number = number, neighborhood = neighborhood, city = city, state = state, postalCode = cep)
+                            if (validateRegisterForm(
+                                    email,
+                                    password,
+                                    confirmPassword,
+                                    username,
+                                    cep,
+                                    number
+                                )
+                            ) {
+                                val user = User(
+                                    id = "",
+                                    username = username,
+                                    email = email,
+                                    passwordHash = password,
+                                    addressId = ""
+                                )
+                                val address = Address(
+                                    street = street,
+                                    number = number,
+                                    neighborhood = neighborhood,
+                                    city = city,
+                                    state = state,
+                                    postalCode = cep
+                                )
                                 authViewModel.registerUser(user, address)
                             } else {
                                 errorMessage = "Preencha todos os campos corretamente"

@@ -5,8 +5,7 @@ import br.com.angelica.comprainteligente.model.Address
 import br.com.angelica.comprainteligente.model.User
 
 class RegisterUserUseCase(private val authRepository: AuthRepository) {
-
-    suspend fun execute(user: User, address: Address): Result<Unit> {
+    suspend fun execute(user: User, address: Address): Result<String> {
         return authRepository.register(user, address)
     }
 }

@@ -7,25 +7,25 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import br.com.angelica.comprainteligente.presentation.view.HistoryListScreen
 import br.com.angelica.comprainteligente.presentation.view.HomeScreen
 import br.com.angelica.comprainteligente.presentation.view.ListDetailScreen
 import br.com.angelica.comprainteligente.presentation.view.LoginScreen
 import br.com.angelica.comprainteligente.presentation.view.NewListScreen
-import br.com.angelica.comprainteligente.presentation.view.HistoryListScreen
 import br.com.angelica.comprainteligente.presentation.view.PriceComparisonScreen
 import br.com.angelica.comprainteligente.presentation.view.ProductRegisterScreen
 import br.com.angelica.comprainteligente.presentation.view.RegisterScreen
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(userId: String) { // Recebe o userId como argumento
     val navController: NavHostController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "login") {
         // Login Screen
         composable("login") {
             LoginScreen(
-                onLoginSuccess = {
-                    navController.navigate("home") {
+                onLoginSuccess = { loginUserId ->
+                    navController.navigate("home/$loginUserId") {
                         popUpTo("login") { inclusive = true }
                     }
                 },
@@ -38,8 +38,8 @@ fun AppNavigation() {
         // Register Screen
         composable("register") {
             RegisterScreen(
-                onRegisterSuccess = {
-                    navController.navigate("home") {
+                onRegisterSuccess = { registerUserId ->
+                    navController.navigate("home/$registerUserId") {
                         popUpTo("register") { inclusive = true }
                     }
                 },
@@ -49,69 +49,94 @@ fun AppNavigation() {
             )
         }
 
-        // Home Screen
-        composable("home") {
-            HomeScreen(navController = navController)
+        // Home Screen with userId
+        composable(
+            "home/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
+            HomeScreen(navController = navController, currentUserId)
         }
+
 
         // Product Register Screen
-        composable("add_product") {
+        composable(
+            "add_product/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
             ProductRegisterScreen(
-                onBack = { navController.navigate("home") },
+                onBack = { navController.navigate("home/$currentUserId") },
                 onProductRegistered = {
-                    navController.navigate("home")
-                }
-            )
-        }
-
-        // Price Comparison Screen
-        composable("price_comparison") {
-            PriceComparisonScreen(
-                onBackClick = { navController.navigate("home") }
-            )
-        }
-
-        // Product List History Screen
-        composable("list_history") {
-            HistoryListScreen(
-                onBack = { navController.navigate("home") },
-                onNavigateToCreateList = {
-                    navController.navigate("create_list") // Navegar para a rota sem argumentos
+                    navController.navigate("home/$currentUserId") {
+                        popUpTo("home/$currentUserId") { inclusive = true }
+                    }
                 },
-                onNavigateToListItems = { listId, listName, productIds -> // Passe o listName também
-                    navController.navigate(
-                        "list_items/${listId}/${listName}/${
-                            productIds.joinToString(
-                                ","
-                            )
-                        }"
-                    )
-                }
+                userId = currentUserId
             )
         }
 
-        // Create New List Screen without arguments
-        composable("create_list") {
+        // Price Comparison Screen with userId
+        composable(
+            "price_comparison/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
+            PriceComparisonScreen(
+                onBackClick = { navController.navigate("home/$userId") },
+                userId = currentUserId
+            )
+        }
+
+        // Product List History Screen with userId
+        composable(
+            "list_history/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
+            HistoryListScreen(
+                onBack = { navController.navigate("home/$currentUserId") },
+                onNavigateToCreateList = {
+                    navController.navigate("create_list/$currentUserId") // Navega para a criação de lista com o userId
+                },
+                onNavigateToListItems = { listId, listName, productIds ->
+                    navController.navigate(
+                        "list_items/$currentUserId/$listId/$listName/${productIds.joinToString(",")}"
+                    )
+                },
+                userId = currentUserId
+            )
+        }
+
+        // Create New List Screen without arguments, for new list creation
+        composable(
+            "create_list/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
             NewListScreen(
-                onBack = { navController.navigate("home") },
-                listId = null, // Não há listId porque é uma nova lista
+                onBack = { navController.navigate("list_history/$currentUserId") },
+                listId = null,
                 listNameArg = "",
                 productIdsArg = emptyList(),
                 onListCreated = {
-                    navController.navigate("list_history")
-                }
+                    navController.navigate("list_history/$currentUserId")
+                },
+                userId = currentUserId
             )
         }
 
-        // Create New List Screen
+        // Edit Existing List Screen with userId, listId, listName, productIds
         composable(
-            "create_list/{listId}/{listName}/{productIds}",
+            "create_list/{userId}/{listId}/{listName}/{productIds}",
             arguments = listOf(
+                navArgument("userId") { type = NavType.StringType },
                 navArgument("listId") { type = NavType.StringType },
                 navArgument("listName") { type = NavType.StringType },
                 navArgument("productIds") { type = NavType.StringType }
             )
         ) { backStackEntry ->
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
             val listId = backStackEntry.arguments?.getString("listId") ?: ""
             val listName = backStackEntry.arguments?.getString("listName") ?: ""
             val productIds =
@@ -123,20 +148,23 @@ fun AppNavigation() {
                 listNameArg = listName,
                 productIdsArg = productIds,
                 onListCreated = {
-                    navController.navigate("list_history")
-                }
+                    navController.navigate("list_history/$currentUserId")
+                },
+                userId = currentUserId
             )
         }
 
-        // Navegação para a tela de itens da lista
+        // List Items Screen with userId, listId, listName, productIds
         composable(
-            "list_items/{listId}/{listName}/{productIds}",
+            "list_items/{userId}/{listId}/{listName}/{productIds}",
             arguments = listOf(
+                navArgument("userId") { type = NavType.StringType },
                 navArgument("listId") { type = NavType.StringType },
                 navArgument("listName") { type = NavType.StringType },
                 navArgument("productIds") { type = NavType.StringType }
             )
         ) { backStackEntry ->
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
             val listId = backStackEntry.arguments?.getString("listId") ?: ""
             val productIds =
                 backStackEntry.arguments?.getString("productIds")?.split(",") ?: emptyList()
@@ -148,8 +176,15 @@ fun AppNavigation() {
                 listName = listName,
                 onBack = { navController.popBackStack() },
                 onEditList = { id, name, ids ->
-                    navController.navigate("create_list/$id/${name}/${ids.joinToString(",")}")
-                }
+                    navController.navigate(
+                        "create_list/$currentUserId/$id/$name/${
+                            ids.joinToString(
+                                ","
+                            )
+                        }"
+                    )
+                },
+                userId = currentUserId
             )
         }
     }

@@ -7,8 +7,8 @@ import br.com.angelica.comprainteligente.model.ProductWithLatestPrice
 import com.google.firebase.Timestamp
 
 class FetchUserListsUseCase(private val repository: ProductListRepository) {
-    suspend fun execute(includeProductIds: Boolean): Result<List<ProductList>> {
-        return repository.fetchUserLists(includeProductIds)
+    suspend fun execute(includeProductIds: Boolean, userId: String): Result<List<ProductList>> {
+        return repository.fetchUserLists(includeProductIds, userId)
     }
 }
 
@@ -19,8 +19,8 @@ class FetchProductsByListUseCase(private val repository: ProductListRepository) 
 }
 
 class CreateListUseCase(private val repository: ProductListRepository) {
-    suspend fun execute(listName: String, productIds: List<String>): Result<Unit> {
-        return repository.createList(listName, productIds)
+    suspend fun execute(listName: String, productIds: List<String>, userId: String): Result<Unit> {
+        return repository.createList(listName, productIds, userId)
     }
 }
 

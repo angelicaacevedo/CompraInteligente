@@ -18,10 +18,19 @@ class ProductListRepositoryImpl(
     private val productListCollection = firestore.collection("product_lists")
     private val productCollection = firestore.collection("products")
 
-    override suspend fun createList(listName: String, productIds: List<String>): Result<Unit> {
+    override suspend fun createList(
+        listName: String,
+        productIds: List<String>,
+        userId: String
+    ): Result<Unit> {
         return try {
             val newListId = productListCollection.document().id
-            val newList = ProductList(id = newListId, name = listName, productIds = productIds)
+            val newList = ProductList(
+                id = newListId,
+                name = listName,
+                productIds = productIds,
+                userId = userId
+            )
             productListCollection.add(newList).await()
             Result.success(Unit)
         } catch (e: Exception) {
@@ -91,9 +100,13 @@ class ProductListRepositoryImpl(
         }
     }
 
-    override suspend fun fetchUserLists(includeProductIds: Boolean): Result<List<ProductList>> {
+    override suspend fun fetchUserLists(
+        includeProductIds: Boolean,
+        userId: String
+    ): Result<List<ProductList>> {
         return try {
             val querySnapshot = productListCollection
+                .whereEqualTo("userId", userId)
                 .orderBy("data", Query.Direction.DESCENDING) // ordena pela data de inserção
                 .get()
                 .await()
@@ -107,7 +120,8 @@ class ProductListRepositoryImpl(
                     } else {
                         emptyList()
                     },
-                    data = document.getTimestamp("data") ?: Timestamp.now()
+                    data = document.getTimestamp("data") ?: Timestamp.now(),
+                    userId = userId
                 )
             }
             Result.success(lists)

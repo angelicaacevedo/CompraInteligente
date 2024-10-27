@@ -16,13 +16,13 @@ import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(navController: NavController, userId: String) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Home Screen") })
         },
         bottomBar = {
-            CustomBottomNavigation(navController = navController)
+            CustomBottomNavigation(navController = navController, userId = userId)
         },
         content = { paddingValues ->
             Column(

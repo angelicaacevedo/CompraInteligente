@@ -21,16 +21,16 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
-fun CustomBottomNavigation(navController: NavController) {
+fun CustomBottomNavigation(navController: NavController, userId: String) {
     BottomNavigation(
         backgroundColor = Color(0xFF4CAF50),
         elevation = 8.dp
     ) {
         val items = listOf(
             BottomNavItem("home", Icons.Default.Home, "Início"),
-            BottomNavItem("list_history", Icons.AutoMirrored.Default.List, "Listas"),
-            BottomNavItem("add_product", Icons.Outlined.AddCircleOutline, "Adicionar"),
-            BottomNavItem("price_comparison", Icons.Default.AttachMoney, "Preços"),
+            BottomNavItem("list_history/$userId", Icons.AutoMirrored.Default.List, "Listas"),
+            BottomNavItem("add_product/$userId", Icons.Outlined.AddCircleOutline, "Adicionar"),
+            BottomNavItem("price_comparison/$userId", Icons.Default.AttachMoney, "Preços"),
             BottomNavItem("reports", Icons.AutoMirrored.Default.TrendingUp, "Inflação")
         )
 
