@@ -26,11 +26,11 @@ class ProductViewModel(
         when (intent) {
             is ProductIntent.ScanProduct -> scanProduct(intent.barcode)
             is ProductIntent.RegisterProduct -> registerProduct(
-                intent.barcode,
-                intent.name,
-                intent.price,
-                intent.supermarket,
-                intent.userId
+                barcode = intent.barcode,
+                name = intent.name,
+                price = intent.price,
+                supermarket = intent.supermarket,
+                userId = intent.userId
             )
 
             is ProductIntent.LoadSuggestions -> loadSuggestions(intent.query)
@@ -72,32 +72,41 @@ class ProductViewModel(
         viewModelScope.launch {
             _state.value = ProductState.Loading
 
-            val formatedPrice = price.replace(",", ".")
+            // Busca detalhes do produto, incluindo a URL da imagem
+            val productDetailsResult = getProductInfoFromBarcodeUseCase.execute(barcode)
+            val imageUrl = if (productDetailsResult.isSuccess) {
+                productDetailsResult.getOrNull()?.image_url ?: ""
+            } else ""
 
-            // Criar o objeto do produto com as informações adicionais
+            // Criando o objeto Product e Price com as informações fornecidas
             val product = Product(
                 id = barcode,
                 name = name,
                 categoryId = "",    // Pode ser ajustado para adicionar uma categoria real
-                imageUrl = "",       // Pode ser ajustado para adicionar uma URL real de imagem
+                imageUrl = imageUrl,
                 userId = userId
             )
 
-            // Criar o objeto de preço
             val productPrice = Price(
                 productId = barcode,
                 supermarketId = supermarket,
-                price = formatedPrice.toDouble(),
+                price = price.replace(",", ".").toDouble(),
                 date = Timestamp.now(),
                 userId = userId
             )
 
+            // Executando o caso de uso para registrar o produto e o preço
             val result = registerProductUseCase.execute(product, productPrice)
 
-            if (result.isSuccess) {
-                _state.value = ProductState.ProductRegistered
+            _state.value = if (result.isSuccess) {
+                ProductState.ProductRegistered
             } else {
-                _state.value = ProductState.Error("Erro ao registrar o produto.")
+                val errorMessage = result.exceptionOrNull()?.message
+                if (errorMessage == "Esse produto com o mesmo supermercado e preço já está cadastrado.") {
+                    ProductState.Error("Produto já cadastrado com este preço e supermercado.")
+                } else {
+                    ProductState.Error("Erro ao registrar o produto.")
+                }
             }
         }
     }

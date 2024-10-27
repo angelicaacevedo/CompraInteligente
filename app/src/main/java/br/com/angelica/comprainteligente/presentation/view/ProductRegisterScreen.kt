@@ -170,10 +170,13 @@ fun ProductRegisterScreen(
             confirmButtonText = "Ok",
             onConfirm = {
                 showErrorDialog = false
-                viewModel.resetState()
-            },
-            onDismiss = {
-                showErrorDialog = false
+                productName = ""
+                productImageUrl = ""
+                productPrice = ""
+                barcode = ""
+                selectedSupermarket = ""
+                isFormSubmitted = false
+                isBarcodeEditable = true
                 viewModel.resetState()
             }
         )

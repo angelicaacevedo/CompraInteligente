@@ -29,9 +29,9 @@ fun CustomAlertDialog(
     confirmButtonText: String = "Yes",
     dismissButtonText: String = "No",
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: (() -> Unit)? = null
 ) {
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(onDismissRequest = { onDismiss?.invoke() }) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -61,13 +61,16 @@ fun CustomAlertDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Button(
-                        onClick = onDismiss,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(text = dismissButtonText)
+                    // Verifica se onDismiss foi fornecido para exibir o botão de dismiss
+                    if (onDismiss != null) {
+                        Button(
+                            onClick = { onDismiss() },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(text = dismissButtonText)
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
                     Button(
                         onClick = onConfirm,
                         modifier = Modifier.weight(1f)

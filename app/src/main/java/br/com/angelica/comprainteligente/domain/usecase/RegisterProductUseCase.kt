@@ -1,36 +1,40 @@
 package br.com.angelica.comprainteligente.domain.usecase
 
+import br.com.angelica.comprainteligente.data.repository.price.PriceRepository
 import br.com.angelica.comprainteligente.data.repository.product.ProductRepository
+import br.com.angelica.comprainteligente.data.repository.supermarket.SupermarketRepository
 import br.com.angelica.comprainteligente.model.Price
 import br.com.angelica.comprainteligente.model.Product
-import br.com.angelica.comprainteligente.utils.toProduct
 
-class RegisterProductUseCase(private val productRepository: ProductRepository) {
-
-    suspend fun execute(product: Product, price: Price): Result<Unit> {
+class RegisterProductUseCase(
+    private val productRepository: ProductRepository,
+    private val supermarketRepository: SupermarketRepository,
+    private val priceRepository: PriceRepository
+) {
+    suspend fun execute(product: Product, price: Price): Result<Product> {
         return try {
-            // Verifica se o produto já existe no Firestore
-            val productResult = productRepository.getProductInfoFromBarcode(product.id)
+            // Verifica ou cria o supermercado e obtém o ID
+            val supermarketResult = supermarketRepository.checkOrCreateSupermarket(price.supermarketId, price.supermarketId)
+            if (supermarketResult.isFailure) return Result.failure(supermarketResult.exceptionOrNull()!!)
 
-            // Se o produto já existe, registra apenas o preço, senão cadastra o produto e o preço
-            if (productResult.isSuccess) {
-                val existingProductDetails = productResult.getOrNull()
+            val supermarket = supermarketResult.getOrNull()
+            price.supermarketId = supermarket?.id ?: return Result.failure(Exception("Erro ao obter ID do supermercado."))
 
-                if (existingProductDetails != null) {
-                    // Produto já existe, converte ProductDetails em Product
-                    val existingProduct = existingProductDetails.toProduct(product.id)
-                    productRepository.registerProduct(existingProduct, price)
-                } else {
-                    // Produto não existe, então cadastra o produto e o preço
-                    productRepository.registerProduct(product, price)
-                }
+            // Registra o produto se ele ainda não existir
+            val productResult = productRepository.registerProduct(product)
+            if (productResult.isFailure) return productResult
+
+            // Verifica duplicação de preço e registra o preço, se necessário
+            if (!priceRepository.checkDuplicatePrice(price)) {
+                val addedPriceResult = priceRepository.addPrice(price)
+                if (addedPriceResult.isFailure) return Result.failure(addedPriceResult.exceptionOrNull()!!)
             } else {
-                // Caso de erro na consulta ao produto
-                Result.failure(Exception("Erro ao consultar o produto."))
+                return Result.failure(Exception("Esse produto com o mesmo supermercado e preço já está cadastrado."))
             }
+
+            productResult // Retorna o resultado do produto
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 }
-

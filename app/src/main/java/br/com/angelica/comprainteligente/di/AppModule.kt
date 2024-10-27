@@ -1,12 +1,13 @@
 package br.com.angelica.comprainteligente.di
 
-import android.util.Log
 import br.com.angelica.comprainteligente.data.remote.CorreiosApi
 import br.com.angelica.comprainteligente.data.remote.OpenFoodFactsApi
 import br.com.angelica.comprainteligente.data.repository.auth.AuthRepository
 import br.com.angelica.comprainteligente.data.repository.auth.AuthRepositoryImpl
 import br.com.angelica.comprainteligente.data.repository.lists.ProductListRepository
 import br.com.angelica.comprainteligente.data.repository.lists.ProductListRepositoryImpl
+import br.com.angelica.comprainteligente.data.repository.price.PriceRepository
+import br.com.angelica.comprainteligente.data.repository.price.PriceRepositoryImpl
 import br.com.angelica.comprainteligente.data.repository.product.ProductRepository
 import br.com.angelica.comprainteligente.data.repository.product.ProductRepositoryImpl
 import br.com.angelica.comprainteligente.data.repository.supermarket.SupermarketRepository
@@ -72,7 +73,8 @@ val appModule = module {
     // Repositories
     single<AuthRepository> { AuthRepositoryImpl(get(), get()) }
     single<ProductRepository> { ProductRepositoryImpl(get(), get()) }
-    single<SupermarketRepository> { SupermarketRepositoryImpl(get()) }
+    single<SupermarketRepository> { SupermarketRepositoryImpl(get(),get()) }
+    single<PriceRepository> { PriceRepositoryImpl(get()) }
     single<ProductListRepository> { ProductListRepositoryImpl(get()) }
 
     // Use Cases
@@ -80,7 +82,7 @@ val appModule = module {
     factory { LoginUserUseCase(get()) }
     factory { GetProductInfoFromBarcodeUseCase(get()) }
     factory { GetSupermarketSuggestionsUseCase(get()) }
-    factory { RegisterProductUseCase(get()) }
+    factory { RegisterProductUseCase(get(), get(), get()) }
     factory { GetCategoriesUseCase(get()) }
     factory { FetchUserListsUseCase(get()) }
     factory { CreateListUseCase(get()) }
