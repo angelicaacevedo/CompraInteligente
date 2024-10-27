@@ -66,13 +66,13 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
         ) { backStackEntry ->
             val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
             ProductRegisterScreen(
-                onBack = { navController.navigate("home/$currentUserId") },
+                userId = currentUserId,
                 onProductRegistered = {
                     navController.navigate("home/$currentUserId") {
                         popUpTo("home/$currentUserId") { inclusive = true }
                     }
                 },
-                userId = currentUserId
+                navController = navController
             )
         }
 
@@ -83,8 +83,8 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
         ) { backStackEntry ->
             val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
             PriceComparisonScreen(
-                onBackClick = { navController.navigate("home/$userId") },
-                userId = currentUserId
+                userId = currentUserId,
+                navController = navController,
             )
         }
 
@@ -95,7 +95,8 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
         ) { backStackEntry ->
             val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
             HistoryListScreen(
-                onBack = { navController.navigate("home/$currentUserId") },
+                navController = navController,
+                userId = currentUserId,
                 onNavigateToCreateList = {
                     navController.navigate("create_list/$currentUserId") // Navega para a criação de lista com o userId
                 },
@@ -103,8 +104,7 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
                     navController.navigate(
                         "list_items/$currentUserId/$listId/$listName/${productIds.joinToString(",")}"
                     )
-                },
-                userId = currentUserId
+                }
             )
         }
 
@@ -115,6 +115,7 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
         ) { backStackEntry ->
             val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
             NewListScreen(
+                userId = currentUserId,
                 onBack = { navController.navigate("list_history/$currentUserId") },
                 listId = null,
                 listNameArg = "",
@@ -122,7 +123,7 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
                 onListCreated = {
                     navController.navigate("list_history/$currentUserId")
                 },
-                userId = currentUserId
+                navController = navController
             )
         }
 
@@ -143,6 +144,7 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
                 backStackEntry.arguments?.getString("productIds")?.split(",") ?: emptyList()
 
             NewListScreen(
+                userId = currentUserId,
                 onBack = { navController.popBackStack() },
                 listId = listId,
                 listNameArg = listName,
@@ -150,7 +152,7 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
                 onListCreated = {
                     navController.navigate("list_history/$currentUserId")
                 },
-                userId = currentUserId
+                navController = navController
             )
         }
 
@@ -171,6 +173,7 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
             val listName = backStackEntry.arguments?.getString("listName") ?: ""
 
             ListDetailScreen(
+                userId = currentUserId,
                 listId = listId,
                 productIds = productIds,
                 listName = listName,
@@ -184,7 +187,7 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
                         }"
                     )
                 },
-                userId = currentUserId
+                navController = navController
             )
         }
     }

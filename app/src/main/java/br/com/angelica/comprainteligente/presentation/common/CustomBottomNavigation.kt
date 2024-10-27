@@ -27,7 +27,7 @@ fun CustomBottomNavigation(navController: NavController, userId: String) {
         elevation = 8.dp
     ) {
         val items = listOf(
-            BottomNavItem("home", Icons.Default.Home, "Início"),
+            BottomNavItem("home/$userId", Icons.Default.Home, "Início"),
             BottomNavItem("list_history/$userId", Icons.AutoMirrored.Default.List, "Listas"),
             BottomNavItem("add_product/$userId", Icons.Outlined.AddCircleOutline, "Adicionar"),
             BottomNavItem("price_comparison/$userId", Icons.Default.AttachMoney, "Preços"),

@@ -57,8 +57,10 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import br.com.angelica.comprainteligente.model.ProductList
 import br.com.angelica.comprainteligente.model.ProductWithLatestPrice
+import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigation
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -67,9 +69,9 @@ import org.koin.androidx.compose.getViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PriceComparisonScreen(
-    onBackClick: () -> Unit,
-    productListViewModel: ProductListViewModel = getViewModel(),
-    userId: String
+    userId: String,
+    navController: NavController,
+    productListViewModel: ProductListViewModel = getViewModel()
 ) {
     val state by productListViewModel.state.collectAsState()
     var selectedList by remember { mutableStateOf<ProductList?>(null) }
@@ -92,7 +94,12 @@ fun PriceComparisonScreen(
 
     Scaffold(
         topBar = {
-            PriceComparisonTopBar(onBackClick)
+            TopAppBar(
+                title = { Text(text = "Comparação de Preços", modifier = Modifier.fillMaxWidth()) },
+            )
+        },
+        bottomBar = {
+            CustomBottomNavigation(navController = navController, userId = userId)
         },
         content = { paddingValues ->
             Column(
@@ -218,22 +225,6 @@ fun PriceComparisonScreen(
             }
         )
     }
-}
-
-@Composable
-@OptIn(ExperimentalMaterial3Api::class)
-private fun PriceComparisonTopBar(onBackClick: () -> Unit) {
-    TopAppBar(
-        title = { Text("Comparador de Preços") },
-        navigationIcon = {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                    contentDescription = "Voltar"
-                )
-            }
-        }
-    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

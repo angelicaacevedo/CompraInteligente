@@ -42,7 +42,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavController
 import br.com.angelica.comprainteligente.presentation.common.CustomAlertDialog
+import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigation
 import br.com.angelica.comprainteligente.presentation.common.CustomTextField
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductViewModel
 import coil.annotation.ExperimentalCoilApi
@@ -54,10 +56,10 @@ import org.koin.androidx.compose.getViewModel
 @OptIn(ExperimentalCoilApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ProductRegisterScreen(
-    onBack: () -> Unit,
+    userId: String,
     onProductRegistered: () -> Unit,
+    navController: NavController,
     viewModel: ProductViewModel = getViewModel(),
-    userId: String
 ) {
     val state by viewModel.state.collectAsState()
     var showSucessDialog by remember { mutableStateOf(false) }
@@ -186,20 +188,15 @@ fun ProductRegisterScreen(
         topBar = {
             TopAppBar(
                 title = { Text(text = "Cadastro de Produto", modifier = Modifier.fillMaxWidth()) },
-                navigationIcon = {
-                    IconButton(onClick = { onBack() }) {  // Adicionando o botão de voltar
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                            contentDescription = "Voltar"
-                        )
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     titleContentColor = Color.Black,
                     containerColor = Color.White,
                 )
             )
-        }
+        },
+        bottomBar = {
+            CustomBottomNavigation(navController = navController, userId = userId)
+        },
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier

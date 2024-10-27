@@ -32,6 +32,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigation
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
 import org.koin.androidx.compose.getViewModel
 
@@ -43,6 +45,7 @@ fun ListDetailScreen(
     listName: String,
     onBack: () -> Unit,
     onEditList: (String, String, List<String>) -> Unit,
+    navController: NavController,
     viewModel: ProductListViewModel = getViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -58,7 +61,10 @@ fun ListDetailScreen(
                 onBack = onBack,
                 onEdit = { onEditList(listId, listName, productIds) }
             )
-        }
+        },
+        bottomBar = {
+            CustomBottomNavigation(navController = navController, userId = userId)
+        },
     ) { paddingValues ->
         when (state) {
             is ProductListViewModel.ProductListState.Loading -> {

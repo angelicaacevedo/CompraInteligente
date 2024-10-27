@@ -35,7 +35,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import br.com.angelica.comprainteligente.model.Product
+import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigation
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
 import br.com.angelica.comprainteligente.utils.CustomAlertDialog
 import org.koin.androidx.compose.getViewModel
@@ -47,8 +49,9 @@ fun NewListScreen(
     listId: String?,
     listNameArg: String? = null,
     productIdsArg: List<String>? = null,
-    viewModel: ProductListViewModel = getViewModel(),
-    onListCreated: () -> Unit
+    onListCreated: () -> Unit,
+    navController: NavController,
+    viewModel: ProductListViewModel = getViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -89,7 +92,10 @@ fun NewListScreen(
     Scaffold(
         topBar = {
             NewListTopBar(onBack)
-        }
+        },
+        bottomBar = {
+            CustomBottomNavigation(navController = navController, userId = userId)
+        },
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier

@@ -35,17 +35,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigation
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
 
 import org.koin.androidx.compose.getViewModel
 
 @Composable
 fun HistoryListScreen(
-    onBack: () -> Unit,
+    navController: NavController,
+    userId: String,
     onNavigateToCreateList: () -> Unit,
     onNavigateToListItems: (String, String, List<String>) -> Unit,
-    viewModel: ProductListViewModel = getViewModel(),
-    userId: String
+    viewModel: ProductListViewModel = getViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -57,8 +59,11 @@ fun HistoryListScreen(
 
     Scaffold(
         topBar = {
-            ProductListTopBar(onBack, onNavigateToCreateList)
-        }
+            ProductListTopBar(onNavigateToCreateList)
+        },
+        bottomBar = {
+            CustomBottomNavigation(navController = navController, userId = userId)
+        },
     ) { paddingValues ->
         when (state) {
             is ProductListViewModel.ProductListState.Loading -> {
@@ -82,18 +87,10 @@ fun HistoryListScreen(
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun ProductListTopBar(onBack: () -> Unit, onNavigateToCreateList: () -> Unit) {
+private fun ProductListTopBar(onNavigateToCreateList: () -> Unit) {
     TopAppBar(
         title = {
             Text("Histórico de Listas", modifier = Modifier.fillMaxWidth())
-        },
-        navigationIcon = {
-            IconButton(onClick = { onBack() }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                    contentDescription = "Voltar"
-                )
-            }
         },
         actions = {
             // Adiciona o ícone de adicionar no lado direito da AppBar
