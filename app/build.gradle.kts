@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.androidx.material)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.ui.v143)
+    implementation(libs.androidx.runtime.livedata)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
@@ -86,6 +87,20 @@ dependencies {
     // Dependency Injection with Koin
     implementation(libs.koin.android.v340)
     implementation(libs.koin.androidx.compose.v344)
+
+    // Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+
+    // Place API
+    implementation(libs.places)
+
+    // ZXing
+    implementation(libs.journeyapps.zxing.android.embedded)
+    implementation(libs.core)
+
+    // Updload the image Coil
+    implementation(libs.coil.compose)
 
     // Testing dependencies
     testImplementation(libs.junit)
