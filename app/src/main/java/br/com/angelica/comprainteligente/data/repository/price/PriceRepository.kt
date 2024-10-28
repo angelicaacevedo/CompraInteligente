@@ -5,4 +5,6 @@ import br.com.angelica.comprainteligente.model.Price
 interface PriceRepository {
     suspend fun checkDuplicatePrice(price: Price): Boolean
     suspend fun addPrice(price: Price): Result<Price>
+    suspend fun getPriceHistory(productId: String): Result<List<Price>>
 }
+

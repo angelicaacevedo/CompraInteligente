@@ -2,6 +2,7 @@ package br.com.angelica.comprainteligente.data.repository.price
 
 import br.com.angelica.comprainteligente.model.Price
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 
 class PriceRepositoryImpl(
@@ -32,4 +33,20 @@ class PriceRepositoryImpl(
             Result.failure(e)
         }
     }
+
+    override suspend fun getPriceHistory(productId: String): Result<List<Price>> {
+        return try {
+            val prices = priceCollection
+                .whereEqualTo("productId", productId)
+                .orderBy("date", Query.Direction.DESCENDING)
+                .get()
+                .await()
+                .toObjects(Price::class.java)
+
+            Result.success(prices)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
+

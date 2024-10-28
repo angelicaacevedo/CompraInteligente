@@ -25,6 +25,8 @@ lifecycleRuntimeKtx = "2.8.3"
 activityCompose = "1.9.0"
 composeBom = "2024.04.01"
 material = "1.7.2"
+mpandroidchart = "v3.1.0"
+mpandroidchartVersion = "3.1.0"
 navigationCompose = "2.6.0"
 places = "4.0.0"
 retrofit = "2.9.0"
@@ -70,6 +72,8 @@ koin-androidx-compose-v342 = { module = "io.insert-koin:koin-androidx-compose", 
 koin-androidx-compose-v344 = { module = "io.insert-koin:koin-androidx-compose", version.ref = "insertKoinKoinAndroidxCompose" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
+mpandroidchart = { module = "com.github.PhilJay:MPAndroidChart", version.ref = "mpandroidchart" }
+mpandroidchart-v310 = { module = "com.github.PhilJay:MPAndroidChart", version.ref = "mpandroidchartVersion" }
 places = { module = "com.google.android.libraries.places:places", version.ref = "places" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 ui = { module = "androidx.compose.ui:ui", version.ref = "ui" }

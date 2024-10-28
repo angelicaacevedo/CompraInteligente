@@ -9,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import br.com.angelica.comprainteligente.presentation.view.HistoryListScreen
 import br.com.angelica.comprainteligente.presentation.view.HomeScreen
+import br.com.angelica.comprainteligente.presentation.view.InflationScreen
 import br.com.angelica.comprainteligente.presentation.view.ListDetailScreen
 import br.com.angelica.comprainteligente.presentation.view.LoginScreen
 import br.com.angelica.comprainteligente.presentation.view.NewListScreen
@@ -188,6 +189,22 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
                     )
                 },
                 navController = navController
+            )
+        }
+
+        // Inflation Screen
+        composable(
+            "inflation/{userId}/{productIds}",
+            arguments = listOf(
+                navArgument("userId") { type = NavType.StringType },
+                navArgument("productIds") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
+            val productId = backStackEntry.arguments?.getString("productId") ?: ""
+            InflationScreen(
+                userId = currentUserId,
+                productId = productId,
             )
         }
     }

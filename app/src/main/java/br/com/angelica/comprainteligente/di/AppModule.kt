@@ -18,6 +18,7 @@ import br.com.angelica.comprainteligente.domain.usecase.FetchLatestPricesForList
 import br.com.angelica.comprainteligente.domain.usecase.FetchProductsByListUseCase
 import br.com.angelica.comprainteligente.domain.usecase.FetchUserListsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetCategoriesUseCase
+import br.com.angelica.comprainteligente.domain.usecase.GetPriceHistoryUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetProductInfoFromBarcodeUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetProductSuggestionsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetSupermarketSuggestionsUseCase
@@ -26,6 +27,7 @@ import br.com.angelica.comprainteligente.domain.usecase.RegisterProductUseCase
 import br.com.angelica.comprainteligente.domain.usecase.RegisterUserUseCase
 import br.com.angelica.comprainteligente.domain.usecase.UpdateListUseCase
 import br.com.angelica.comprainteligente.presentation.viewmodel.AuthViewModel
+import br.com.angelica.comprainteligente.presentation.viewmodel.InflationViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductViewModel
 import com.google.android.libraries.places.api.Places
@@ -91,9 +93,11 @@ val appModule = module {
     factory { FetchProductsByListUseCase(get()) }
     factory { UpdateListUseCase(get()) }
     factory { FetchLatestPricesForListUseCase(get()) }
+    factory { GetPriceHistoryUseCase(get()) }
 
     // ViewModels
     viewModel { AuthViewModel(get(), get(), get(), get()) }
     viewModel { ProductViewModel(get(), get(), get()) }
     viewModel { ProductListViewModel(get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { InflationViewModel(get()) }
 }
