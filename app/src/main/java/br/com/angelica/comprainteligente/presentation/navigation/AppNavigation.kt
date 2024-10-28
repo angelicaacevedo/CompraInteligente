@@ -1,6 +1,7 @@
 package br.com.angelica.comprainteligente.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -18,13 +19,21 @@ import br.com.angelica.comprainteligente.presentation.view.ProductRegisterScreen
 import br.com.angelica.comprainteligente.presentation.view.RegisterScreen
 
 @Composable
-fun AppNavigation(userId: String?) { // Recebe o userId como argumento
+fun AppNavigation(userId: String?) {
     val navController: NavHostController = rememberNavController()
 
-    // Define a tela inicial com base na presença de userId
-    val startDestination = if (userId.isNullOrEmpty()) "login" else "home/$userId"
+    // Usar LaunchedEffect para monitorar mudanças no userId e definir a startDestination
+    LaunchedEffect(userId) {
+        val startDestination = if (userId.isNullOrEmpty()) "login" else "home/$userId"
 
-    NavHost(navController = navController, startDestination = startDestination) {
+        // Redefine o grafo de navegação sempre que o userId mudar
+        navController.navigate(startDestination) {
+            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+            launchSingleTop = true
+        }
+    }
+
+    NavHost(navController = navController, startDestination = "login") {
         // Login Screen
         composable("login") {
             LoginScreen(

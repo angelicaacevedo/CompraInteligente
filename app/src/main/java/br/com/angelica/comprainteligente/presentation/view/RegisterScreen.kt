@@ -394,5 +394,3 @@ fun validateRegisterForm(
     return email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty() &&
             password == confirmPassword && username.isNotEmpty() && cep.isNotEmpty() && number.isNotEmpty()
 }
-
-

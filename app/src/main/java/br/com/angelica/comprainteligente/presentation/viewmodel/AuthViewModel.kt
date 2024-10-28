@@ -2,6 +2,7 @@ package br.com.angelica.comprainteligente.presentation.viewmodel
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.angelica.comprainteligente.data.remote.CorreiosApi

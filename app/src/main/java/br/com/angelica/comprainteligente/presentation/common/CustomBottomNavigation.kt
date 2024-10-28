@@ -22,6 +22,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
 fun CustomBottomNavigation(navController: NavController, userId: String) {
+    if (userId.isEmpty()) {
+        return
+    }
+
     BottomNavigation(
         backgroundColor = Color(0xFF4CAF50),
         elevation = 8.dp
@@ -31,7 +35,11 @@ fun CustomBottomNavigation(navController: NavController, userId: String) {
             BottomNavItem("list_history/$userId", Icons.AutoMirrored.Default.List, "Listas"),
             BottomNavItem("add_product/$userId", Icons.Outlined.AddCircleOutline, "Adicionar"),
             BottomNavItem("price_comparison/$userId", Icons.Default.AttachMoney, "Preços"),
-            BottomNavItem("inflation/$userId/{productIds}", Icons.AutoMirrored.Default.TrendingUp, "Inflação") // corrigir pois não precisa navegar com os ids dos produtos
+            BottomNavItem(
+                "inflation/$userId/{productIds}",
+                Icons.AutoMirrored.Default.TrendingUp,
+                "Inflação"
+            ) // corrigir pois não precisa navegar com os ids dos produtos
         )
 
         // Obtém a rota atual para indicar a tela selecionada
