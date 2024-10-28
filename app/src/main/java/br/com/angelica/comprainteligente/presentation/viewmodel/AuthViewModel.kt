@@ -33,7 +33,6 @@ class AuthViewModel(
                 val response = correiosApi.getAddressByCep(cep)
                 if (response.isSuccessful) {
                     val addressResponse = response.body()
-
                     if (addressResponse != null) {
                         val address = Address(
                             street = addressResponse.logradouro,
@@ -48,9 +47,8 @@ class AuthViewModel(
                         onFailure("Endereço não encontrado")
                     }
                 } else {
-                    val errorBody =
-                        response.errorBody()?.string()  // Armazena o corpo de erro como string
-                    onFailure("Erro ao buscar o endereço: ${errorBody ?: "Erro desconhecido"}")  //
+                    val errorBody = response.errorBody()?.string()
+                    onFailure("Erro ao buscar o endereço: ${errorBody ?: "Erro desconhecido"}")
                 }
             } catch (e: Exception) {
                 onFailure(e.message ?: "Erro desconhecido")
@@ -58,7 +56,7 @@ class AuthViewModel(
         }
     }
 
-    // Função para registrar o usuário
+    // Função para registrar o usuário com captura de exceção
     fun registerUser(user: User, address: Address) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -66,10 +64,9 @@ class AuthViewModel(
             if (result.isSuccess) {
                 val userId = result.getOrNull() ?: ""
                 saveUserIdToPreferences(userId)
-                _authState.value = AuthState.Success(userId)  // Alterar o estado para sucesso
+                _authState.value = AuthState.Success(userId)
             } else {
-                _authState.value =
-                    AuthState.Error(result.exceptionOrNull()?.message ?: "Erro no cadastro")
+                _authState.value = AuthState.Error(result.exceptionOrNull()?.message ?: "Erro no cadastro")
             }
             _isLoading.value = false
         }
@@ -78,6 +75,7 @@ class AuthViewModel(
     // Função para fazer login
     fun loginUser(email: String, password: String) {
         viewModelScope.launch {
+            _isLoading.value = true
             val result = loginUserUseCase.execute(email, password)
             if (result.isSuccess) {
                 val userId = result.getOrNull() ?: ""
@@ -87,20 +85,19 @@ class AuthViewModel(
                 _authState.value =
                     AuthState.Error("Seu e-mail e senha estão incorretos. Verifique suas informações e tente novamente.")
             }
+            _isLoading.value = false
         }
     }
 
     // Salva o userId no SharedPreferences
     private fun saveUserIdToPreferences(userId: String) {
-        val sharedPref =
-            getApplication<Application>().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val sharedPref = getApplication<Application>().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         with(sharedPref.edit()) {
             putString("user_id", userId)
             apply()
         }
     }
 
-    // Reseta o estado após sucesso ou erro
     fun resetAuthState() {
         _authState.value = AuthState.Idle
     }

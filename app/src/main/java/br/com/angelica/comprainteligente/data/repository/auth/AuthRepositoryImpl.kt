@@ -3,6 +3,7 @@ package br.com.angelica.comprainteligente.data.repository.auth
 import br.com.angelica.comprainteligente.model.Address
 import br.com.angelica.comprainteligente.model.User
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
@@ -34,6 +35,8 @@ class AuthRepositoryImpl(
             )
             firestore.collection("users").document(userId).set(userData).await()
             Result.success(userId)
+        } catch (e: FirebaseAuthUserCollisionException) {
+            Result.failure(Exception("O email já está registrado. Por favor, faça login ou use outro email."))
         } catch (e: Exception) {
             Result.failure(e)
         }
