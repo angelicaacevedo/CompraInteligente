@@ -23,6 +23,9 @@ class AuthViewModel(
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> = _authState
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
     // Função para buscar o endereço com base no CEP
     fun fetchAddressByCep(cep: String, onSuccess: (Address) -> Unit, onFailure: (String) -> Unit) {
         viewModelScope.launch {
@@ -58,6 +61,7 @@ class AuthViewModel(
     // Função para registrar o usuário
     fun registerUser(user: User, address: Address) {
         viewModelScope.launch {
+            _isLoading.value = true
             val result = registerUserUseCase.execute(user, address)
             if (result.isSuccess) {
                 val userId = result.getOrNull() ?: ""
@@ -67,6 +71,7 @@ class AuthViewModel(
                 _authState.value =
                     AuthState.Error(result.exceptionOrNull()?.message ?: "Erro no cadastro")
             }
+            _isLoading.value = false
         }
     }
 
@@ -79,28 +84,25 @@ class AuthViewModel(
                 saveUserIdToPreferences(userId)
                 _authState.value = AuthState.Success(userId)
             } else {
-                _authState.value = AuthState.Error(
-                    result.exceptionOrNull()?.message
-                        ?: "Falha ao fazer login. Verifique suas credenciais."
-                )
+                _authState.value =
+                    AuthState.Error("Seu e-mail e senha estão incorretos. Verifique suas informações e tente novamente.")
             }
+        }
+    }
+
+    // Salva o userId no SharedPreferences
+    private fun saveUserIdToPreferences(userId: String) {
+        val sharedPref =
+            getApplication<Application>().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putString("user_id", userId)
+            apply()
         }
     }
 
     // Reseta o estado após sucesso ou erro
     fun resetAuthState() {
         _authState.value = AuthState.Idle
-        println("Auth state reset to Idle")  // Log para verificar o reset
-    }
-
-    // Função para salvar o userId no SharedPreferences
-    private fun saveUserIdToPreferences(userId: String) {
-        val sharedPref =
-            getApplication<Application>().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        with(sharedPref.edit()) {
-            putString("userId", userId)
-            apply()
-        }
     }
 
     // Estado da autenticação

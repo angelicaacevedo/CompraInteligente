@@ -13,13 +13,15 @@ class MainActivity : ComponentActivity() {
 
         // Recupera o userId do SharedPreferences
         val sharedPref = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        val userId = sharedPref.getString("user_id", null) ?: ""
+        val userId = sharedPref.getString("user_id", null)
 
         setContent {
             CompraInteligenteTheme {
+                // Passa o userId para a navegação
                 AppNavigation(userId)
             }
         }
     }
 }
+
 

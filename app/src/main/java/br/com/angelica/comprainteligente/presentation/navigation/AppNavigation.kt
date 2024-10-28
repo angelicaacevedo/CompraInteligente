@@ -18,10 +18,13 @@ import br.com.angelica.comprainteligente.presentation.view.ProductRegisterScreen
 import br.com.angelica.comprainteligente.presentation.view.RegisterScreen
 
 @Composable
-fun AppNavigation(userId: String) { // Recebe o userId como argumento
+fun AppNavigation(userId: String?) { // Recebe o userId como argumento
     val navController: NavHostController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "login") {
+    // Define a tela inicial com base na presença de userId
+    val startDestination = if (userId.isNullOrEmpty()) "login" else "home/$userId"
+
+    NavHost(navController = navController, startDestination = startDestination) {
         // Login Screen
         composable("login") {
             LoginScreen(
@@ -55,7 +58,7 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
             "home/{userId}",
             arguments = listOf(navArgument("userId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
             HomeScreen(navController = navController, currentUserId)
         }
 
@@ -65,7 +68,7 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
             "add_product/{userId}",
             arguments = listOf(navArgument("userId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
             ProductRegisterScreen(
                 userId = currentUserId,
                 onProductRegistered = {
@@ -82,7 +85,7 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
             "price_comparison/{userId}",
             arguments = listOf(navArgument("userId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
             PriceComparisonScreen(
                 userId = currentUserId,
                 navController = navController,
@@ -94,7 +97,7 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
             "list_history/{userId}",
             arguments = listOf(navArgument("userId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
             HistoryListScreen(
                 navController = navController,
                 userId = currentUserId,
@@ -114,7 +117,7 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
             "create_list/{userId}",
             arguments = listOf(navArgument("userId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
             NewListScreen(
                 userId = currentUserId,
                 onBack = { navController.navigate("list_history/$currentUserId") },
@@ -138,7 +141,7 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
                 navArgument("productIds") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
             val listId = backStackEntry.arguments?.getString("listId") ?: ""
             val listName = backStackEntry.arguments?.getString("listName") ?: ""
             val productIds =
@@ -167,7 +170,7 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
                 navArgument("productIds") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
             val listId = backStackEntry.arguments?.getString("listId") ?: ""
             val productIds =
                 backStackEntry.arguments?.getString("productIds")?.split(",") ?: emptyList()
@@ -200,7 +203,7 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
                 navArgument("productIds") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
             val productId = backStackEntry.arguments?.getString("productId") ?: ""
             InflationScreen(
                 userId = currentUserId,
