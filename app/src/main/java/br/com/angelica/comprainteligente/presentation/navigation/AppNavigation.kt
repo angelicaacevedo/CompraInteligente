@@ -1,5 +1,6 @@
 package br.com.angelica.comprainteligente.presentation.navigation
 
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavHostController
@@ -114,9 +115,9 @@ fun AppNavigation(userId: String?) {
                     navController.navigate("create_list/$currentUserId") // Navega para a criação de lista com o userId
                 },
                 onNavigateToListItems = { listId, listName, productIds ->
-                    navController.navigate(
-                        "list_items/$currentUserId/$listId/$listName/${productIds.joinToString(",")}"
-                    )
+                    val encodedListName = Uri.encode(listName)
+                    val encodedProductIds = Uri.encode(productIds.joinToString(","))
+                    navController.navigate("list_items/$userId/$listId/$encodedListName/$encodedProductIds")
                 }
             )
         }
@@ -192,13 +193,9 @@ fun AppNavigation(userId: String?) {
                 listName = listName,
                 onBack = { navController.popBackStack() },
                 onEditList = { id, name, ids ->
-                    navController.navigate(
-                        "create_list/$currentUserId/$id/$name/${
-                            ids.joinToString(
-                                ","
-                            )
-                        }"
-                    )
+                    val encodedListName = Uri.encode(name)
+                    val encodedProductIds = Uri.encode(ids.joinToString(","))
+                    navController.navigate("create_list/$currentUserId/$id/$encodedListName/$encodedProductIds")
                 },
                 navController = navController
             )
