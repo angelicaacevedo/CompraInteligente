@@ -20,11 +20,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -70,7 +71,6 @@ fun ProductRegisterScreen(
     var isCategoryMenuExpanded by remember { mutableStateOf(false) }
     val categories = listOf("Bebidas", "Alimentos", "Higiene", "Limpeza", "Outros")
 
-
     // Estados dos campos de entrada
     var productName by remember { mutableStateOf("") }
     var productImageUrl by remember { mutableStateOf("") }
@@ -80,6 +80,8 @@ fun ProductRegisterScreen(
     var suggestions by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
     var isFormSubmitted by remember { mutableStateOf(false) }
     var isBarcodeEditable by remember { mutableStateOf(true) }
+    var isProductInfoEditable by remember { mutableStateOf(true) }
+    var isSupermarketEditable by remember { mutableStateOf(true) }
     var isLoading by remember { mutableStateOf(false) }
 
     val context = LocalContext.current as Activity
@@ -89,6 +91,7 @@ fun ProductRegisterScreen(
         if (result.contents != null) {
             barcode = result.contents
             isBarcodeEditable = false  // Bloqueia o campo de código de barras após escanear
+            isProductInfoEditable = false
             isLoading = true
             viewModel.handleIntent(ProductViewModel.ProductIntent.ScanProduct(barcode))
         } else {
@@ -125,6 +128,7 @@ fun ProductRegisterScreen(
                 productName = productDetails?.product_name ?: "Produto não encontrado"
                 productImageUrl = productDetails?.image_url ?: ""
                 isLoading = false
+                isProductInfoEditable = false
             }
 
             is ProductViewModel.ProductState.SuggestionsLoaded -> {
@@ -178,6 +182,7 @@ fun ProductRegisterScreen(
             confirmButtonText = "Ok",
             onConfirm = {
                 showErrorDialog = false
+                isLoading = false
                 productName = ""
                 productImageUrl = ""
                 productPrice = ""
@@ -255,7 +260,9 @@ fun ProductRegisterScreen(
                             requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                         }
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp)
                 ) {
                     Text("Escanear Código de Barras")
                 }
@@ -270,7 +277,7 @@ fun ProductRegisterScreen(
                         label = "Nome do Produto",
                         isError = isFormSubmitted && productName.isEmpty(),
                         errorMessage = "Campo obrigatório",
-                        enabled = isBarcodeEditable
+                        enabled = isProductInfoEditable
                     )
                 }
             }
@@ -288,6 +295,42 @@ fun ProductRegisterScreen(
                 }
             }
 
+            item {
+                ExposedDropdownMenuBox(
+                    expanded = isCategoryMenuExpanded,
+                    onExpandedChange = { isCategoryMenuExpanded = !isCategoryMenuExpanded }
+                ) {
+                    OutlinedTextField(
+                        value = selectedCategory,
+                        onValueChange = {},
+                        label = { Text("Categoria") },
+                        readOnly = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                            .clickable { isCategoryMenuExpanded = true },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = isCategoryMenuExpanded)
+                        }
+                    )
+                    ExposedDropdownMenu(
+                        expanded = isCategoryMenuExpanded,
+                        onDismissRequest = { isCategoryMenuExpanded = false },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        categories.forEach { category ->
+                            DropdownMenuItem(
+                                text = { Text(text = category) },
+                                onClick = {
+                                    selectedCategory = category
+                                    isCategoryMenuExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
             // Campo para inserir o preço do produto
             item {
                 CustomTextField(
@@ -296,7 +339,8 @@ fun ProductRegisterScreen(
                     label = "Preço",
                     isNumeric = true,
                     isError = isFormSubmitted && productPrice.isEmpty(),
-                    errorMessage = "Campo obrigatório"
+                    errorMessage = "Campo obrigatório",
+                    modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
 
@@ -305,8 +349,16 @@ fun ProductRegisterScreen(
                 CustomTextField(
                     value = selectedSupermarket,
                     onValueChange = {
-                        selectedSupermarket = it
-                        viewModel.handleIntent(ProductViewModel.ProductIntent.LoadSuggestions(it))
+                        if (isSupermarketEditable) {
+                            selectedSupermarket = it
+                            if (selectedSupermarket.isNotEmpty()) {
+                                viewModel.handleIntent(
+                                    ProductViewModel.ProductIntent.LoadSuggestions(it)
+                                )
+                            } else {
+                                suggestions = emptyList()
+                            }
+                        }
                     },
                     label = "Supermercado",
                     isError = isFormSubmitted && selectedSupermarket.isEmpty(),
@@ -316,6 +368,11 @@ fun ProductRegisterScreen(
                             Icons.Default.Search,
                             contentDescription = "Buscar Supermercado"
                         )
+                    },
+                    onFocusChanged = { focusState ->
+                        if (!focusState.isFocused) {
+                            suggestions = emptyList()
+                        }
                     }
                 )
             }
@@ -329,41 +386,12 @@ fun ProductRegisterScreen(
                             .clickable {
                                 selectedSupermarket = name
                                 suggestions = emptyList()
+                                isSupermarketEditable = false
                             }
                             .padding(8.dp)
                     ) {
                         Text(text = name, color = Color.Black)
-                        Text(
-                            text = address,
-                            color = Color.Gray,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
-            }
-
-            item {
-                Box {
-                    Button(
-                        onClick = { isCategoryMenuExpanded = true },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(text = selectedCategory)
-                    }
-
-                    DropdownMenu(
-                        expanded = isCategoryMenuExpanded,
-                        onDismissRequest = { isCategoryMenuExpanded = false }
-                    ) {
-                        categories.forEach { category ->
-                            DropdownMenuItem(
-                                text = { Text(text = category) },
-                                onClick = {
-                                    selectedCategory = category
-                                    isCategoryMenuExpanded = false
-                                }
-                            )
-                        }
+                        Text(text = address, color = Color.Gray)
                     }
                 }
             }
@@ -385,7 +413,9 @@ fun ProductRegisterScreen(
                             )
                         }
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp)
                 ) {
                     Text("Cadastrar Produto")
                 }
