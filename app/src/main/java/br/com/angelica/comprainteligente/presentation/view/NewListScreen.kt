@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -100,15 +101,16 @@ fun NewListScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item {
                 OutlinedTextField(
                     value = listName,
                     onValueChange = { listName = it },
-                    label = { Text("Nome da Lista") }
+                    label = { Text("Nome da Lista") },
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
@@ -121,48 +123,62 @@ fun NewListScreen(
                             ProductListViewModel.ProductListIntent.GetProductSuggestions(it)
                         )
                     },
-                    label = { Text("Adicionar Produto") }
+                    label = { Text("Adicionar Produto") },
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
-            // Exibir sugestões de produtos e permitir a seleção de múltiplos itens
+            // Sugestões de Produtos
             if (state is ProductListViewModel.ProductListState.SuggestionsLoaded) {
                 val suggestions =
                     (state as ProductListViewModel.ProductListState.SuggestionsLoaded).suggestions
                 items(suggestions) { product ->
-                    Text(
-                        text = product.name,
-                        modifier = Modifier.clickable {
-                            // Armazenamos os IDs dos produtos selecionados
-                            selectedProductIds = selectedProductIds + product.id
-                            // Adicionamos o produto à lista de produtos selecionados
-                            selectedProducts = selectedProducts + product
-                            query = "" // Limpa a barra de pesquisa
+                    if (product.id !in selectedProductIds) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp, horizontal = 16.dp)
+                                .clickable {
+                                    selectedProductIds = selectedProductIds + product.id
+                                    selectedProducts = selectedProducts + product
+                                    query = "" // Limpa a barra de pesquisa
+                                },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
+                        ) {
+                            Text(
+                                text = product.name,
+                                modifier = Modifier.padding(16.dp),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                         }
-                    )
+                    }
                 }
             }
 
-            // Lista de produtos selecionados
+            // Produtos Selecionados
             if (selectedProducts.isNotEmpty()) {
                 item {
                     Text(
-                        text = "Produtos selecionados:",
+                        text = "Produtos Selecionados:",
                         style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.padding(top = 16.dp)
                     )
                 }
-
                 items(selectedProducts) { product ->
-                    SelectedProductItemCard(product) { removedProduct ->
-                        // Remover o produto da lista de produtos e IDs selecionados
-                        selectedProducts = selectedProducts.filter { it != removedProduct }
-                        selectedProductIds =
-                            selectedProductIds.filter { it != removedProduct.id }
-                    }
+                    SelectedProductItemCard(
+                        product = product,
+                        onRemoveProduct = { removedProduct ->
+                            selectedProducts = selectedProducts.filter { it != removedProduct }
+                            selectedProductIds =
+                                selectedProductIds.filter { it != removedProduct.id }
+                        }
+                    )
                 }
             } else {
                 item { NoProductsSelectedMessage() }
+
             }
 
             item { ListButton(viewModel, userId, listId, listName, selectedProductIds) }
@@ -178,7 +194,7 @@ fun NewListScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 private fun NewListTopBar(onBack: () -> Unit) {
     TopAppBar(
-        title = { Text(text = "Crie uma Nova Lista", modifier = Modifier.fillMaxWidth()) },
+        title = { Text(text = "Criar Lista", modifier = Modifier.fillMaxWidth()) },
         navigationIcon = {
             IconButton(onClick = { onBack() }) {
                 Icon(
@@ -202,8 +218,10 @@ private fun SelectedProductItemCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp, horizontal = 8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            .padding(vertical = 8.dp, horizontal = 16.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
     ) {
         Row(
             modifier = Modifier
@@ -212,19 +230,19 @@ private fun SelectedProductItemCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Aqui o texto será quebrado em várias linhas se for muito longo
             Text(
                 text = product.name,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
-                    .weight(1f)  // Faz com que o texto ocupe o espaço disponível no Row
-                    .padding(end = 8.dp)  // Adiciona um espaçamento para o ícone
+                    .weight(1f)
+                    .padding(end = 8.dp)
             )
 
             IconButton(onClick = { onRemoveProduct(product) }) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "Remover produto"
+                    contentDescription = "Remover produto",
+                    tint = MaterialTheme.colorScheme.outline
                 )
             }
         }
@@ -256,25 +274,28 @@ private fun ListButton(
                 showDialog = true
             }
         },
-        modifier = Modifier.padding(top = 16.dp, bottom = 24.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp)
     ) {
         Text(
-            if (listId == null) "Criar" else "Salvar"
+            text = if (listId == null) "Criar" else "Salvar",
+            style = MaterialTheme.typography.bodyLarge
         )
     }
 
     if (showDialog) {
         CustomAlertDialog(
             title = "ATENÇÃO",
-            message = if (listName.isBlank()) {
-                "O nome da lista não pode estar vazio. Por favor, insira um nome."
-            } else {
-                "Por favor, selecione pelo menos um produto."
+            message = when {
+                listName.isBlank() -> "O nome da lista não pode estar vazio. Por favor, insira um nome."
+                selectedProductIds.isEmpty() -> "Por favor, selecione pelo menos um produto."
+                else -> "Ocorreu um erro. Verifique as informações e tente novamente."
             },
             onDismiss = { showDialog = false },
             onConfirm = { showDialog = false },
             confirmButtonText = "Entendi",
-            dismissButtonText = "Cancelar"
+            showDismissButton = false
         )
     }
 }
