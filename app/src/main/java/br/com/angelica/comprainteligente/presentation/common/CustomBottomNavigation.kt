@@ -36,10 +36,10 @@ fun CustomBottomNavigation(navController: NavController, userId: String) {
             BottomNavItem("add_product/$userId", Icons.Outlined.AddCircleOutline, "Adicionar"),
             BottomNavItem("price_comparison/$userId", Icons.Default.AttachMoney, "Preços"),
             BottomNavItem(
-                "inflation/$userId/{productIds}",
-                Icons.AutoMirrored.Default.TrendingUp,
-                "Inflação"
-            ) // corrigir pois não precisa navegar com os ids dos produtos
+                route = "inflation/$userId",
+                icon = Icons.AutoMirrored.Default.TrendingUp,
+                title = "Inflação"
+            )
         )
 
         // Obtém a rota atual para indicar a tela selecionada

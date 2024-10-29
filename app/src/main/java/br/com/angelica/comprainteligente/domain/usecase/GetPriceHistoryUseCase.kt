@@ -6,7 +6,7 @@ import br.com.angelica.comprainteligente.model.Price
 class GetPriceHistoryUseCase(
     private val priceRepository: PriceRepository
 ) {
-    suspend operator fun invoke(productId: String): Result<List<Price>> {
-        return priceRepository.getPriceHistory(productId)
+    suspend operator fun invoke(productId: String, period: String): Result<List<Price>> {
+        return priceRepository.getPriceHistory(productId, period)
     }
 }

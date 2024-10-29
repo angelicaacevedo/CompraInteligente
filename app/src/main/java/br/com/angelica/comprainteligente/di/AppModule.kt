@@ -21,6 +21,7 @@ import br.com.angelica.comprainteligente.domain.usecase.GetCategoriesUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetPriceHistoryUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetProductInfoFromBarcodeUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetProductSuggestionsUseCase
+import br.com.angelica.comprainteligente.domain.usecase.GetProductsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetSupermarketSuggestionsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.LoginUserUseCase
 import br.com.angelica.comprainteligente.domain.usecase.RegisterProductUseCase
@@ -98,10 +99,11 @@ val appModule = module {
     factory { UpdateListUseCase(get()) }
     factory { FetchLatestPricesForListUseCase(get()) }
     factory { GetPriceHistoryUseCase(get()) }
+    factory { GetProductsUseCase(get()) }
 
     // ViewModels
     viewModel { AuthViewModel(get(), get(), get(), get()) }
     viewModel { ProductViewModel(get(), get(), get(), get()) }
     viewModel { ProductListViewModel(get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { InflationViewModel(get()) }
+    viewModel { InflationViewModel(get(), get()) }
 }

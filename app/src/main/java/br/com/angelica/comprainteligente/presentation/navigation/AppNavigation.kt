@@ -203,17 +203,15 @@ fun AppNavigation(userId: String?) {
 
         // Inflation Screen
         composable(
-            "inflation/{userId}/{productIds}",
+            "inflation/{userId}",
             arguments = listOf(
-                navArgument("userId") { type = NavType.StringType },
-                navArgument("productIds") { type = NavType.StringType }
+                navArgument("userId") { type = NavType.StringType }
             )
         ) { backStackEntry ->
             val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
-            val productId = backStackEntry.arguments?.getString("productId") ?: ""
             InflationScreen(
                 userId = currentUserId,
-                productId = productId,
+                navController = navController
             )
         }
     }
