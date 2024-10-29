@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -44,6 +45,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import br.com.angelica.comprainteligente.model.Category
 import br.com.angelica.comprainteligente.presentation.common.CustomAlertDialog
 import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigation
 import br.com.angelica.comprainteligente.presentation.common.CustomTextField
@@ -63,13 +65,16 @@ fun ProductRegisterScreen(
     viewModel: ProductViewModel = getViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
+    val categories by viewModel.categories.collectAsState()
+
+    var selectedCategory by remember { mutableStateOf<Category?>(null) }
+    var isCategoryMenuExpanded by remember { mutableStateOf(false) }
+
     var showSucessDialog by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
-
-    var selectedCategory by remember { mutableStateOf("Selecione uma categoria") }
-    var isCategoryMenuExpanded by remember { mutableStateOf(false) }
-    val categories = listOf("Bebidas", "Alimentos", "Higiene", "Limpeza", "Outros")
+    var priceError by remember { mutableStateOf(false) }
+    var priceErrorMessage by remember { mutableStateOf("") }
 
     // Estados dos campos de entrada
     var productName by remember { mutableStateOf("") }
@@ -301,7 +306,7 @@ fun ProductRegisterScreen(
                     onExpandedChange = { isCategoryMenuExpanded = !isCategoryMenuExpanded }
                 ) {
                     OutlinedTextField(
-                        value = selectedCategory,
+                        value = selectedCategory?.name ?: "Selecione uma categoria",
                         onValueChange = {},
                         label = { Text("Categoria") },
                         readOnly = true,
@@ -320,7 +325,7 @@ fun ProductRegisterScreen(
                     ) {
                         categories.forEach { category ->
                             DropdownMenuItem(
-                                text = { Text(text = category) },
+                                text = { Text(text = category.name) },
                                 onClick = {
                                     selectedCategory = category
                                     isCategoryMenuExpanded = false
@@ -335,11 +340,21 @@ fun ProductRegisterScreen(
             item {
                 CustomTextField(
                     value = productPrice,
-                    onValueChange = { productPrice = it },
+                    onValueChange = {
+                        productPrice = it
+                        val priceValue = it.replace(",", ".").toDoubleOrNull()
+                        if (priceValue == null || priceValue <= 0) {
+                            priceError = true
+                            priceErrorMessage = "O preço não pode ser zero ou negativo"
+                        } else {
+                            priceError = false
+                            priceErrorMessage = ""
+                        }
+                    },
                     label = "Preço",
                     isNumeric = true,
-                    isError = isFormSubmitted && productPrice.isEmpty(),
-                    errorMessage = "Campo obrigatório",
+                    isError = isFormSubmitted && (productPrice.isEmpty() || priceError),
+                    errorMessage = if (priceError) priceErrorMessage else "Campo obrigatório",
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
@@ -365,7 +380,7 @@ fun ProductRegisterScreen(
                     errorMessage = "Campo obrigatório",
                     leadingIcon = {
                         Icon(
-                            Icons.Default.Search,
+                            Icons.Default.LocationOn,
                             contentDescription = "Buscar Supermercado"
                         )
                     },
@@ -401,7 +416,9 @@ fun ProductRegisterScreen(
                 Button(
                     onClick = {
                         isFormSubmitted = true
-                        if (barcode.isNotEmpty() && productPrice.isNotEmpty() && selectedSupermarket.isNotEmpty()) {
+                        val priceValue = productPrice.replace(",", ".").toDoubleOrNull()
+
+                        if (barcode.isNotEmpty() && selectedSupermarket.isNotEmpty() && priceValue != null && priceValue > 0) {
                             viewModel.handleIntent(
                                 ProductViewModel.ProductIntent.RegisterProduct(
                                     barcode = barcode,
@@ -411,6 +428,9 @@ fun ProductRegisterScreen(
                                     userId = userId
                                 )
                             )
+                        } else if (priceValue == null || priceValue <= 0) {
+                            priceError = true
+                            priceErrorMessage = "O preço não pode ser zero ou negativo"
                         }
                     },
                     modifier = Modifier

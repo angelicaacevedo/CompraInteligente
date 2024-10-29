@@ -26,6 +26,7 @@ import br.com.angelica.comprainteligente.domain.usecase.LoginUserUseCase
 import br.com.angelica.comprainteligente.domain.usecase.RegisterProductUseCase
 import br.com.angelica.comprainteligente.domain.usecase.RegisterUserUseCase
 import br.com.angelica.comprainteligente.domain.usecase.UpdateListUseCase
+import br.com.angelica.comprainteligente.model.CategoryRepository
 import br.com.angelica.comprainteligente.presentation.viewmodel.AuthViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.InflationViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
@@ -79,6 +80,9 @@ val appModule = module {
     single<PriceRepository> { PriceRepositoryImpl(get()) }
     single<ProductListRepository> { ProductListRepositoryImpl(get()) }
 
+    // CategoryRepository (como singleton)
+    single { CategoryRepository }
+
     // Use Cases
     factory { RegisterUserUseCase(get()) }
     factory { LoginUserUseCase(get()) }
@@ -97,7 +101,7 @@ val appModule = module {
 
     // ViewModels
     viewModel { AuthViewModel(get(), get(), get(), get()) }
-    viewModel { ProductViewModel(get(), get(), get()) }
+    viewModel { ProductViewModel(get(), get(), get(), get()) }
     viewModel { ProductListViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { InflationViewModel(get()) }
 }

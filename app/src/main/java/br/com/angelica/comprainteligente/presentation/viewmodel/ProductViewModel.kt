@@ -2,9 +2,11 @@ package br.com.angelica.comprainteligente.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.angelica.comprainteligente.domain.usecase.GetCategoriesUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetProductInfoFromBarcodeUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetSupermarketSuggestionsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.RegisterProductUseCase
+import br.com.angelica.comprainteligente.model.Category
 import br.com.angelica.comprainteligente.model.Price
 import br.com.angelica.comprainteligente.model.Product
 import br.com.angelica.comprainteligente.model.remote.ProductDetails
@@ -16,36 +18,40 @@ import kotlinx.coroutines.launch
 class ProductViewModel(
     private val getProductInfoFromBarcodeUseCase: GetProductInfoFromBarcodeUseCase,
     private val getSupermarketSuggestionsUseCase: GetSupermarketSuggestionsUseCase,
-    private val registerProductUseCase: RegisterProductUseCase
+    private val registerProductUseCase: RegisterProductUseCase,
+    private val getCategoriesUseCase: GetCategoriesUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ProductState>(ProductState.Idle)
     val state: StateFlow<ProductState> = _state
 
+    private val _categories = MutableStateFlow<List<Category>>(emptyList())
+    val categories: StateFlow<List<Category>> = _categories
+
+    init {
+        loadCategories()
+    }
+
     fun handleIntent(intent: ProductIntent) {
         when (intent) {
             is ProductIntent.ScanProduct -> scanProduct(intent.barcode)
-            is ProductIntent.RegisterProduct -> registerProduct(
-                barcode = intent.barcode,
-                name = intent.name,
-                price = intent.price,
-                supermarket = intent.supermarket,
-                userId = intent.userId
-            )
-
+            is ProductIntent.RegisterProduct -> processProductRegistration(intent)
             is ProductIntent.LoadSuggestions -> loadSuggestions(intent.query)
         }
+    }
+
+    private fun loadCategories() {
+        _categories.value = getCategoriesUseCase.execute()
     }
 
     private fun scanProduct(barcode: String) {
         viewModelScope.launch {
             _state.value = ProductState.Loading
             val result = getProductInfoFromBarcodeUseCase.execute(barcode)
-            if (result.isSuccess) {
-                val productDetails = result.getOrNull()
-                _state.value = ProductState.ProductScanned(productDetails)
+            _state.value = if (result.isSuccess) {
+                ProductState.ProductScanned(result.getOrNull())
             } else {
-                _state.value = ProductState.Error("Produto não encontrado.")
+                ProductState.Error("Produto não encontrado.")
             }
         }
     }
@@ -62,42 +68,49 @@ class ProductViewModel(
         }
     }
 
-    private fun registerProduct(
-        barcode: String,
-        name: String,
-        price: String,
-        supermarket: String,
-        userId: String
-    ) {
+    private fun processProductRegistration(intent: ProductIntent.RegisterProduct) {
         viewModelScope.launch {
             _state.value = ProductState.Loading
 
-            // Busca detalhes do produto, incluindo a URL da imagem
-            val productDetailsResult = getProductInfoFromBarcodeUseCase.execute(barcode)
-            val imageUrl = if (productDetailsResult.isSuccess) {
-                productDetailsResult.getOrNull()?.image_url ?: ""
-            } else ""
+            if (!isPriceValid(intent.price)) {
+                _state.value = ProductState.Error("O preço deve ser maior que zero.")
+                return@launch
+            }
 
-            // Criando o objeto Product e Price com as informações fornecidas
-            val product = Product(
-                id = barcode,
-                name = name,
-                categoryId = "",    // Pode ser ajustado para adicionar uma categoria real
-                imageUrl = imageUrl,
-                userId = userId
-            )
+            val product = createProduct(intent)
+            val productPrice = createProductPrice(intent)
 
-            val productPrice = Price(
-                productId = barcode,
-                supermarketId = supermarket,
-                price = price.replace(",", ".").toDouble(),
-                date = Timestamp.now(),
-                userId = userId
-            )
+            registerProduct(product, productPrice)
+        }
+    }
 
-            // Executando o caso de uso para registrar o produto e o preço
+    private suspend fun createProduct(intent: ProductIntent.RegisterProduct): Product {
+        val productDetailsResult = getProductInfoFromBarcodeUseCase.execute(intent.barcode)
+        val imageUrl = productDetailsResult.getOrNull()?.image_url ?: ""
+
+        return Product(
+            id = intent.barcode,
+            name = intent.name,
+            categoryId = "", // Pode ser ajustado para adicionar uma categoria real
+            imageUrl = imageUrl,
+            userId = intent.userId
+        )
+    }
+
+    private fun createProductPrice(intent: ProductIntent.RegisterProduct): Price {
+        val priceValue = intent.price.replace(",", ".").toDouble()
+        return Price(
+            productId = intent.barcode,
+            supermarketId = intent.supermarket,
+            price = priceValue,
+            date = Timestamp.now(),
+            userId = intent.userId
+        )
+    }
+
+    private fun registerProduct(product: Product, productPrice: Price) {
+        viewModelScope.launch {
             val result = registerProductUseCase.execute(product, productPrice)
-
             _state.value = if (result.isSuccess) {
                 ProductState.ProductRegistered
             } else {
@@ -109,6 +122,11 @@ class ProductViewModel(
                 }
             }
         }
+    }
+
+    private fun isPriceValid(price: String): Boolean {
+        val priceValue = price.replace(",", ".").toDoubleOrNull()
+        return priceValue != null && priceValue > 0
     }
 
     fun resetState() {
