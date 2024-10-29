@@ -23,14 +23,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -75,10 +73,10 @@ fun PriceComparisonScreen(
 ) {
     val state by productListViewModel.state.collectAsState()
     var selectedList by remember { mutableStateOf<ProductList?>(null) }
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true // Expande o modal para tela cheia
-    )
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val coroutineScope = rememberCoroutineScope()
+    var isAnalyzeButtonVisible by remember { mutableStateOf(true) }
+    var segmentSelection by remember { mutableStateOf("Produtos") }
 
     // Carrega listas no inicio se ainda não estiverem carregadas
     LaunchedEffect(Unit) {
@@ -111,36 +109,72 @@ fun PriceComparisonScreen(
                 verticalArrangement = Arrangement.Top
             ) {
                 // Campo de seleção de lista
-                ListShoppingTextField(selectedList, coroutineScope, sheetState)
+                ListShoppingTextField(
+                    selectedList,
+                    coroutineScope,
+                    sheetState,
+                    onListSelected = { isAnalyzeButtonVisible = true }
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Botão para "Analisar" e carregar os preços
-                AnalyzeButton(productListViewModel, selectedList)
+                // Controle de segmentação (Segmented Control) para alternar visualizações
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    listOf("Produtos", "Supermercados").forEach { segment ->
+                        Text(
+                            text = segment,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = if (segment == segmentSelection) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
+                                .clickable { segmentSelection = segment }
+                                .background(
+                                    color = if (segment == segmentSelection) MaterialTheme.colorScheme.primary.copy(
+                                        alpha = 0.15f
+                                    ) else Color.Transparent,
+                                    shape = RoundedCornerShape(20.dp)
+                                )
+                                .padding(vertical = 8.dp, horizontal = 16.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Botão para "Analisar"
+                if (isAnalyzeButtonVisible) {
+                    AnalyzeButton(
+                        productListViewModel = productListViewModel,
+                        selectedList = selectedList,
+                        onAnalyzeClicked = { isAnalyzeButtonVisible = false }
+                    )
+                }
 
                 when (state) {
-                    is ProductListViewModel.ProductListState.Loading -> {
-                        LoadingAnimation()
-                    }
-
+                    is ProductListViewModel.ProductListState.Loading -> LoadingAnimation()
                     is ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded -> {
-                        // Exibe a lista de produtos com preços mais recentes
                         val productsWithPrices =
                             (state as ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded).products
-                        ProductsPriceList(productsWithPrices) // Renderiza a lista de produtos
+                        if (segmentSelection == "Produtos") {
+                            ProductsPriceList(productsWithPrices)
+                        } else {
+                            SupermarketsPriceList(productsWithPrices)
+                        }
                     }
 
                     is ProductListViewModel.ProductListState.Error -> {
                         Text(
                             "Erro ao carregar informações",
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(16.dp)
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
 
-                    else -> {
-                        EmptyStateScreen()
-                    }
+                    else -> EmptyStateScreen()
                 }
             }
         }
@@ -150,24 +184,18 @@ fun PriceComparisonScreen(
         LaunchedEffect(sheetState.isVisible) {
             // Recarrega as listas sempre que o modal é aberto
             productListViewModel.handleIntent(
-                ProductListViewModel.ProductListIntent.LoadLists(
-                    userId
-                )
+                ProductListViewModel.ProductListIntent.LoadLists(userId)
             )
         }
     }
 
-    // ModalBottomSheet que só será aberto quando o usuário clicar no TextField para escolher a lista
+    // ModalBottomSheet para selecionar a lista de compras
     if (sheetState.isVisible) {
         ModalBottomSheet(
             sheetState = sheetState,
             onDismissRequest = { coroutineScope.launch { sheetState.hide() } },
             content = {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
+                LazyColumn(modifier = Modifier.padding(16.dp)) {
                     item {
                         Text(
                             "Escolha uma lista",
@@ -175,51 +203,37 @@ fun PriceComparisonScreen(
                             modifier = Modifier.padding(16.dp)
                         )
                     }
-
-                    // Exibe a lista de listas disponíveis no Modal
                     when (val currentState = state) {
                         is ProductListViewModel.ProductListState.ListsLoaded -> {
                             items(currentState.lists) { list ->
                                 val isSelected = list == selectedList
-                                Text(
-                                    text = list.name,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onBackground,
+                                Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(vertical = 8.dp) // Aumenta o espaçamento vertical
+                                        .padding(vertical = 8.dp)
                                         .background(
                                             color = if (isSelected) MaterialTheme.colorScheme.primary.copy(
                                                 alpha = 0.15f
                                             ) else Color.Transparent,
-                                            shape = RoundedCornerShape(20.dp) // Leve arredondamento apenas para o fundo
+                                            shape = RoundedCornerShape(16.dp)
                                         )
-                                        .padding(
-                                            vertical = 16.dp,
-                                            horizontal = 16.dp
-                                        ) // Espaçamento interno
                                         .clickable {
                                             selectedList = list
                                             productListViewModel.resetState()
                                             coroutineScope.launch { sheetState.hide() }
                                         }
-                                )
+                                        .padding(16.dp) // Espaçamento interno para todo o conteúdo
+                                ) {
+                                    Text(
+                                        text = list.name,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onBackground
+                                    )
+                                }
                             }
                         }
 
-                        is ProductListViewModel.ProductListState.Loading -> {
-                            item { CircularProgressIndicator() } // Exibe animação de carregamento no modal
-                        }
-
-                        else -> {
-                            item {
-                                Text(
-                                    "Estado inesperado",
-                                    color = MaterialTheme.colorScheme.onError,
-                                    modifier = Modifier.padding(16.dp)
-                                )
-                            }
-                        }
+                        else -> item { Text("Carregando listas...") }
                     }
                 }
             }
@@ -229,10 +243,11 @@ fun PriceComparisonScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ListShoppingTextField(
+fun ListShoppingTextField(
     selectedList: ProductList?,
     coroutineScope: CoroutineScope,
-    sheetState: SheetState
+    sheetState: SheetState,
+    onListSelected: () -> Unit
 ) {
     OutlinedTextField(
         value = selectedList?.name ?: "Selecione uma lista",
@@ -241,7 +256,10 @@ private fun ListShoppingTextField(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                coroutineScope.launch { sheetState.show() } // Exibe o modal quando o TextField é clicado
+                coroutineScope.launch {
+                    sheetState.show()
+                    onListSelected()
+                }
             },
         label = { Text("Lista de Compras") },
         trailingIcon = {
@@ -251,6 +269,7 @@ private fun ListShoppingTextField(
                         sheetState.hide()
                     } else {
                         sheetState.show()
+                        onListSelected()
                     }
                 }
             }) {
@@ -283,7 +302,7 @@ fun ProductsPriceList(productsWithPrices: List<ProductWithLatestPrice>) {
                     // Nome do Produto
                     Text(
                         text = item.product.name,
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
@@ -309,9 +328,61 @@ fun ProductsPriceList(productsWithPrices: List<ProductWithLatestPrice>) {
 }
 
 @Composable
+fun SupermarketsPriceList(productsWithPrices: List<ProductWithLatestPrice>) {
+    LazyColumn {
+        items(productsWithPrices.groupBy { it.supermarket.name }
+            .toList()) { (supermarket, products) ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp, horizontal = 16.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    // Nome do Supermercado com estilo de título
+                    Text(
+                        text = supermarket,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    // Exibir endereço (caso esteja incluído no nome do supermercado)
+                    products.firstOrNull()?.let { product ->
+                        Text(
+                            text = product.supermarket.address ?: "",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+
+                    // Lista de produtos com preços
+                    products.forEach { product ->
+                        Text(
+                            text = "- ${product.product.name}: R$ ${product.latestPrice.price}",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun AnalyzeButton(
     productListViewModel: ProductListViewModel,
-    selectedList: ProductList?
+    selectedList: ProductList?,
+    onAnalyzeClicked: () -> Unit
 ) {
     Button(
         onClick = {
@@ -323,6 +394,7 @@ private fun AnalyzeButton(
                             loadLatestPrices = true
                         )
                     )
+                    onAnalyzeClicked()
                 }
             }
         },
