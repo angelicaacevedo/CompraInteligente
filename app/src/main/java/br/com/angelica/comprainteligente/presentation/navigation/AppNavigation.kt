@@ -18,6 +18,7 @@ import br.com.angelica.comprainteligente.presentation.view.NewListScreen
 import br.com.angelica.comprainteligente.presentation.view.PriceComparisonScreen
 import br.com.angelica.comprainteligente.presentation.view.ProductRegisterScreen
 import br.com.angelica.comprainteligente.presentation.view.RegisterScreen
+import br.com.angelica.comprainteligente.presentation.view.UserProfileScreen
 
 @Composable
 fun AppNavigation(userId: String?) {
@@ -212,6 +213,23 @@ fun AppNavigation(userId: String?) {
             InflationScreen(
                 userId = currentUserId,
                 navController = navController
+            )
+        }
+
+        // Tela de Perfil
+        composable(
+            "profile/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
+            UserProfileScreen(
+                userId = currentUserId,
+                onEditClick = { /* Função de navegação para editar o perfil */ },
+                onLogoutClick = {
+                    navController.navigate("login") {
+                        popUpTo("home/$currentUserId") { inclusive = true }
+                    }
+                }
             )
         }
     }

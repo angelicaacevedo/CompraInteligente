@@ -12,6 +12,7 @@ import br.com.angelica.comprainteligente.data.repository.product.ProductReposito
 import br.com.angelica.comprainteligente.data.repository.product.ProductRepositoryImpl
 import br.com.angelica.comprainteligente.data.repository.supermarket.SupermarketRepository
 import br.com.angelica.comprainteligente.data.repository.supermarket.SupermarketRepositoryImpl
+import br.com.angelica.comprainteligente.domain.usecase.AuthUseCases
 import br.com.angelica.comprainteligente.domain.usecase.CreateListUseCase
 import br.com.angelica.comprainteligente.domain.usecase.DeleteListUseCase
 import br.com.angelica.comprainteligente.domain.usecase.FetchLatestPricesForListUseCase
@@ -23,15 +24,14 @@ import br.com.angelica.comprainteligente.domain.usecase.GetProductInfoFromBarcod
 import br.com.angelica.comprainteligente.domain.usecase.GetProductSuggestionsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetProductsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetSupermarketSuggestionsUseCase
-import br.com.angelica.comprainteligente.domain.usecase.LoginUserUseCase
 import br.com.angelica.comprainteligente.domain.usecase.RegisterProductUseCase
-import br.com.angelica.comprainteligente.domain.usecase.RegisterUserUseCase
 import br.com.angelica.comprainteligente.domain.usecase.UpdateListUseCase
 import br.com.angelica.comprainteligente.model.CategoryRepository
 import br.com.angelica.comprainteligente.presentation.viewmodel.AuthViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.InflationViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductViewModel
+import br.com.angelica.comprainteligente.presentation.viewmodel.UserProfileViewModel
 import com.google.android.libraries.places.api.Places
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -85,8 +85,7 @@ val appModule = module {
     single { CategoryRepository }
 
     // Use Cases
-    factory { RegisterUserUseCase(get()) }
-    factory { LoginUserUseCase(get()) }
+    factory { AuthUseCases(get()) }
     factory { GetProductInfoFromBarcodeUseCase(get()) }
     factory { GetSupermarketSuggestionsUseCase(get()) }
     factory { RegisterProductUseCase(get(), get(), get()) }
@@ -102,8 +101,9 @@ val appModule = module {
     factory { GetProductsUseCase(get()) }
 
     // ViewModels
-    viewModel { AuthViewModel(get(), get(), get(), get()) }
+    viewModel { AuthViewModel(get(), get(), get()) }
     viewModel { ProductViewModel(get(), get(), get(), get()) }
     viewModel { ProductListViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { InflationViewModel(get(), get()) }
+    viewModel { UserProfileViewModel(get()) }
 }

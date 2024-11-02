@@ -1,4 +1,4 @@
-package br.com.angelica.comprainteligente
+package br.com.angelica.comprainteligente.presentation.view
 
 import android.content.Context
 import android.os.Bundle

@@ -319,13 +319,6 @@ fun RegisterScreen(
                                         number
                                     )
                                 ) {
-                                    val user = User(
-                                        id = "",
-                                        username = username,
-                                        email = email,
-                                        passwordHash = password,
-                                        addressId = ""
-                                    )
                                     val address = Address(
                                         street = street,
                                         number = number,
@@ -334,7 +327,7 @@ fun RegisterScreen(
                                         state = state,
                                         postalCode = cep
                                     )
-                                    authViewModel.registerUser(user, address)
+                                    authViewModel.registerUser(username, email, password, address)
                                 } else {
                                     errorMessage = "Preencha todos os campos corretamente"
                                 }

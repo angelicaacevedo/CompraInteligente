@@ -2,12 +2,10 @@ package br.com.angelica.comprainteligente.presentation.viewmodel
 
 import android.app.Application
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.angelica.comprainteligente.data.remote.CorreiosApi
-import br.com.angelica.comprainteligente.domain.usecase.LoginUserUseCase
-import br.com.angelica.comprainteligente.domain.usecase.RegisterUserUseCase
+import br.com.angelica.comprainteligente.domain.usecase.AuthUseCases
 import br.com.angelica.comprainteligente.model.Address
 import br.com.angelica.comprainteligente.model.User
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,8 +14,7 @@ import kotlinx.coroutines.launch
 
 class AuthViewModel(
     application: Application,
-    private val registerUserUseCase: RegisterUserUseCase,
-    private val loginUserUseCase: LoginUserUseCase,
+    private val authUseCases: AuthUseCases,
     private val correiosApi: CorreiosApi,
 ) : AndroidViewModel(application) {
 
@@ -57,11 +54,17 @@ class AuthViewModel(
         }
     }
 
-    // Função para registrar o usuário com captura de exceção
-    fun registerUser(user: User, address: Address) {
+    fun registerUser(username: String, email: String, password: String, address: Address) {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = registerUserUseCase.execute(user, address)
+            val user = User(
+                id = "",
+                username = username,
+                email = email,
+                passwordHash = password,
+                address = address
+            )
+            val result = authUseCases.registerUser(user)
             if (result.isSuccess) {
                 val userId = result.getOrNull() ?: ""
                 saveUserIdToPreferences(userId)
@@ -77,7 +80,7 @@ class AuthViewModel(
     fun loginUser(email: String, password: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = loginUserUseCase.execute(email, password)
+            val result = authUseCases.loginUser(email, password)
             if (result.isSuccess) {
                 val userId = result.getOrNull() ?: ""
                 saveUserIdToPreferences(userId)

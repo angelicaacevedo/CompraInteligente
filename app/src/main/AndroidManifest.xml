@@ -27,7 +27,7 @@
             android:value="AIzaSyBdExxtobm1IW4hfSbmJbLWlmfPa40skQk" />
 
         <activity
-            android:name=".MainActivity"
+            android:name=".presentation.view.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.CompraInteligente">
             <intent-filter>
