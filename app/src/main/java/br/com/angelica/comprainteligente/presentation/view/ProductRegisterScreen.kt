@@ -88,6 +88,7 @@ fun ProductRegisterScreen(
     var isProductInfoEditable by remember { mutableStateOf(true) }
     var isSupermarketEditable by remember { mutableStateOf(true) }
     var isLoading by remember { mutableStateOf(false) }
+    var isSearchCompleted by remember { mutableStateOf(false) }
 
     val context = LocalContext.current as Activity
 
@@ -171,6 +172,7 @@ fun ProductRegisterScreen(
                 selectedSupermarket = ""
                 isFormSubmitted = false
                 isBarcodeEditable = true
+                isSupermarketEditable = true
                 viewModel.resetState()
             },
             onDismiss = {
@@ -195,6 +197,7 @@ fun ProductRegisterScreen(
                 selectedSupermarket = ""
                 isFormSubmitted = false
                 isBarcodeEditable = true
+                isSupermarketEditable = true
                 viewModel.resetState()
             }
         )
@@ -367,6 +370,7 @@ fun ProductRegisterScreen(
                         if (isSupermarketEditable) {
                             selectedSupermarket = it
                             if (selectedSupermarket.isNotEmpty()) {
+                                isSearchCompleted = false
                                 viewModel.handleIntent(
                                     ProductViewModel.ProductIntent.LoadSuggestions(it)
                                 )
@@ -386,6 +390,7 @@ fun ProductRegisterScreen(
                     },
                     onFocusChanged = { focusState ->
                         if (!focusState.isFocused) {
+                            isSearchCompleted = true
                             suggestions = emptyList()
                         }
                     }

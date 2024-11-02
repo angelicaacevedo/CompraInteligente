@@ -28,6 +28,9 @@ class ProductViewModel(
     private val _categories = MutableStateFlow<List<Category>>(emptyList())
     val categories: StateFlow<List<Category>> = _categories
 
+    private var isSearchCompleted = false
+
+
     init {
         loadCategories()
     }
@@ -61,9 +64,12 @@ class ProductViewModel(
             _state.value = ProductState.Loading
             val suggestions = getSupermarketSuggestionsUseCase.execute(query)
             _state.value = if (suggestions.isNotEmpty()) {
+                isSearchCompleted = false
                 ProductState.SuggestionsLoaded(suggestions)
-            } else {
+            } else if (isSearchCompleted) {
                 ProductState.Error("Nenhum supermercado encontrado")
+            } else {
+                ProductState.Idle
             }
         }
     }
