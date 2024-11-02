@@ -18,17 +18,30 @@ class UserProfileViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    // Função para carregar dados do usuário usando o UseCase
+    // Função para carregar dados do usuário
     fun loadUserData(userId: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = authUseCases.getUserById(userId) // Usando o UseCase para obter os dados do usuário
+            val result = authUseCases.getUserById(userId)
             _userData.value = result.getOrNull()
             _isLoading.value = false
         }
     }
 
-    // Função para logout usando o UseCase
+    // Função para atualizar os dados do usuário
+    fun updateUserProfile(userId: String, updatedUser: User) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val result = authUseCases.updateUserInfo(userId, updatedUser, updatedUser.address)
+            if (result.isSuccess) {
+                _userData.value = updatedUser // Atualiza o estado com o novo perfil
+            }
+            _isLoading.value = false
+        }
+    }
+
+
+    // Função para logout
     fun logout() {
         viewModelScope.launch {
             authUseCases.logout()

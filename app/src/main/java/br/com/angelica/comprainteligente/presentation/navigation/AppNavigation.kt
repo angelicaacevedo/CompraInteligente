@@ -224,12 +224,12 @@ fun AppNavigation(userId: String?) {
             val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
             UserProfileScreen(
                 userId = currentUserId,
-                onEditClick = { /* Função de navegação para editar o perfil */ },
                 onLogoutClick = {
                     navController.navigate("login") {
                         popUpTo("home/$currentUserId") { inclusive = true }
                     }
-                }
+                },
+                navController = navController
             )
         }
     }
