@@ -59,6 +59,8 @@ import androidx.navigation.NavController
 import br.com.angelica.comprainteligente.model.ProductList
 import br.com.angelica.comprainteligente.model.ProductWithLatestPrice
 import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigation
+import br.com.angelica.comprainteligente.presentation.common.EmptyStateScreen
+import br.com.angelica.comprainteligente.presentation.common.LoadingAnimation
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -156,7 +158,9 @@ fun PriceComparisonScreen(
                 }
 
                 when (state) {
-                    is ProductListViewModel.ProductListState.Loading -> LoadingAnimation()
+                    is ProductListViewModel.ProductListState.Loading -> {
+                        LoadingAnimation(message = "Aguarde, estamos trazendo os dados...")
+                    }
                     is ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded -> {
                         val productsWithPrices =
                             (state as ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded).products
@@ -174,7 +178,14 @@ fun PriceComparisonScreen(
                         )
                     }
 
-                    else -> EmptyStateScreen()
+                    else -> {
+                        EmptyStateScreen(
+                            title = "Nenhuma lista selecionada!",
+                            message = "Escolha uma lista para comparar os preços mais recentes.",
+                            icon = Icons.Default.ShoppingCart,
+                            contentDescription = "Carrinho vazio"
+                        )
+                    }
                 }
             }
         }
@@ -404,83 +415,3 @@ private fun AnalyzeButton(
         Text("Analisar")
     }
 }
-
-@Composable
-fun LoadingAnimation() {
-    val infiniteTransition = rememberInfiniteTransition(label = "")
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 0.5f,
-        targetValue = 1.5f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(800, easing = LinearOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ), label = ""
-    )
-    val alpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(800, easing = LinearOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ), label = ""
-    )
-
-    Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        // Três círculos animados lado a lado
-        repeat(3) {
-            Box(
-                modifier = Modifier
-                    .size(24.dp)
-                    .scale(scale)
-                    .alpha(alpha)
-                    .background(
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = CircleShape
-                    )
-                    .padding(horizontal = 8.dp)
-            )
-        }
-    }
-}
-
-@Composable
-fun EmptyStateScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = Icons.Default.ShoppingCart,
-            contentDescription = "Carrinho vazio",
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier
-                .size(100.dp)
-                .padding(bottom = 16.dp)
-        )
-
-        Text(
-            text = "Nenhuma lista selecionada!",
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        Text(
-            text = "Escolha uma lista para comparar os preços mais recentes.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-    }
-}
-

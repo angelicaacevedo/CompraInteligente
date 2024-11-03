@@ -80,9 +80,11 @@ class InflationViewModel(
 
             val result = getPriceHistoryUseCase(productId, period)
             result.onSuccess { priceList ->
+                val inflationRate = calculateInflationRate(priceList)
                 _state.value = _state.value.copy(
                     isLoading = false,
                     prices = PriceState(items = priceList, period = period),
+                    inflationRate = inflationRate,
                     error = null
                 )
             }.onFailure { exception ->
@@ -93,6 +95,19 @@ class InflationViewModel(
             }
         }
     }
+
+    // Calcula a inflação entre o primeiro e o último preço
+    private fun calculateInflationRate(prices: List<Price>): String {
+        return if (prices.size >= 2) {
+            val initialPrice = prices.first().price
+            val finalPrice = prices.last().price
+            val rate = ((finalPrice - initialPrice) / initialPrice) * 100
+            "%.2f".format(rate)
+        } else {
+            "Nem uma referência para calcular"
+        }
+    }
+
 
     // Definindo as Intents possíveis para a interface de inflação
     sealed class InflationIntent {
@@ -106,6 +121,7 @@ class InflationViewModel(
         val isLoading: Boolean = false,
         val products: ProductState = ProductState(),
         val prices: PriceState = PriceState(),
+        val inflationRate: String = "N/A",
         val error: String? = null
     )
 

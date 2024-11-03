@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,13 +38,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import br.com.angelica.comprainteligente.model.Price
 import br.com.angelica.comprainteligente.model.Product
 import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigation
+import br.com.angelica.comprainteligente.presentation.common.EmptyStateScreen
+import br.com.angelica.comprainteligente.presentation.common.LoadingAnimation
 import br.com.angelica.comprainteligente.presentation.viewmodel.InflationViewModel
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
@@ -67,7 +70,7 @@ fun InflationScreen(
     val selectedProduct = remember { mutableStateOf<Product?>(null) }
     var expanded by remember { mutableStateOf(false) }
     val periodOptions = listOf("7 dias", "1 mês", "6 meses", "1 ano", "5 anos")
-    var selectedPeriod by remember { mutableStateOf("7 dias") }
+    val selectedPeriod by remember { mutableStateOf("7 dias") }
     var periodMenuExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -187,7 +190,7 @@ fun InflationScreen(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator()
+                            LoadingAnimation(message = "Aguarde, estamos trazendo os dados do seu produto...")
                         }
                     }
 
@@ -200,21 +203,24 @@ fun InflationScreen(
                     }
 
                     state.prices.items.isNotEmpty() -> {
-                        InflationChart(prices = state.prices.items, selectedPeriod = selectedPeriod)
+                        Text(
+                            text = "Inflação do Período: ${state.inflationRate}%",
+                            style = MaterialTheme.typography.bodyLarge.copy(color = Color.Red),
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                        InflationChart(
+                            prices = state.prices.items,
+                            selectedPeriod = state.prices.period
+                        )
                     }
 
                     else -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "Nenhum dado disponível",
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                                style = MaterialTheme.typography.bodyMedium,
-                                textAlign = TextAlign.Center
-                            )
-                        }
+                        EmptyStateScreen(
+                            title = "Selecione um produto",
+                            message = "Ao selecionar um produto você pode verificar sua inflação ao longo do tempo",
+                            icon = Icons.AutoMirrored.Default.TrendingUp,
+                            contentDescription = "Gráfico de inflação",
+                        )
                     }
                 }
             }
