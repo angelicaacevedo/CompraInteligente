@@ -2,9 +2,11 @@ package br.com.angelica.comprainteligente.data.repository.price
 
 import br.com.angelica.comprainteligente.model.Price
 import br.com.angelica.comprainteligente.model.Product
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
+import java.util.Calendar
 
 class PriceRepositoryImpl(
     private val firestore: FirebaseFirestore
@@ -26,11 +28,10 @@ class PriceRepositoryImpl(
 
     override suspend fun addPrice(price: Price): Result<Price> {
         return try {
-            // Adiciona o preço, pois a verificação de duplicidade já foi feita
             val newPriceId = priceCollection.document().id
             price.id = newPriceId
             priceCollection.document(newPriceId).set(price).await()
-            Result.success(price) // Retorna o objeto Price recém-criado
+            Result.success(price)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -50,20 +51,12 @@ class PriceRepositoryImpl(
 
     override suspend fun getPriceHistory(productId: String, period: String): Result<List<Price>> {
         return try {
-            // Define o intervalo de datas com base no período selecionado
-            val startDate = when (period) {
-                "7 dias" -> System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000)
-                "1 mês" -> System.currentTimeMillis() - (30L * 24 * 60 * 60 * 1000)
-                "6 meses" -> System.currentTimeMillis() - (6 * 30L * 24 * 60 * 60 * 1000)
-                "1 ano" -> System.currentTimeMillis() - (365L * 24 * 60 * 60 * 1000)
-                "5 anos" -> System.currentTimeMillis() - (5 * 365L * 24 * 60 * 60 * 1000)
-                else -> System.currentTimeMillis()
-            }
+            val startDate = calculateStartDate(period)
 
             val prices = priceCollection
-                .whereEqualTo("productId", productId) // Filtro pelo produto específico
-                .whereGreaterThan("date", startDate) // Filtro pelo período selecionado
-                .orderBy("date", Query.Direction.DESCENDING)
+                .whereEqualTo("productId", productId)
+                .whereGreaterThan("date", startDate)
+                .orderBy("date", Query.Direction.ASCENDING)
                 .get()
                 .await()
                 .toObjects(Price::class.java)
@@ -72,5 +65,18 @@ class PriceRepositoryImpl(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    private fun calculateStartDate(period: String): Timestamp {
+        val calendar = Calendar.getInstance()
+        when (period) {
+            "7 dias" -> calendar.add(Calendar.DAY_OF_YEAR, -7)
+            "1 mês" -> calendar.add(Calendar.MONTH, -1)
+            "6 meses" -> calendar.add(Calendar.MONTH, -6)
+            "1 ano" -> calendar.add(Calendar.YEAR, -1)
+            "5 anos" -> calendar.add(Calendar.YEAR, -5)
+        }
+        val startDate = Timestamp(calendar.time)
+        return startDate
     }
 }

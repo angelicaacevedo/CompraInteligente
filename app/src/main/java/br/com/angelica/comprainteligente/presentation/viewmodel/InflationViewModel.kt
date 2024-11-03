@@ -20,7 +20,7 @@ class InflationViewModel(
     val state: StateFlow<InflationViewState> = _state.asStateFlow()
 
     init {
-        handleIntent(InflationIntent.LoadProducts)
+        loadProducts()
     }
 
     fun handleIntent(intent: InflationIntent) {
@@ -31,7 +31,7 @@ class InflationViewModel(
         }
     }
 
-    // Carrega a lista de produtos
+    // Carrega a lista de produtos e atualiza o estado
     private fun loadProducts() {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
@@ -51,10 +51,33 @@ class InflationViewModel(
         }
     }
 
-    // Carrega o histórico de preços para um produto específico e período
+    // Define o produto selecionado e carrega o histórico de preços
+    fun setSelectedProduct(product: Product) {
+        _state.value = _state.value.copy(
+            products = _state.value.products.copy(selectedProduct = product)
+        )
+
+        // Carrega o histórico de preços para o produto selecionado
+        loadPriceHistory(product.id, _state.value.prices.period)
+    }
+
+    // Atualiza o período e recarrega o histórico de preços
+    private fun updatePeriod(period: String) {
+        _state.value = _state.value.copy(
+            prices = _state.value.prices.copy(period = period)
+        )
+
+        val selectedProduct = _state.value.products.selectedProduct
+        if (selectedProduct != null) {
+            loadPriceHistory(selectedProduct.id, period)
+        }
+    }
+
+    // Carrega o histórico de preços para o produto e período especificados
     private fun loadPriceHistory(productId: String, period: String) {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
+
             val result = getPriceHistoryUseCase(productId, period)
             result.onSuccess { priceList ->
                 _state.value = _state.value.copy(
@@ -69,17 +92,6 @@ class InflationViewModel(
                 )
             }
         }
-    }
-
-    // Atualiza o período e recarrega o histórico de preços se houver um produto selecionado
-    private fun updatePeriod(period: String) {
-        val selectedProduct = _state.value.products.selectedProduct
-        if (selectedProduct != null) {
-            loadPriceHistory(selectedProduct.id, period)
-        }
-        _state.value = _state.value.copy(
-            prices = _state.value.prices.copy(period = period)
-        )
     }
 
     // Definindo as Intents possíveis para a interface de inflação

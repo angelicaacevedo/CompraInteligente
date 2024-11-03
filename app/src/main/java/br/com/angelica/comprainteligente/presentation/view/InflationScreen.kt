@@ -49,7 +49,11 @@ import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.formatter.ValueFormatter
 import org.koin.androidx.compose.getViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -128,12 +132,7 @@ fun InflationScreen(
                                 onClick = {
                                     selectedProduct.value = product
                                     expanded = false
-                                    viewModel.handleIntent(
-                                        InflationViewModel.InflationIntent.LoadPriceHistory(
-                                            productId = product.id,
-                                            period = state.prices.period
-                                        )
-                                    )
+                                    viewModel.setSelectedProduct(product)
                                 }
                             )
                         }
@@ -157,7 +156,7 @@ fun InflationScreen(
                         )
                     }
                     Text(
-                        text = "Período: $selectedPeriod",
+                        text = "Período: ${state.prices.period}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onBackground
                     )
@@ -169,7 +168,6 @@ fun InflationScreen(
                             DropdownMenuItem(
                                 text = { Text(period) },
                                 onClick = {
-                                    selectedPeriod = period
                                     periodMenuExpanded = false
                                     viewModel.handleIntent(
                                         InflationViewModel.InflationIntent.UpdatePeriod(period)
@@ -202,7 +200,7 @@ fun InflationScreen(
                     }
 
                     state.prices.items.isNotEmpty() -> {
-                        InflationChart(prices = state.prices.items)
+                        InflationChart(prices = state.prices.items, selectedPeriod = selectedPeriod)
                     }
 
                     else -> {
@@ -225,21 +223,25 @@ fun InflationScreen(
 }
 
 @Composable
-fun InflationChart(prices: List<Price>) {
-    val entries = prices.mapIndexed { index, price ->
-        Entry(index.toFloat(), price.price.toFloat())
+fun InflationChart(prices: List<Price>, selectedPeriod: String) {
+    // Transforme os preços em entradas para o gráfico
+    val entries = prices.map { price ->
+        val dateValue = price.date.toDate().time.toFloat()
+        val priceValue = price.price.toFloat()
+        Entry(dateValue, priceValue)
     }
 
     val lineDataSet = LineDataSet(entries, "Variação de Preço").apply {
-        color = android.graphics.Color.parseColor("#6200EE") // Cor da linha
-        valueTextColor = android.graphics.Color.parseColor("#03DAC5") // Cor do valor
+        color = android.graphics.Color.parseColor("#6200EE")
+        valueTextColor = android.graphics.Color.parseColor("#03DAC5")
         lineWidth = 3f
+        circleRadius = 6f
         setDrawCircles(true)
         setCircleColor(android.graphics.Color.parseColor("#6200EE"))
         setDrawFilled(true)
-        fillDrawable =
-            ColorDrawable(android.graphics.Color.parseColor("#EDE7F6")) // Cor de preenchimento
+        fillDrawable = ColorDrawable(android.graphics.Color.parseColor("#EDE7F6"))
         setDrawHighlightIndicators(false)
+        valueTextSize = 12f // Aumenta o tamanho do texto dos valores
     }
 
     val lineData = LineData(lineDataSet)
@@ -250,13 +252,43 @@ fun InflationChart(prices: List<Price>) {
                 data = lineData
                 description.isEnabled = false
                 legend.isEnabled = true
-                axisLeft.textColor = android.graphics.Color.BLACK
-                axisRight.isEnabled = false
+
+                val minY = prices.minOfOrNull { it.price.toFloat() } ?: 0f
+                val maxY = prices.maxOfOrNull { it.price.toFloat() } ?: 10f
+
+                // Ajustes do eixo Y
+                axisLeft.apply {
+                    textColor = android.graphics.Color.BLACK
+                    textSize = 12f
+                    axisMinimum = minY - 1f
+                    axisMaximum = maxY + 1f
+                    granularity = 0.5f
+                    labelCount = 6
+                    valueFormatter = object : ValueFormatter() {
+                        override fun getFormattedValue(value: Float): String {
+                            return "R$ ${"%.2f".format(value)}"
+                        }
+                    }
+                }
+
+                // Ajustes do eixo X
                 xAxis.apply {
                     position = XAxis.XAxisPosition.BOTTOM
                     textColor = android.graphics.Color.BLACK
+                    textSize = 12f
                     setDrawGridLines(false)
+                    labelRotationAngle = -45f
+                    granularity = when (selectedPeriod) {
+                        "7 dias" -> 86400000f
+                        "1 mês" -> 86400000f * 7
+                        "6 meses" -> 86400000f * 30
+                        "1 ano" -> 86400000f * 60
+                        else -> 86400000f * 180
+                    }
+                    valueFormatter = DateAxisValueFormatter()
                 }
+
+                axisRight.isEnabled = false
                 animateX(1000)
             }
         },
@@ -265,4 +297,12 @@ fun InflationChart(prices: List<Price>) {
             .height(250.dp)
             .padding(16.dp)
     )
+}
+
+class DateAxisValueFormatter : ValueFormatter() {
+    private val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+
+    override fun getFormattedValue(value: Float): String {
+        return dateFormat.format(Date(value.toLong()))
+    }
 }
