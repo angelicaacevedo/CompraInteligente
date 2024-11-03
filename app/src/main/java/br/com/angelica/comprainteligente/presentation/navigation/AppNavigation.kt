@@ -3,12 +3,15 @@ package br.com.angelica.comprainteligente.presentation.navigation
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import br.com.angelica.comprainteligente.data.SessionManager
 import br.com.angelica.comprainteligente.presentation.view.HistoryListScreen
 import br.com.angelica.comprainteligente.presentation.view.HomeScreen
 import br.com.angelica.comprainteligente.presentation.view.InflationScreen
@@ -21,14 +24,14 @@ import br.com.angelica.comprainteligente.presentation.view.RegisterScreen
 import br.com.angelica.comprainteligente.presentation.view.UserProfileScreen
 
 @Composable
-fun AppNavigation(userId: String?) {
+fun AppNavigation(sessionManager: SessionManager) {
     val navController: NavHostController = rememberNavController()
+    val isUserLoggedIn = remember { mutableStateOf(sessionManager.userId != null) }
 
-    // Usar LaunchedEffect para monitorar mudanças no userId e definir a startDestination
-    LaunchedEffect(userId) {
-        val startDestination = if (userId.isNullOrEmpty()) "login" else "home/$userId"
 
-        // Redefine o grafo de navegação sempre que o userId mudar
+    // Use LaunchedEffect to navigate based on login state
+    LaunchedEffect(isUserLoggedIn.value) {
+        val startDestination = if (isUserLoggedIn.value) "home/${sessionManager.userId}" else "login"
         navController.navigate(startDestination) {
             popUpTo(navController.graph.startDestinationId) { inclusive = true }
             launchSingleTop = true
@@ -118,7 +121,7 @@ fun AppNavigation(userId: String?) {
                 onNavigateToListItems = { listId, listName, productIds ->
                     val encodedListName = Uri.encode(listName)
                     val encodedProductIds = Uri.encode(productIds.joinToString(","))
-                    navController.navigate("list_items/$userId/$listId/$encodedListName/$encodedProductIds")
+                    navController.navigate("list_items/$currentUserId/$listId/$encodedListName/$encodedProductIds")
                 }
             )
         }
@@ -216,7 +219,7 @@ fun AppNavigation(userId: String?) {
             )
         }
 
-        // Tela de Perfil
+        // Profile Screen
         composable(
             "profile/{userId}",
             arguments = listOf(navArgument("userId") { type = NavType.StringType })
@@ -225,9 +228,8 @@ fun AppNavigation(userId: String?) {
             UserProfileScreen(
                 userId = currentUserId,
                 onLogoutClick = {
-                    navController.navigate("login") {
-                        popUpTo("home/$currentUserId") { inclusive = true }
-                    }
+                    sessionManager.logout()
+                    isUserLoggedIn.value = false
                 },
                 navController = navController
             )

@@ -58,6 +58,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import br.com.angelica.comprainteligente.R
+import br.com.angelica.comprainteligente.data.SessionManager
 import br.com.angelica.comprainteligente.model.Address
 import br.com.angelica.comprainteligente.model.User
 import br.com.angelica.comprainteligente.presentation.common.CustomTextField
@@ -174,7 +175,7 @@ fun UserProfileContent(
                 modifier = Modifier.size(100.dp)
             )
             IconButton(
-                onClick = onEditProfileClick,
+                onClick = {/*Abrir camera*/},
                 modifier = Modifier
                     .size(28.dp)
                     .clip(CircleShape)

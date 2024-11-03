@@ -1,5 +1,6 @@
 package br.com.angelica.comprainteligente.di
 
+import br.com.angelica.comprainteligente.data.SessionManager
 import br.com.angelica.comprainteligente.data.remote.CorreiosApi
 import br.com.angelica.comprainteligente.data.remote.OpenFoodFactsApi
 import br.com.angelica.comprainteligente.data.repository.auth.AuthRepository
@@ -43,6 +44,10 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 val appModule = module {
+
+    // Register SessionManager as a singleton
+    single { SessionManager(androidContext()) }
+
     // Retrofit instance for Correios API
     single(named("CorreiosRetrofit")) {
         Retrofit.Builder()
@@ -101,7 +106,7 @@ val appModule = module {
     factory { GetProductsUseCase(get()) }
 
     // ViewModels
-    viewModel { AuthViewModel(get(), get(), get()) }
+    viewModel { AuthViewModel(get(), get(), get(), get()) }
     viewModel { ProductViewModel(get(), get(), get(), get()) }
     viewModel { ProductListViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { InflationViewModel(get(), get()) }

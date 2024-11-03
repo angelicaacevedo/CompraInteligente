@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.angelica.comprainteligente.data.SessionManager
 import br.com.angelica.comprainteligente.data.remote.CorreiosApi
 import br.com.angelica.comprainteligente.domain.usecase.AuthUseCases
 import br.com.angelica.comprainteligente.model.Address
@@ -16,6 +17,7 @@ class AuthViewModel(
     application: Application,
     private val authUseCases: AuthUseCases,
     private val correiosApi: CorreiosApi,
+    private val sessionManager: SessionManager
 ) : AndroidViewModel(application) {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
@@ -67,7 +69,7 @@ class AuthViewModel(
             val result = authUseCases.registerUser(user)
             if (result.isSuccess) {
                 val userId = result.getOrNull() ?: ""
-                saveUserIdToPreferences(userId)
+                sessionManager.userId = userId
                 _authState.value = AuthState.Success(userId)
             } else {
                 _authState.value = AuthState.Error(result.exceptionOrNull()?.message ?: "Erro no cadastro")
@@ -83,22 +85,13 @@ class AuthViewModel(
             val result = authUseCases.loginUser(email, password)
             if (result.isSuccess) {
                 val userId = result.getOrNull() ?: ""
-                saveUserIdToPreferences(userId)
+                sessionManager.userId = userId
                 _authState.value = AuthState.Success(userId)
             } else {
                 _authState.value =
                     AuthState.Error("Seu e-mail e senha estão incorretos. Verifique suas informações e tente novamente.")
             }
             _isLoading.value = false
-        }
-    }
-
-    // Salva o userId no SharedPreferences
-    private fun saveUserIdToPreferences(userId: String) {
-        val sharedPref = getApplication<Application>().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        with(sharedPref.edit()) {
-            putString("user_id", userId)
-            apply()
         }
     }
 
