@@ -105,7 +105,7 @@ private fun ProductListTopBar(onNavigateToCreateList: () -> Unit) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Adicionar Lista",
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = Color.White
                 )
             }
         }
