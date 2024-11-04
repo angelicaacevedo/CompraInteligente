@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import br.com.angelica.comprainteligente.theme.BottomNavigationGreen
 
 @Composable
 fun CustomBottomNavigation(navController: NavController, userId: String) {
@@ -29,7 +30,7 @@ fun CustomBottomNavigation(navController: NavController, userId: String) {
     }
 
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = BottomNavigationGreen,
         tonalElevation = 4.dp
     ) {
         val items = listOf(
@@ -50,11 +51,11 @@ fun CustomBottomNavigation(navController: NavController, userId: String) {
                         Icon(
                             imageVector = item.icon,
                             contentDescription = item.title,
-                            tint = if (currentRoute == item.route) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = if (currentRoute == item.route) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = item.title ?: "",
-                            color = if (currentRoute == item.route) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = if (currentRoute == item.route) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.labelSmall,
                             modifier = Modifier.padding(top = 2.dp)
                         )
@@ -72,9 +73,9 @@ fun CustomBottomNavigation(navController: NavController, userId: String) {
                 },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.primary,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurface,
                     selectedTextColor = MaterialTheme.colorScheme.primary,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }

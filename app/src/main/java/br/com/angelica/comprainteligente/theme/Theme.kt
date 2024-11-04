@@ -9,20 +9,20 @@ import androidx.compose.ui.graphics.Color
 
 private val LightColorScheme = lightColorScheme(
     primary = GreenLight,
-    secondary = OrangeLight,
-    background = Color.White,
-    surface = GrayLight,
+    secondary = BlueGrayLight,
+    background = NeutralGrayLight,
+    surface = SurfaceGrayLight,
     onPrimary = Color.White,
     onSecondary = Color.Black,
-    onBackground = Color.Black,
+    onBackground = Color(0xFF455A64),
     onSurface = Color.Black
 )
 
 private val DarkColorScheme = darkColorScheme(
     primary = GreenDark,
-    secondary = OrangeDark,
+    secondary = BlueGrayDark,
     background = Color.Black,
-    surface = GrayDark,
+    surface = BlueGrayDark,
     onPrimary = Color.Black,
     onSecondary = Color.White,
     onBackground = Color.White,

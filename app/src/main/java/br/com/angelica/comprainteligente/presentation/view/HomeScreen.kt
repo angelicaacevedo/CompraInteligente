@@ -43,7 +43,8 @@ fun HomeScreen(navController: NavController, userId: String) {
                     }) {
                         Icon(
                             imageVector = Icons.Default.Person,
-                            contentDescription = "Perfil"
+                            contentDescription = "Perfil",
+                            tint = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 }
@@ -61,7 +62,8 @@ fun HomeScreen(navController: NavController, userId: String) {
             ) {
                 Text(
                     text = "Welcome to the Home Screen!",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
