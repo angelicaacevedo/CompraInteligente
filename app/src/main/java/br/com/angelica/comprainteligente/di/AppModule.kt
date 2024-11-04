@@ -14,19 +14,11 @@ import br.com.angelica.comprainteligente.data.repository.product.ProductReposito
 import br.com.angelica.comprainteligente.data.repository.supermarket.SupermarketRepository
 import br.com.angelica.comprainteligente.data.repository.supermarket.SupermarketRepositoryImpl
 import br.com.angelica.comprainteligente.domain.usecase.AuthUseCases
-import br.com.angelica.comprainteligente.domain.usecase.CreateListUseCase
-import br.com.angelica.comprainteligente.domain.usecase.DeleteListUseCase
-import br.com.angelica.comprainteligente.domain.usecase.FetchLatestPricesForListUseCase
-import br.com.angelica.comprainteligente.domain.usecase.FetchProductsByListUseCase
-import br.com.angelica.comprainteligente.domain.usecase.FetchUserListsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetCategoriesUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetPriceHistoryUseCase
-import br.com.angelica.comprainteligente.domain.usecase.GetProductInfoFromBarcodeUseCase
-import br.com.angelica.comprainteligente.domain.usecase.GetProductSuggestionsUseCase
-import br.com.angelica.comprainteligente.domain.usecase.GetProductsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetSupermarketSuggestionsUseCase
-import br.com.angelica.comprainteligente.domain.usecase.RegisterProductUseCase
-import br.com.angelica.comprainteligente.domain.usecase.UpdateListUseCase
+import br.com.angelica.comprainteligente.domain.usecase.ProductListOperationsUseCase
+import br.com.angelica.comprainteligente.domain.usecase.ProductOperationsUseCase
 import br.com.angelica.comprainteligente.model.CategoryRepository
 import br.com.angelica.comprainteligente.presentation.viewmodel.AuthViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.InflationViewModel
@@ -91,24 +83,16 @@ val appModule = module {
 
     // Use Cases
     factory { AuthUseCases(get()) }
-    factory { GetProductInfoFromBarcodeUseCase(get()) }
     factory { GetSupermarketSuggestionsUseCase(get()) }
-    factory { RegisterProductUseCase(get(), get(), get()) }
     factory { GetCategoriesUseCase(get()) }
-    factory { FetchUserListsUseCase(get()) }
-    factory { CreateListUseCase(get()) }
-    factory { DeleteListUseCase(get()) }
-    factory { GetProductSuggestionsUseCase(get()) }
-    factory { FetchProductsByListUseCase(get()) }
-    factory { UpdateListUseCase(get()) }
-    factory { FetchLatestPricesForListUseCase(get()) }
     factory { GetPriceHistoryUseCase(get()) }
-    factory { GetProductsUseCase(get()) }
+    factory { ProductListOperationsUseCase(get()) }
+    factory { ProductOperationsUseCase(get(), get(), get()) }
 
     // ViewModels
     viewModel { AuthViewModel(get(), get(), get(), get()) }
-    viewModel { ProductViewModel(get(), get(), get(), get()) }
-    viewModel { ProductListViewModel(get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { ProductViewModel(get(), get(), get()) }
+    viewModel { ProductListViewModel(get()) }
     viewModel { InflationViewModel(get(), get()) }
     viewModel { UserProfileViewModel(get()) }
 }

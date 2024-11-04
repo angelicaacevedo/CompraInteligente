@@ -2,13 +2,7 @@ package br.com.angelica.comprainteligente.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import br.com.angelica.comprainteligente.domain.usecase.CreateListUseCase
-import br.com.angelica.comprainteligente.domain.usecase.DeleteListUseCase
-import br.com.angelica.comprainteligente.domain.usecase.FetchLatestPricesForListUseCase
-import br.com.angelica.comprainteligente.domain.usecase.FetchProductsByListUseCase
-import br.com.angelica.comprainteligente.domain.usecase.FetchUserListsUseCase
-import br.com.angelica.comprainteligente.domain.usecase.GetProductSuggestionsUseCase
-import br.com.angelica.comprainteligente.domain.usecase.UpdateListUseCase
+import br.com.angelica.comprainteligente.domain.usecase.ProductListOperationsUseCase
 import br.com.angelica.comprainteligente.model.Product
 import br.com.angelica.comprainteligente.model.ProductList
 import br.com.angelica.comprainteligente.model.ProductWithLatestPrice
@@ -18,13 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class ProductListViewModel(
-    private val fetchUserListsUseCase: FetchUserListsUseCase,
-    private val createListUseCase: CreateListUseCase,
-    private val deleteListUseCase: DeleteListUseCase,
-    private val getProductSuggestionsUseCase: GetProductSuggestionsUseCase,
-    private val fetchProductsByListUseCase: FetchProductsByListUseCase,
-    private val updateListUseCase: UpdateListUseCase,
-    private val fetchLatestPricesForListUseCase: FetchLatestPricesForListUseCase
+    private val productListOperationsUseCase: ProductListOperationsUseCase,
 ) : ViewModel() {
 
     private lateinit var userId: String
@@ -68,7 +56,7 @@ class ProductListViewModel(
     private fun loadUserLists(includeProductIds: Boolean = true, userId: String) {
         viewModelScope.launch {
             _state.value = ProductListState.Loading
-            val result = fetchUserListsUseCase.execute(includeProductIds, userId)
+            val result = productListOperationsUseCase.fetchUserLists(includeProductIds, userId)
             if (result.isSuccess) {
                 _state.value = ProductListState.ListsLoaded(result.getOrNull() ?: emptyList())
             } else {
@@ -88,10 +76,10 @@ class ProductListViewModel(
 
             val result = if (listId == null) {
                 // Criação de uma nova lista
-                createListUseCase.execute(name, productIds, userId)
+                productListOperationsUseCase.createList(name, productIds, userId)
             } else {
                 // Atualização de uma lista existente
-                updateListUseCase.execute(listId, name, productIds, updateData)
+                productListOperationsUseCase.updateList(listId, name, productIds, updateData)
             }
 
             if (result.isSuccess) {
@@ -109,7 +97,7 @@ class ProductListViewModel(
         }
         viewModelScope.launch {
             _state.value = ProductListState.Loading
-            val result = fetchProductsByListUseCase.execute(productIds)
+            val result = productListOperationsUseCase.fetchProductsByList(productIds)
 
             if (result.isSuccess) {
                 val products = result.getOrNull().orEmpty()
@@ -126,7 +114,7 @@ class ProductListViewModel(
 
     private fun deleteList(listId: String, userId: String) {
         viewModelScope.launch {
-            val result = deleteListUseCase.execute(listId)
+            val result = productListOperationsUseCase.deleteList(listId)
             if (result.isSuccess) {
                 loadUserLists(includeProductIds = false, userId = userId)
             } else {
@@ -138,7 +126,7 @@ class ProductListViewModel(
     private fun fetchProductSuggestions(query: String) {
         viewModelScope.launch {
             _state.value = ProductListState.Loading
-            val result = getProductSuggestionsUseCase.execute(query)
+            val result = productListOperationsUseCase.getProductSuggestions(query)
             if (result.isSuccess) {
                 _state.value = ProductListState.SuggestionsLoaded(result.getOrNull() ?: emptyList())
             } else {
@@ -150,7 +138,7 @@ class ProductListViewModel(
     private fun loadLatestPricesForList(productIds: List<String>) {
         viewModelScope.launch {
             _state.value = ProductListState.Loading
-            val result = fetchLatestPricesForListUseCase.execute(productIds)
+            val result = productListOperationsUseCase.fetchLatestPricesForList(productIds)
             if (result.isSuccess) {
                 _state.value =
                     ProductListState.ProductsWithLatestPricesLoaded(result.getOrNull().orEmpty())

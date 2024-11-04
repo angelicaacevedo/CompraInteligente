@@ -3,9 +3,8 @@ package br.com.angelica.comprainteligente.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.angelica.comprainteligente.domain.usecase.GetCategoriesUseCase
-import br.com.angelica.comprainteligente.domain.usecase.GetProductInfoFromBarcodeUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetSupermarketSuggestionsUseCase
-import br.com.angelica.comprainteligente.domain.usecase.RegisterProductUseCase
+import br.com.angelica.comprainteligente.domain.usecase.ProductOperationsUseCase
 import br.com.angelica.comprainteligente.model.Category
 import br.com.angelica.comprainteligente.model.Price
 import br.com.angelica.comprainteligente.model.Product
@@ -16,9 +15,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class ProductViewModel(
-    private val getProductInfoFromBarcodeUseCase: GetProductInfoFromBarcodeUseCase,
     private val getSupermarketSuggestionsUseCase: GetSupermarketSuggestionsUseCase,
-    private val registerProductUseCase: RegisterProductUseCase,
+    private val productOperationsUseCase: ProductOperationsUseCase,
     private val getCategoriesUseCase: GetCategoriesUseCase
 ) : ViewModel() {
 
@@ -50,7 +48,7 @@ class ProductViewModel(
     private fun scanProduct(barcode: String) {
         viewModelScope.launch {
             _state.value = ProductState.Loading
-            val result = getProductInfoFromBarcodeUseCase.execute(barcode)
+            val result = productOperationsUseCase.getProductInfoFromBarcode(barcode)
             _state.value = if (result.isSuccess) {
                 ProductState.ProductScanned(result.getOrNull())
             } else {
@@ -91,7 +89,8 @@ class ProductViewModel(
     }
 
     private suspend fun createProduct(intent: ProductIntent.RegisterProduct): Product {
-        val productDetailsResult = getProductInfoFromBarcodeUseCase.execute(intent.barcode)
+        val productDetailsResult =
+            productOperationsUseCase.getProductInfoFromBarcode(intent.barcode)
         val imageUrl = productDetailsResult.getOrNull()?.image_url ?: ""
 
         return Product(
@@ -116,7 +115,7 @@ class ProductViewModel(
 
     private fun registerProduct(product: Product, productPrice: Price) {
         viewModelScope.launch {
-            val result = registerProductUseCase.execute(product, productPrice)
+            val result = productOperationsUseCase.registerProduct(product, productPrice)
             _state.value = if (result.isSuccess) {
                 ProductState.ProductRegistered
             } else {

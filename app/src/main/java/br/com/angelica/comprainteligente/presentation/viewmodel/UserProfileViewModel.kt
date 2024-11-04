@@ -40,7 +40,6 @@ class UserProfileViewModel(
         }
     }
 
-
     // Função para logout
     fun logout() {
         viewModelScope.launch {

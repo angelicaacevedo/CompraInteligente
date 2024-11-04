@@ -3,7 +3,7 @@ package br.com.angelica.comprainteligente.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.angelica.comprainteligente.domain.usecase.GetPriceHistoryUseCase
-import br.com.angelica.comprainteligente.domain.usecase.GetProductsUseCase
+import br.com.angelica.comprainteligente.domain.usecase.ProductOperationsUseCase
 import br.com.angelica.comprainteligente.model.Price
 import br.com.angelica.comprainteligente.model.Product
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 
 class InflationViewModel(
     private val getPriceHistoryUseCase: GetPriceHistoryUseCase,
-    private val getProductsUseCase: GetProductsUseCase
+    private val productOperationsUseCase: ProductOperationsUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(InflationViewState())
@@ -35,7 +35,7 @@ class InflationViewModel(
     private fun loadProducts() {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
-            val result = getProductsUseCase()
+            val result = productOperationsUseCase.getProducts()
             result.onSuccess { productList ->
                 _state.value = _state.value.copy(
                     isLoading = false,

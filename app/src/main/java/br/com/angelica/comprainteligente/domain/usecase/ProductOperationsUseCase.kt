@@ -3,15 +3,28 @@ package br.com.angelica.comprainteligente.domain.usecase
 import br.com.angelica.comprainteligente.data.repository.price.PriceRepository
 import br.com.angelica.comprainteligente.data.repository.product.ProductRepository
 import br.com.angelica.comprainteligente.data.repository.supermarket.SupermarketRepository
-import br.com.angelica.comprainteligente.model.Price
 import br.com.angelica.comprainteligente.model.Product
+import br.com.angelica.comprainteligente.model.Price
+import br.com.angelica.comprainteligente.model.remote.ProductDetails
 
-class RegisterProductUseCase(
+class ProductOperationsUseCase(
     private val productRepository: ProductRepository,
     private val supermarketRepository: SupermarketRepository,
     private val priceRepository: PriceRepository
 ) {
-    suspend fun execute(product: Product, price: Price): Result<Product> {
+
+    // Função para obter informações do produto a partir do código de barras
+    suspend fun getProductInfoFromBarcode(barcode: String): Result<ProductDetails> {
+        return productRepository.getProductInfoFromBarcode(barcode)
+    }
+
+    // Função para obter todos os produtos
+    suspend fun getProducts(): Result<List<Product>> {
+        return priceRepository.getProducts()
+    }
+
+    // Função para registrar um produto
+    suspend fun registerProduct(product: Product, price: Price): Result<Product> {
         return try {
             // Verifica ou cria o supermercado e obtém o ID
             val supermarketResult = supermarketRepository.checkOrCreateSupermarket(price.supermarketId, price.supermarketId)
