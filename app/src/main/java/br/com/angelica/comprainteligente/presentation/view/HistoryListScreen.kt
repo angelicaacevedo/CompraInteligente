@@ -91,12 +91,15 @@ private fun ProductListTopBar(onNavigateToCreateList: () -> Unit) {
     TopAppBar(
         title = {
             Text(
-                "Histórico de Listas",
+                text = "Histórico de Listas",
                 modifier = Modifier.fillMaxWidth(),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onBackground
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onPrimary
             )
         },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary
+        ),
         actions = {
             IconButton(onClick = { onNavigateToCreateList() }) {
                 Icon(
@@ -105,10 +108,7 @@ private fun ProductListTopBar(onNavigateToCreateList: () -> Unit) {
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+        }
     )
 }
 

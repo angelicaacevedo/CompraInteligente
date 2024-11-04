@@ -105,6 +105,8 @@ dependencies {
     // MPAAndroidChart for Graphics
     implementation(libs.mpandroidchart.v310)
 
+    implementation(libs.google.accompanist.systemuicontroller)
+
     // Testing dependencies
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

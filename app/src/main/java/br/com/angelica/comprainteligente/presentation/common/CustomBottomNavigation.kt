@@ -50,7 +50,7 @@ fun CustomBottomNavigation(navController: NavController, userId: String) {
                         Icon(
                             imageVector = item.icon,
                             contentDescription = item.title,
-                            tint = if (currentRoute == item.route) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                            tint = if (currentRoute == item.route) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = item.title ?: "",

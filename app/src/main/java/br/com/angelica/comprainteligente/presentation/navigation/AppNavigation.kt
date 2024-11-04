@@ -1,6 +1,7 @@
 package br.com.angelica.comprainteligente.presentation.navigation
 
 import android.net.Uri
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -22,12 +23,19 @@ import br.com.angelica.comprainteligente.presentation.view.PriceComparisonScreen
 import br.com.angelica.comprainteligente.presentation.view.ProductRegisterScreen
 import br.com.angelica.comprainteligente.presentation.view.RegisterScreen
 import br.com.angelica.comprainteligente.presentation.view.UserProfileScreen
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
 fun AppNavigation(sessionManager: SessionManager) {
     val navController: NavHostController = rememberNavController()
     val isUserLoggedIn = remember { mutableStateOf(sessionManager.userId != null) }
+    val systemUiController = rememberSystemUiController()
 
+    // Definir a cor da status bar
+    val statusBarColor = MaterialTheme.colorScheme.primary
+    LaunchedEffect(Unit) {
+        systemUiController.setStatusBarColor(color = statusBarColor)
+    }
 
     // Use LaunchedEffect to navigate based on login state
     LaunchedEffect(isUserLoggedIn.value) {

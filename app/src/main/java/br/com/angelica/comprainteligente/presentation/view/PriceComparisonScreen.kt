@@ -39,6 +39,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -95,7 +96,17 @@ fun PriceComparisonScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = "Comparação de Preços", modifier = Modifier.fillMaxWidth()) },
+                title = {
+                    Text(
+                        text = "Comparação de Preços",
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
             )
         },
         bottomBar = {
@@ -161,6 +172,7 @@ fun PriceComparisonScreen(
                     is ProductListViewModel.ProductListState.Loading -> {
                         LoadingAnimation(message = "Aguarde, estamos trazendo os dados...")
                     }
+
                     is ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded -> {
                         val productsWithPrices =
                             (state as ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded).products
@@ -173,8 +185,9 @@ fun PriceComparisonScreen(
 
                     is ProductListViewModel.ProductListState.Error -> {
                         Text(
-                            "Erro ao carregar informações",
-                            color = MaterialTheme.colorScheme.error
+                            text = "Erro ao carregar informações",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyLarge
                         )
                     }
 

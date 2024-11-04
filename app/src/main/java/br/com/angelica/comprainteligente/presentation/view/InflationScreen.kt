@@ -79,12 +79,13 @@ fun InflationScreen(
                 title = {
                     Text(
                         text = "Inflação dos Produtos",
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    titleContentColor = Color.Black,
-                    containerColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.primary
                 )
             )
         },

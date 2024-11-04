@@ -194,7 +194,16 @@ fun NewListScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 private fun NewListTopBar(onBack: () -> Unit) {
     TopAppBar(
-        title = { Text(text = "Criar Lista", modifier = Modifier.fillMaxWidth()) },
+        title = {
+            Text(
+                text = "Criar Lista", modifier = Modifier.fillMaxWidth(),
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary
+        ),
         navigationIcon = {
             IconButton(onClick = { onBack() }) {
                 Icon(
@@ -202,11 +211,7 @@ private fun NewListTopBar(onBack: () -> Unit) {
                     contentDescription = "Voltar"
                 )
             }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            titleContentColor = Color.Black,
-            containerColor = Color.White,
-        )
+        }
     )
 }
 
