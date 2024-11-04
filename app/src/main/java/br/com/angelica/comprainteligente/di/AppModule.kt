@@ -15,12 +15,16 @@ import br.com.angelica.comprainteligente.data.repository.supermarket.Supermarket
 import br.com.angelica.comprainteligente.data.repository.supermarket.SupermarketRepositoryImpl
 import br.com.angelica.comprainteligente.domain.usecase.AuthUseCases
 import br.com.angelica.comprainteligente.domain.usecase.GetCategoriesUseCase
+import br.com.angelica.comprainteligente.domain.usecase.GetLargestPriceDifferenceUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetPriceHistoryUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetSupermarketSuggestionsUseCase
+import br.com.angelica.comprainteligente.domain.usecase.GetTopPricesUseCase
+import br.com.angelica.comprainteligente.domain.usecase.GetUserLevelUseCase
 import br.com.angelica.comprainteligente.domain.usecase.ProductListOperationsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.ProductOperationsUseCase
 import br.com.angelica.comprainteligente.model.CategoryRepository
 import br.com.angelica.comprainteligente.presentation.viewmodel.AuthViewModel
+import br.com.angelica.comprainteligente.presentation.viewmodel.HomeViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.InflationViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductViewModel
@@ -88,6 +92,9 @@ val appModule = module {
     factory { GetPriceHistoryUseCase(get()) }
     factory { ProductListOperationsUseCase(get()) }
     factory { ProductOperationsUseCase(get(), get(), get()) }
+    factory { GetLargestPriceDifferenceUseCase(get()) }
+    factory { GetTopPricesUseCase(get()) }
+    factory { GetUserLevelUseCase(get()) }
 
     // ViewModels
     viewModel { AuthViewModel(get(), get(), get(), get()) }
@@ -95,4 +102,5 @@ val appModule = module {
     viewModel { ProductListViewModel(get()) }
     viewModel { InflationViewModel(get(), get()) }
     viewModel { UserProfileViewModel(get()) }
+    viewModel { HomeViewModel(get(), get(), get()) }
 }

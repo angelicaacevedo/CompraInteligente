@@ -79,4 +79,54 @@ class PriceRepositoryImpl(
         val startDate = Timestamp(calendar.time)
         return startDate
     }
+
+    override suspend fun fetchLargestPriceDifference(): Result<String> {
+        return try {
+            // Buscar preços ordenados
+            val pricesSnapshot = priceCollection.orderBy("price").get().await()
+            val prices = pricesSnapshot.toObjects(Price::class.java)
+
+            // Encontrar a maior diferença de preço entre produtos
+            val maxDifferenceProduct = prices
+                .groupBy { it.productId }
+                .maxByOrNull { it.value.maxOf { p -> p.price } - it.value.minOf { p -> p.price } }
+                ?.let { group ->
+                    val minPrice = group.value.minByOrNull { it.price }?.price
+                    val maxPrice = group.value.maxByOrNull { it.price }?.price
+
+                    // Buscar o nome do produto pelo ID
+                    val productName = productCollection.document(group.key).get().await().getString("name")
+
+                    "$productName: R$$minPrice - R$$maxPrice"
+                }
+
+            Result.success(maxDifferenceProduct ?: "Nenhuma diferença encontrada")
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun fetchTopPrices(): Result<List<String>> {
+        return try {
+            val topPricesSnapshot = priceCollection
+                .orderBy("price")
+                .limit(10)
+                .get()
+                .await()
+
+            // Mapear os IDs dos produtos para seus nomes
+            val topPrices = topPricesSnapshot.documents.mapNotNull { document ->
+                val productId = document.getString("productId") ?: ""
+                val price = document.getDouble("price") ?: 0.0
+
+                // Buscar o nome do produto pelo ID
+                val productName = productCollection.document(productId).get().await().getString("name")
+                "$productName - R$$price"
+            }
+
+            Result.success(topPrices)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

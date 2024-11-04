@@ -9,30 +9,36 @@ import androidx.compose.ui.unit.sp
 // Set of Material typography styles to start with
 // Typography.kt
 
+// theme/Typography.kt
 val Typography = Typography(
     headlineLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Bold,
-        fontSize = 24.sp
+        fontSize = 26.sp,
+        color = TextDarkGray
     ),
     titleMedium = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Medium,
-        fontSize = 20.sp
+        fontSize = 20.sp,
+        color = TextDarkGray
     ),
     bodyLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Normal,
-        fontSize = 16.sp
+        fontSize = 16.sp,
+        color = TextDarkGray
     ),
     bodyMedium = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Normal,
-        fontSize = 14.sp
+        fontSize = 14.sp,
+        color = TextDarkGray
     ),
     labelSmall = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Medium,
-        fontSize = 11.sp
+        fontSize = 12.sp,
+        color = TextDarkGray
     )
 )
