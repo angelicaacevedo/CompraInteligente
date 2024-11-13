@@ -23,24 +23,29 @@ class ProductOperationsUseCase(
         return priceRepository.getProducts()
     }
 
-    // Função para registrar um produto
-    suspend fun registerProduct(product: Product, price: Price): Result<Product> {
+    suspend fun registerProduct(product: Product, price: Price, placeId: String): Result<Product> {
         return try {
-            // Verifica ou cria o supermercado e obtém o ID
-            val supermarketResult = supermarketRepository.checkOrCreateSupermarket(price.supermarketId, price.supermarketId)
-            if (supermarketResult.isFailure) return Result.failure(supermarketResult.exceptionOrNull()!!)
+            // Verifica ou cria o supermercado utilizando o placeId para buscar o endereço completo
+            val supermarketResult = supermarketRepository.checkOrCreateSupermarket(placeId, price.supermarketId)
+            if (supermarketResult.isFailure) {
+                return Result.failure(supermarketResult.exceptionOrNull()!!)
+            }
 
             val supermarket = supermarketResult.getOrNull()
             price.supermarketId = supermarket?.id ?: return Result.failure(Exception("Erro ao obter ID do supermercado."))
 
             // Registra o produto se ele ainda não existir
             val productResult = productRepository.registerProduct(product)
-            if (productResult.isFailure) return productResult
+            if (productResult.isFailure) {
+                return productResult
+            }
 
             // Verifica duplicação de preço e registra o preço, se necessário
             if (!priceRepository.checkDuplicatePrice(price)) {
                 val addedPriceResult = priceRepository.addPrice(price)
-                if (addedPriceResult.isFailure) return Result.failure(addedPriceResult.exceptionOrNull()!!)
+                if (addedPriceResult.isFailure) {
+                    return Result.failure(addedPriceResult.exceptionOrNull()!!)
+                }
             } else {
                 return Result.failure(Exception("Esse produto com o mesmo supermercado e preço já está cadastrado."))
             }

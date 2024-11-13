@@ -84,7 +84,7 @@ class ProductViewModel(
             val product = createProduct(intent)
             val productPrice = createProductPrice(intent)
 
-            registerProduct(product, productPrice)
+            registerProduct(product, productPrice, intent.placeId)
         }
     }
 
@@ -113,9 +113,14 @@ class ProductViewModel(
         )
     }
 
-    private fun registerProduct(product: Product, productPrice: Price) {
+    private fun registerProduct(product: Product, productPrice: Price, placeId: String) {
         viewModelScope.launch {
-            val result = productOperationsUseCase.registerProduct(product, productPrice)
+            if (placeId.isEmpty()) {
+                _state.value = ProductState.Error("Erro: Place ID do supermercado é inválido ou vazio.")
+                return@launch
+            }
+
+            val result = productOperationsUseCase.registerProduct(product, productPrice, placeId)
             _state.value = if (result.isSuccess) {
                 ProductState.ProductRegistered
             } else {
@@ -123,7 +128,7 @@ class ProductViewModel(
                 if (errorMessage == "Esse produto com o mesmo supermercado e preço já está cadastrado.") {
                     ProductState.Error("Produto já cadastrado com este preço e supermercado.")
                 } else {
-                    ProductState.Error("Erro ao registrar o produto.")
+                    ProductState.Error("Erro ao registrar o produto: $errorMessage")
                 }
             }
         }
@@ -144,7 +149,7 @@ class ProductViewModel(
         object Loading : ProductState()
         object ProductRegistered : ProductState()
         data class ProductScanned(val productDetails: ProductDetails?) : ProductState()
-        data class SuggestionsLoaded(val suggestions: List<String>) : ProductState()
+        data class SuggestionsLoaded(val suggestions: List<Pair<String, String>>) : ProductState() // Nome e PlaceId
         data class Error(val message: String) : ProductState()
     }
 
@@ -156,7 +161,8 @@ class ProductViewModel(
             val name: String,
             val price: String,
             val supermarket: String,
-            val userId: String
+            val userId: String,
+            val placeId: String
         ) : ProductIntent()
 
         data class LoadSuggestions(val query: String) : ProductIntent()

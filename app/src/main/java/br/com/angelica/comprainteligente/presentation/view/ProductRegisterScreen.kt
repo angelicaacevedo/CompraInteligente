@@ -83,6 +83,7 @@ fun ProductRegisterScreen(
     var productPrice by remember { mutableStateOf("") }
     var barcode by remember { mutableStateOf("") }
     var selectedSupermarket by remember { mutableStateOf("") }
+    var selectedPlaceId by remember { mutableStateOf("") }
     var suggestions by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
     var isFormSubmitted by remember { mutableStateOf(false) }
     var isBarcodeEditable by remember { mutableStateOf(true) }
@@ -139,11 +140,7 @@ fun ProductRegisterScreen(
             }
 
             is ProductViewModel.ProductState.SuggestionsLoaded -> {
-                suggestions =
-                    (state as ProductViewModel.ProductState.SuggestionsLoaded).suggestions.map { suggestion ->
-                        val parts = suggestion.split(",")
-                        parts[0] to parts.getOrElse(1) { "" }
-                    }
+                suggestions = (state as ProductViewModel.ProductState.SuggestionsLoaded).suggestions
                 isLoading = false
             }
 
@@ -405,19 +402,19 @@ fun ProductRegisterScreen(
 
             // Sugestões de Supermercados
             if (suggestions.isNotEmpty()) {
-                items(suggestions) { (name, address) ->
+                items(suggestions) { (name, placeId) ->
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
                                 selectedSupermarket = name
+                                selectedPlaceId = placeId
                                 suggestions = emptyList()
                                 isSupermarketEditable = false
                             }
                             .padding(8.dp)
                     ) {
                         Text(text = name, color = Color.Black)
-                        Text(text = address, color = Color.Gray)
                     }
                 }
             }
@@ -436,7 +433,8 @@ fun ProductRegisterScreen(
                                     name = productName,
                                     price = productPrice,
                                     supermarket = selectedSupermarket,
-                                    userId = userId
+                                    userId = userId,
+                                    placeId = selectedPlaceId
                                 )
                             )
                         } else if (priceValue == null || priceValue <= 0) {
