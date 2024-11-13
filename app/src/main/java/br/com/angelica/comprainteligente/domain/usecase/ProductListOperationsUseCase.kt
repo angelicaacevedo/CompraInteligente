@@ -9,7 +9,10 @@ import com.google.firebase.Timestamp
 class ProductListOperationsUseCase(private val repository: ProductListRepository) {
 
     // Método para buscar listas de um usuário, com opção de incluir IDs de produtos
-    suspend fun fetchUserLists(includeProductIds: Boolean, userId: String): Result<List<ProductList>> {
+    suspend fun fetchUserLists(
+        includeProductIds: Boolean,
+        userId: String
+    ): Result<List<ProductList>> {
         return repository.fetchUserLists(includeProductIds, userId)
     }
 
@@ -19,7 +22,11 @@ class ProductListOperationsUseCase(private val repository: ProductListRepository
     }
 
     // Método para criar uma nova lista
-    suspend fun createList(listName: String, productIds: List<String>, userId: String): Result<Unit> {
+    suspend fun createList(
+        listName: String,
+        productIds: List<String>,
+        userId: String
+    ): Result<Unit> {
         return repository.createList(listName, productIds, userId)
     }
 

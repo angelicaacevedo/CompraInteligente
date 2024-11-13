@@ -8,10 +8,11 @@ import kotlinx.coroutines.tasks.await
 
 class ProductRepositoryImpl(
     private val firestore: FirebaseFirestore,
-    private val openFoodFactsApi: OpenFoodFactsApi // Adicionando a API
+    private val openFoodFactsApi: OpenFoodFactsApi
 ) : ProductRepository {
 
     private val productCollection = firestore.collection("products")
+
     override suspend fun getProductInfoFromBarcode(barcode: String): Result<ProductDetails> {
         return try {
             // Verifica se o produto já existe no Firestore

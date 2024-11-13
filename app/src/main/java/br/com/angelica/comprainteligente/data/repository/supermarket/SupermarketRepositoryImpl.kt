@@ -21,10 +21,10 @@ class SupermarketRepositoryImpl(
         return try {
             val response = placesClient.findAutocompletePredictions(request).await()
             response.autocompletePredictions.map { prediction ->
-                prediction.getFullText(null).toString()  // Usando null para CharacterStyle
+                prediction.getFullText(null).toString()
             }
         } catch (e: Exception) {
-            emptyList()  // Se ocorrer algum erro, retorna uma lista vazia
+            emptyList()
         }
     }
 

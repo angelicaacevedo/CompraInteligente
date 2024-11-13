@@ -82,6 +82,8 @@ class PriceRepositoryImpl(
 
     override suspend fun fetchLargestPriceDifference(): Result<String> {
         return try {
+            // Filtrar por região do usuario logado
+
             // Buscar preços ordenados
             val pricesSnapshot = priceCollection.orderBy("price").get().await()
             val prices = pricesSnapshot.toObjects(Price::class.java)
