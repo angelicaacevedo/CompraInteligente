@@ -99,8 +99,13 @@ dependencies {
     implementation(libs.journeyapps.zxing.android.embedded)
     implementation(libs.core)
 
-    // Updload the image Coil
+    // Upload the image Coil
     implementation(libs.coil.compose)
+
+    // MPAAndroidChart for Graphics
+    implementation(libs.mpandroidchart.v310)
+
+    implementation(libs.google.accompanist.systemuicontroller)
 
     // Testing dependencies
     testImplementation(libs.junit)

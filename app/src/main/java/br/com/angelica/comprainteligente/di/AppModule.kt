@@ -1,5 +1,6 @@
 package br.com.angelica.comprainteligente.di
 
+import br.com.angelica.comprainteligente.data.SessionManager
 import br.com.angelica.comprainteligente.data.remote.CorreiosApi
 import br.com.angelica.comprainteligente.data.remote.OpenFoodFactsApi
 import br.com.angelica.comprainteligente.data.repository.auth.AuthRepository
@@ -12,22 +13,22 @@ import br.com.angelica.comprainteligente.data.repository.product.ProductReposito
 import br.com.angelica.comprainteligente.data.repository.product.ProductRepositoryImpl
 import br.com.angelica.comprainteligente.data.repository.supermarket.SupermarketRepository
 import br.com.angelica.comprainteligente.data.repository.supermarket.SupermarketRepositoryImpl
-import br.com.angelica.comprainteligente.domain.usecase.CreateListUseCase
-import br.com.angelica.comprainteligente.domain.usecase.DeleteListUseCase
-import br.com.angelica.comprainteligente.domain.usecase.FetchLatestPricesForListUseCase
-import br.com.angelica.comprainteligente.domain.usecase.FetchProductsByListUseCase
-import br.com.angelica.comprainteligente.domain.usecase.FetchUserListsUseCase
+import br.com.angelica.comprainteligente.domain.usecase.AuthUseCases
 import br.com.angelica.comprainteligente.domain.usecase.GetCategoriesUseCase
-import br.com.angelica.comprainteligente.domain.usecase.GetProductInfoFromBarcodeUseCase
-import br.com.angelica.comprainteligente.domain.usecase.GetProductSuggestionsUseCase
+import br.com.angelica.comprainteligente.domain.usecase.GetLargestPriceDifferenceUseCase
+import br.com.angelica.comprainteligente.domain.usecase.GetPriceHistoryUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetSupermarketSuggestionsUseCase
-import br.com.angelica.comprainteligente.domain.usecase.LoginUserUseCase
-import br.com.angelica.comprainteligente.domain.usecase.RegisterProductUseCase
-import br.com.angelica.comprainteligente.domain.usecase.RegisterUserUseCase
-import br.com.angelica.comprainteligente.domain.usecase.UpdateListUseCase
+import br.com.angelica.comprainteligente.domain.usecase.GetTopPricesUseCase
+import br.com.angelica.comprainteligente.domain.usecase.GetUserLevelUseCase
+import br.com.angelica.comprainteligente.domain.usecase.ProductListOperationsUseCase
+import br.com.angelica.comprainteligente.domain.usecase.ProductOperationsUseCase
+import br.com.angelica.comprainteligente.model.CategoryRepository
 import br.com.angelica.comprainteligente.presentation.viewmodel.AuthViewModel
+import br.com.angelica.comprainteligente.presentation.viewmodel.HomeViewModel
+import br.com.angelica.comprainteligente.presentation.viewmodel.InflationViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductViewModel
+import br.com.angelica.comprainteligente.presentation.viewmodel.UserProfileViewModel
 import com.google.android.libraries.places.api.Places
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -39,6 +40,10 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 val appModule = module {
+
+    // Register SessionManager as a singleton
+    single { SessionManager(androidContext()) }
+
     // Retrofit instance for Correios API
     single(named("CorreiosRetrofit")) {
         Retrofit.Builder()
@@ -77,23 +82,25 @@ val appModule = module {
     single<PriceRepository> { PriceRepositoryImpl(get()) }
     single<ProductListRepository> { ProductListRepositoryImpl(get()) }
 
+    // CategoryRepository (como singleton)
+    single { CategoryRepository }
+
     // Use Cases
-    factory { RegisterUserUseCase(get()) }
-    factory { LoginUserUseCase(get()) }
-    factory { GetProductInfoFromBarcodeUseCase(get()) }
+    factory { AuthUseCases(get()) }
     factory { GetSupermarketSuggestionsUseCase(get()) }
-    factory { RegisterProductUseCase(get(), get(), get()) }
     factory { GetCategoriesUseCase(get()) }
-    factory { FetchUserListsUseCase(get()) }
-    factory { CreateListUseCase(get()) }
-    factory { DeleteListUseCase(get()) }
-    factory { GetProductSuggestionsUseCase(get()) }
-    factory { FetchProductsByListUseCase(get()) }
-    factory { UpdateListUseCase(get()) }
-    factory { FetchLatestPricesForListUseCase(get()) }
+    factory { GetPriceHistoryUseCase(get()) }
+    factory { ProductListOperationsUseCase(get(), get()) }
+    factory { ProductOperationsUseCase(get(), get(), get()) }
+    factory { GetLargestPriceDifferenceUseCase(get()) }
+    factory { GetTopPricesUseCase(get()) }
+    factory { GetUserLevelUseCase(get()) }
 
     // ViewModels
     viewModel { AuthViewModel(get(), get(), get(), get()) }
     viewModel { ProductViewModel(get(), get(), get()) }
-    viewModel { ProductListViewModel(get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { ProductListViewModel(get()) }
+    viewModel { InflationViewModel(get(), get()) }
+    viewModel { UserProfileViewModel(get()) }
+    viewModel { HomeViewModel(get(), get(), get()) }
 }

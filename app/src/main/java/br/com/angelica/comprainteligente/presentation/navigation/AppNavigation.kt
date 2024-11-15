@@ -1,24 +1,50 @@
 package br.com.angelica.comprainteligente.presentation.navigation
 
+import android.net.Uri
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import br.com.angelica.comprainteligente.data.SessionManager
 import br.com.angelica.comprainteligente.presentation.view.HistoryListScreen
 import br.com.angelica.comprainteligente.presentation.view.HomeScreen
+import br.com.angelica.comprainteligente.presentation.view.InflationScreen
 import br.com.angelica.comprainteligente.presentation.view.ListDetailScreen
 import br.com.angelica.comprainteligente.presentation.view.LoginScreen
 import br.com.angelica.comprainteligente.presentation.view.NewListScreen
 import br.com.angelica.comprainteligente.presentation.view.PriceComparisonScreen
 import br.com.angelica.comprainteligente.presentation.view.ProductRegisterScreen
 import br.com.angelica.comprainteligente.presentation.view.RegisterScreen
+import br.com.angelica.comprainteligente.presentation.view.UserProfileScreen
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
-fun AppNavigation(userId: String) { // Recebe o userId como argumento
+fun AppNavigation(sessionManager: SessionManager) {
     val navController: NavHostController = rememberNavController()
+    val isUserLoggedIn = remember { mutableStateOf(sessionManager.userId != null) }
+    val systemUiController = rememberSystemUiController()
+
+    // Definir a cor da status bar
+    val statusBarColor = MaterialTheme.colorScheme.primary
+    LaunchedEffect(Unit) {
+        systemUiController.setStatusBarColor(color = statusBarColor)
+    }
+
+    // Use LaunchedEffect to navigate based on login state
+    LaunchedEffect(isUserLoggedIn.value) {
+        val startDestination = if (isUserLoggedIn.value) "home/${sessionManager.userId}" else "login"
+        navController.navigate(startDestination) {
+            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+            launchSingleTop = true
+        }
+    }
 
     NavHost(navController = navController, startDestination = "login") {
         // Login Screen
@@ -54,7 +80,7 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
             "home/{userId}",
             arguments = listOf(navArgument("userId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
             HomeScreen(navController = navController, currentUserId)
         }
 
@@ -64,15 +90,15 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
             "add_product/{userId}",
             arguments = listOf(navArgument("userId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
             ProductRegisterScreen(
-                onBack = { navController.navigate("home/$currentUserId") },
+                userId = currentUserId,
                 onProductRegistered = {
                     navController.navigate("home/$currentUserId") {
                         popUpTo("home/$currentUserId") { inclusive = true }
                     }
                 },
-                userId = currentUserId
+                navController = navController
             )
         }
 
@@ -81,10 +107,10 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
             "price_comparison/{userId}",
             arguments = listOf(navArgument("userId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
             PriceComparisonScreen(
-                onBackClick = { navController.navigate("home/$userId") },
-                userId = currentUserId
+                userId = currentUserId,
+                navController = navController,
             )
         }
 
@@ -93,18 +119,18 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
             "list_history/{userId}",
             arguments = listOf(navArgument("userId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
             HistoryListScreen(
-                onBack = { navController.navigate("home/$currentUserId") },
+                navController = navController,
+                userId = currentUserId,
                 onNavigateToCreateList = {
                     navController.navigate("create_list/$currentUserId") // Navega para a criação de lista com o userId
                 },
                 onNavigateToListItems = { listId, listName, productIds ->
-                    navController.navigate(
-                        "list_items/$currentUserId/$listId/$listName/${productIds.joinToString(",")}"
-                    )
-                },
-                userId = currentUserId
+                    val encodedListName = Uri.encode(listName)
+                    val encodedProductIds = Uri.encode(productIds.joinToString(","))
+                    navController.navigate("list_items/$currentUserId/$listId/$encodedListName/$encodedProductIds")
+                }
             )
         }
 
@@ -113,8 +139,9 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
             "create_list/{userId}",
             arguments = listOf(navArgument("userId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
             NewListScreen(
+                userId = currentUserId,
                 onBack = { navController.navigate("list_history/$currentUserId") },
                 listId = null,
                 listNameArg = "",
@@ -122,7 +149,7 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
                 onListCreated = {
                     navController.navigate("list_history/$currentUserId")
                 },
-                userId = currentUserId
+                navController = navController
             )
         }
 
@@ -136,13 +163,14 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
                 navArgument("productIds") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
             val listId = backStackEntry.arguments?.getString("listId") ?: ""
             val listName = backStackEntry.arguments?.getString("listName") ?: ""
             val productIds =
                 backStackEntry.arguments?.getString("productIds")?.split(",") ?: emptyList()
 
             NewListScreen(
+                userId = currentUserId,
                 onBack = { navController.popBackStack() },
                 listId = listId,
                 listNameArg = listName,
@@ -150,7 +178,7 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
                 onListCreated = {
                     navController.navigate("list_history/$currentUserId")
                 },
-                userId = currentUserId
+                navController = navController
             )
         }
 
@@ -164,27 +192,54 @@ fun AppNavigation(userId: String) { // Recebe o userId como argumento
                 navArgument("productIds") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val currentUserId = backStackEntry.arguments?.getString("userId") ?: userId
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
             val listId = backStackEntry.arguments?.getString("listId") ?: ""
             val productIds =
                 backStackEntry.arguments?.getString("productIds")?.split(",") ?: emptyList()
             val listName = backStackEntry.arguments?.getString("listName") ?: ""
 
             ListDetailScreen(
+                userId = currentUserId,
                 listId = listId,
                 productIds = productIds,
                 listName = listName,
                 onBack = { navController.popBackStack() },
                 onEditList = { id, name, ids ->
-                    navController.navigate(
-                        "create_list/$currentUserId/$id/$name/${
-                            ids.joinToString(
-                                ","
-                            )
-                        }"
-                    )
+                    val encodedListName = Uri.encode(name)
+                    val encodedProductIds = Uri.encode(ids.joinToString(","))
+                    navController.navigate("create_list/$currentUserId/$id/$encodedListName/$encodedProductIds")
                 },
-                userId = currentUserId
+                navController = navController
+            )
+        }
+
+        // Inflation Screen
+        composable(
+            "inflation/{userId}",
+            arguments = listOf(
+                navArgument("userId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
+            InflationScreen(
+                userId = currentUserId,
+                navController = navController
+            )
+        }
+
+        // Profile Screen
+        composable(
+            "profile/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
+            UserProfileScreen(
+                userId = currentUserId,
+                onLogoutClick = {
+                    sessionManager.logout()
+                    isUserLoggedIn.value = false
+                },
+                navController = navController
             )
         }
     }

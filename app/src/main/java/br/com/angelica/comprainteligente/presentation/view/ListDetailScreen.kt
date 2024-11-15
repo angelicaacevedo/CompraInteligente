@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
@@ -25,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -32,6 +34,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigation
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
 import org.koin.androidx.compose.getViewModel
 
@@ -43,13 +47,19 @@ fun ListDetailScreen(
     listName: String,
     onBack: () -> Unit,
     onEditList: (String, String, List<String>) -> Unit,
+    navController: NavController,
     viewModel: ProductListViewModel = getViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(productIds) {
         viewModel.initialize(userId)
-        viewModel.handleIntent(ProductListViewModel.ProductListIntent.ViewProductsInList(productIds))
+        viewModel.handleIntent(
+            ProductListViewModel.ProductListIntent.ViewProductsInList(
+                userId,
+                productIds
+            )
+        )
     }
 
     Scaffold(
@@ -58,7 +68,10 @@ fun ListDetailScreen(
                 onBack = onBack,
                 onEdit = { onEditList(listId, listName, productIds) }
             )
-        }
+        },
+        bottomBar = {
+            CustomBottomNavigation(navController = navController, userId = userId)
+        },
     ) { paddingValues ->
         when (state) {
             is ProductListViewModel.ProductListState.Loading -> {
@@ -94,7 +107,17 @@ private fun ListDetailTopBar(
     onEdit: () -> Unit
 ) {
     TopAppBar(
-        title = { Text("Produtos da Lista") },
+        title = {
+            Text(
+                text = "Produtos da Lista",
+                modifier = Modifier.fillMaxWidth(),
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary
+        ),
         navigationIcon = {
             IconButton(onClick = { onBack() }) {
                 Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = "Voltar")
@@ -139,7 +162,9 @@ private fun ProductListDetailCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
-                    elevation = CardDefaults.cardElevation(4.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
                 ) {
                     Row(
                         modifier = Modifier

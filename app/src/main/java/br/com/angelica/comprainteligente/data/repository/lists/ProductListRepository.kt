@@ -12,5 +12,5 @@ interface ProductListRepository {
     suspend fun getSuggestions(query: String): Result<List<Product>>
     suspend fun fetchProductsByIds(productIds: List<String>): Result<List<Product>>
     suspend fun fetchUserLists(includeProductIds: Boolean, userId: String): Result<List<ProductList>>
-    suspend fun fetchLatestPricesForList(productIds: List<String>): Result<List<ProductWithLatestPrice>>
+    suspend fun fetchMostRecentAndCheapestPricesByLocation(productIds: List<String>, userState: String, userCity: String): Result<List<ProductWithLatestPrice>>
 }

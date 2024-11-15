@@ -1,25 +1,25 @@
-package br.com.angelica.comprainteligente
+package br.com.angelica.comprainteligente.presentation.view
 
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import br.com.angelica.comprainteligente.data.SessionManager
 import br.com.angelica.comprainteligente.presentation.navigation.AppNavigation
 import br.com.angelica.comprainteligente.theme.CompraInteligenteTheme
+import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
+    // Inject SessionManager with Koin
+    private val sessionManager: SessionManager by inject()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Recupera o userId do SharedPreferences
-        val sharedPref = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        val userId = sharedPref.getString("user_id", null) ?: ""
-
         setContent {
             CompraInteligenteTheme {
-                AppNavigation(userId)
+                // Passa a instância de SessionManager para a navegação
+                AppNavigation(sessionManager)
             }
         }
     }
 }
-

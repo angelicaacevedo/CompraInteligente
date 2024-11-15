@@ -13,9 +13,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,18 +34,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigation
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
-
 import org.koin.androidx.compose.getViewModel
 
 @Composable
 fun HistoryListScreen(
-    onBack: () -> Unit,
+    navController: NavController,
+    userId: String,
     onNavigateToCreateList: () -> Unit,
     onNavigateToListItems: (String, String, List<String>) -> Unit,
-    viewModel: ProductListViewModel = getViewModel(),
-    userId: String
+    viewModel: ProductListViewModel = getViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -57,8 +59,11 @@ fun HistoryListScreen(
 
     Scaffold(
         topBar = {
-            ProductListTopBar(onBack, onNavigateToCreateList)
-        }
+            ProductListTopBar(onNavigateToCreateList)
+        },
+        bottomBar = {
+            CustomBottomNavigation(navController = navController, userId = userId)
+        },
     ) { paddingValues ->
         when (state) {
             is ProductListViewModel.ProductListState.Loading -> {
@@ -74,7 +79,7 @@ fun HistoryListScreen(
             }
 
             else -> {
-                EmptyProductListMessage(paddingValues)
+                EnhancedEmptyProductListMessage(paddingValues)
             }
         }
     }
@@ -82,32 +87,28 @@ fun HistoryListScreen(
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun ProductListTopBar(onBack: () -> Unit, onNavigateToCreateList: () -> Unit) {
+private fun ProductListTopBar(onNavigateToCreateList: () -> Unit) {
     TopAppBar(
         title = {
-            Text("Histórico de Listas", modifier = Modifier.fillMaxWidth())
+            Text(
+                text = "Histórico de Listas",
+                modifier = Modifier.fillMaxWidth(),
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
         },
-        navigationIcon = {
-            IconButton(onClick = { onBack() }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                    contentDescription = "Voltar"
-                )
-            }
-        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary
+        ),
         actions = {
-            // Adiciona o ícone de adicionar no lado direito da AppBar
             IconButton(onClick = { onNavigateToCreateList() }) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Adicionar Lista"
+                    contentDescription = "Adicionar Lista",
+                    tint = Color.White
                 )
             }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            titleContentColor = Color.Black,
-            containerColor = Color.White,
-        )
+        }
     )
 }
 
@@ -119,7 +120,7 @@ private fun ProductListLoadingProgress(paddingValues: PaddingValues) {
             .padding(paddingValues),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator()
+        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
     }
 }
 
@@ -133,7 +134,7 @@ private fun ProductListCard(
 ) {
     val lists = (state as ProductListViewModel.ProductListState.ListsLoaded).lists
     if (lists.isEmpty()) {
-        EmptyProductListMessage(paddingValues)
+        EnhancedEmptyProductListMessage(paddingValues)
     } else {
         LazyColumn(
             modifier = Modifier
@@ -144,15 +145,17 @@ private fun ProductListCard(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .padding(vertical = 8.dp, horizontal = 16.dp)
                         .clickable {
                             onNavigateToListItems(
                                 list.id,
                                 list.name,
                                 list.productIds
                             )
-                        },  // Clique para abrir a lista de produtos
-                    elevation = CardDefaults.cardElevation(4.dp)
+                        },
+                    shape = MaterialTheme.shapes.medium,
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(5.dp)
                 ) {
                     Row(
                         modifier = Modifier
@@ -161,13 +164,21 @@ private fun ProductListCard(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = list.name, style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            text = list.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                         IconButton(onClick = {
                             viewModel.handleIntent(
                                 ProductListViewModel.ProductListIntent.DeleteList(list.id, userId)
                             )
                         }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Deletar Lista")
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = "Deletar Lista",
+                                tint = Color.DarkGray
+                            )
                         }
                     }
                 }
@@ -187,38 +198,46 @@ private fun ProductListErrorMessage(
             .padding(paddingValues),
         contentAlignment = Alignment.Center
     ) {
-        Text("Error: ${(state as ProductListViewModel.ProductListState.Error).message}")
+        Text(
+            "Erro: ${(state as ProductListViewModel.ProductListState.Error).message}",
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodyLarge
+        )
     }
 }
 
 @Composable
-private fun EmptyProductListMessage(paddingValues: PaddingValues) {
-    Box(
+private fun EnhancedEmptyProductListMessage(paddingValues: PaddingValues) {
+    Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(32.dp)
             .padding(paddingValues),
-        contentAlignment = Alignment.Center
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = "Nenhuma lista adicionada",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = "Toque no botão para adicionar uma nova lista",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray
-            )
-        }
+        Icon(
+            imageVector = Icons.Default.ShoppingCart,
+            contentDescription = "Carrinho vazio",
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .size(100.dp)
+                .padding(bottom = 16.dp)
+        )
+
+        Text(
+            text = "Nenhuma lista adicionada!",
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Text(
+            text = "Toque no botão para adicionar uma nova lista.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
     }
 }

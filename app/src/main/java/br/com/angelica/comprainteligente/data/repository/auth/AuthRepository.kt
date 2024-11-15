@@ -2,8 +2,13 @@ package br.com.angelica.comprainteligente.data.repository.auth
 
 import br.com.angelica.comprainteligente.model.Address
 import br.com.angelica.comprainteligente.model.User
+import br.com.angelica.comprainteligente.model.UserLevel
 
 interface AuthRepository {
-    suspend fun register(user: User, address: Address): Result<String>
+    suspend fun register(user: User): Result<String>
     suspend fun login(email: String, password: String): Result<String>
+    suspend fun updateUserInfo(userId: String, updatedUser: User, address: Address): Result<Unit>
+    suspend fun getUserById(userId: String): Result<User>
+    suspend fun logout()
+    suspend fun getUserLevel(): Result<UserLevel>
 }

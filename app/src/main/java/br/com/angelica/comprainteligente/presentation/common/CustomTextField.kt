@@ -1,8 +1,10 @@
 package br.com.angelica.comprainteligente.presentation.common
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -25,47 +27,54 @@ fun CustomTextField(
     isError: Boolean = false,
     errorMessage: String? = null,
     isPassword: Boolean = false,
+    showPassword: Boolean = false,
     isNumeric: Boolean = false,
     enabled: Boolean = true,
+    leadingIcon: (@Composable (() -> Unit))? = null,
+    trailingIcon: (@Composable (() -> Unit))? = null,
     onFocusChanged: (FocusState) -> Unit = {}
 ) {
     val visualTransformation =
-        if (isPassword) PasswordVisualTransformation() else VisualTransformation.None
+        if (isPassword && !showPassword) PasswordVisualTransformation() else VisualTransformation.None
 
     val keyboardOptions =
         if (isNumeric) KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number) else KeyboardOptions.Default.copy()
 
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(text = label, color = Color.Gray) },
-        isError = isError,
-        visualTransformation = visualTransformation,
-        keyboardOptions = keyboardOptions,
-        modifier = modifier
-            .padding(8.dp)
-            .fillMaxWidth()
-            .onFocusChanged { focusState ->
-                onFocusChanged(focusState)
-            },
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent,
-            errorContainerColor = Color.Transparent,
-            focusedIndicatorColor = Color.Black,
-            unfocusedIndicatorColor = Color.Gray,
-            errorIndicatorColor = Color.Red,
-            cursorColor = Color.Black,
-            errorCursorColor = Color.Red,
-            disabledContainerColor = Color.LightGray,
-        ),
-        enabled = enabled
-    )
-    if (isError && !errorMessage.isNullOrEmpty()) {
-        Text(
-            text = errorMessage,
-            color = Color.Red,
-            modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+    Column(modifier = modifier) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = { Text(text = label, color = Color.Gray) },
+            isError = isError,
+            visualTransformation = visualTransformation,
+            keyboardOptions = keyboardOptions,
+            leadingIcon = leadingIcon,
+            trailingIcon = trailingIcon,
+            modifier = modifier
+                .fillMaxWidth()
+                .onFocusChanged { focusState ->
+                    onFocusChanged(focusState)
+                },
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                errorContainerColor = Color.Transparent,
+                focusedIndicatorColor = Color.Black,
+                unfocusedIndicatorColor = Color.Gray,
+                errorIndicatorColor = Color.Red,
+                cursorColor = Color.Black,
+                errorCursorColor = Color.Red,
+                disabledContainerColor = Color.LightGray,
+            ),
+            enabled = enabled
         )
+        if (isError && !errorMessage.isNullOrEmpty()) {
+            Text(
+                text = errorMessage,
+                color = Color.Red,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+            )
+        }
     }
 }
