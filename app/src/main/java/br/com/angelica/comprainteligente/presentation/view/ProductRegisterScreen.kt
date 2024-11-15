@@ -19,8 +19,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
@@ -28,6 +28,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -45,10 +46,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -62,6 +63,7 @@ import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
 @OptIn(ExperimentalCoilApi::class, ExperimentalMaterial3Api::class)
@@ -102,6 +104,10 @@ fun ProductRegisterScreen(
 
     val context = LocalContext.current as Activity
 
+
+    val lazyListState = rememberLazyListState()  // State for controlling the LazyColumn
+    val coroutineScope = rememberCoroutineScope()
+
     // Criação do launcher para abrir o scanner de código de barras
     val barcodeScannerLauncher = rememberLauncherForActivityResult(ScanContract()) { result ->
         if (result.contents != null) {
@@ -135,6 +141,15 @@ fun ProductRegisterScreen(
             ).show()
         }
     }
+
+    LaunchedEffect(suggestions.size) {
+        if (suggestions.isNotEmpty()) {
+            coroutineScope.launch {
+                lazyListState.animateScrollToItem(suggestions.size - 1)
+            }
+        }
+    }
+
 
     LaunchedEffect(state) {
         when (state) {
@@ -229,6 +244,7 @@ fun ProductRegisterScreen(
         },
     ) { paddingValues ->
         LazyColumn(
+            state = lazyListState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
@@ -415,14 +431,20 @@ fun ProductRegisterScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp)
-                            .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp)),
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.primary,
+                                shape = RoundedCornerShape(8.dp)
+                            ),
                         shape = RoundedCornerShape(8.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         elevation = CardDefaults.cardElevation(5.dp)
                     ) {
-                        Column(modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp)) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp)
+                        ) {
                             suggestions.forEachIndexed { index, (name, placeId) ->
                                 Row(
                                     modifier = Modifier
@@ -435,12 +457,20 @@ fun ProductRegisterScreen(
                                         }
                                         .padding(8.dp)
                                 ) {
-                                    Icon(Icons.Default.LocationOn, contentDescription = null)
+                                    Icon(
+                                        Icons.Default.LocationOn,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text(text = name, color = Color.Black)
+                                    Text(
+                                        text = name,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
                                 }
                                 if (index < suggestions.size - 1) {
-                                    Divider(color = Color.Gray)
+                                    Divider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
                                 }
                             }
                         }
