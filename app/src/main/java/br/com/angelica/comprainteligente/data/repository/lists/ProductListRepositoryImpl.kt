@@ -5,6 +5,7 @@ import br.com.angelica.comprainteligente.model.Product
 import br.com.angelica.comprainteligente.model.ProductList
 import br.com.angelica.comprainteligente.model.ProductWithLatestPrice
 import br.com.angelica.comprainteligente.model.Supermarket
+import br.com.angelica.comprainteligente.utils.StateMapper
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
@@ -136,6 +137,9 @@ class ProductListRepositoryImpl(
         userCity: String
     ): Result<List<ProductWithLatestPrice>> {
         return try {
+            // Usa o mapeador para obter o nome completo do estado
+            val state = StateMapper.getFullStateName(userState)
+
             if (productIds.isEmpty()) {
                 return Result.failure(Exception("Lista de productsIds vazia"))
             }
@@ -143,7 +147,7 @@ class ProductListRepositoryImpl(
             // 1. Consultar a coleção "supermarkets" para obter os IDs dos supermercados na cidade e estado do usuário
             val supermarketsSnapshot = try {
                 firestore.collection("supermarkets")
-                    .whereEqualTo("state", userState)
+                    .whereEqualTo("state", state)
                     .whereEqualTo("city", userCity)
                     .get()
                     .await()

@@ -345,6 +345,10 @@ fun SupermarketsPriceList(productsWithPrices: List<ProductWithLatestPrice>) {
     LazyColumn {
         items(productsWithPrices.groupBy { it.supermarket.name }
             .toList()) { (supermarket, products) ->
+
+            // Extrai apenas o nome do supermercado
+            val supermarketName = supermarket.split(" - ").firstOrNull() ?: supermarket
+
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -360,7 +364,7 @@ fun SupermarketsPriceList(productsWithPrices: List<ProductWithLatestPrice>) {
                 ) {
                     // Nome do Supermercado com estilo de título
                     Text(
-                        text = supermarket,
+                        text = supermarketName,
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(bottom = 8.dp)
