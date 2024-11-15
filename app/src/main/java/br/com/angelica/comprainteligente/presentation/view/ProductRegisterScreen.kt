@@ -7,19 +7,26 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -71,7 +78,7 @@ fun ProductRegisterScreen(
     var selectedCategory by remember { mutableStateOf<Category?>(null) }
     var isCategoryMenuExpanded by remember { mutableStateOf(false) }
 
-    var showSucessDialog by remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     var priceError by remember { mutableStateOf(false) }
@@ -85,6 +92,7 @@ fun ProductRegisterScreen(
     var selectedSupermarket by remember { mutableStateOf("") }
     var selectedPlaceId by remember { mutableStateOf("") }
     var suggestions by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
+
     var isFormSubmitted by remember { mutableStateOf(false) }
     var isBarcodeEditable by remember { mutableStateOf(true) }
     var isProductInfoEditable by remember { mutableStateOf(true) }
@@ -144,7 +152,7 @@ fun ProductRegisterScreen(
                 isLoading = false
             }
 
-            is ProductViewModel.ProductState.ProductRegistered -> showSucessDialog = true
+            is ProductViewModel.ProductState.ProductRegistered -> showSuccessDialog = true
 
             is ProductViewModel.ProductState.Error -> {
                 errorMessage = (state as ProductViewModel.ProductState.Error).message
@@ -155,14 +163,14 @@ fun ProductRegisterScreen(
         }
     }
 
-    if (showSucessDialog) {
+    if (showSuccessDialog) {
         CustomAlertDialog(
             title = "Produto Cadastrado",
             message = "Produto cadastrado com sucesso! Deseja cadastrar mais um?",
             confirmButtonText = "Sim",
             dismissButtonText = "Não",
             onConfirm = {
-                showSucessDialog = false
+                showSuccessDialog = false
                 productName = ""
                 productImageUrl = ""
                 productPrice = ""
@@ -174,7 +182,7 @@ fun ProductRegisterScreen(
                 viewModel.resetState()
             },
             onDismiss = {
-                showSucessDialog = false
+                showSuccessDialog = false
                 onProductRegistered()
             }
         )
@@ -402,22 +410,44 @@ fun ProductRegisterScreen(
 
             // Sugestões de Supermercados
             if (suggestions.isNotEmpty()) {
-                items(suggestions) { (name, placeId) ->
-                    Column(
+                item {
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
-                                selectedSupermarket = name
-                                selectedPlaceId = placeId
-                                suggestions = emptyList()
-                                isSupermarketEditable = false
-                            }
-                            .padding(8.dp)
+                            .padding(vertical = 8.dp)
+                            .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp)),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(5.dp)
                     ) {
-                        Text(text = name, color = Color.Black)
+                        Column(modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)) {
+                            suggestions.forEachIndexed { index, (name, placeId) ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            selectedSupermarket = name
+                                            selectedPlaceId = placeId
+                                            suggestions = emptyList()
+                                            isSupermarketEditable = false
+                                        }
+                                        .padding(8.dp)
+                                ) {
+                                    Icon(Icons.Default.LocationOn, contentDescription = null)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(text = name, color = Color.Black)
+                                }
+                                if (index < suggestions.size - 1) {
+                                    Divider(color = Color.Gray)
+                                }
+                            }
+                        }
                     }
                 }
             }
+
 
             // Botão para registrar o produto
             item {
