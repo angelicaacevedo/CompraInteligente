@@ -1,12 +1,16 @@
 package br.com.angelica.comprainteligente.domain.usecase
 
+import br.com.angelica.comprainteligente.data.repository.auth.AuthRepository
 import br.com.angelica.comprainteligente.data.repository.lists.ProductListRepository
 import br.com.angelica.comprainteligente.model.Product
 import br.com.angelica.comprainteligente.model.ProductList
 import br.com.angelica.comprainteligente.model.ProductWithLatestPrice
 import com.google.firebase.Timestamp
 
-class ProductListOperationsUseCase(private val repository: ProductListRepository) {
+class ProductListOperationsUseCase(
+    private val repository: ProductListRepository,
+    private val authRepository: AuthRepository
+) {
 
     // Método para buscar listas de um usuário, com opção de incluir IDs de produtos
     suspend fun fetchUserLists(
@@ -51,7 +55,24 @@ class ProductListOperationsUseCase(private val repository: ProductListRepository
     }
 
     // Método para buscar os últimos preços de produtos em uma lista
-    suspend fun fetchLatestPricesForList(productIds: List<String>): Result<List<ProductWithLatestPrice>> {
-        return repository.fetchLatestPricesForList(productIds)
+    suspend fun fetchMostRecentAndCheapestPricesByLocation(
+        userId: String,
+        productIds: List<String>
+    ): Result<List<ProductWithLatestPrice>> {
+        // Primeiro, obtemos a localização do usuário
+        val userResult = authRepository.getUserById(userId)
+        if (userResult.isFailure) {
+            return Result.failure(
+                userResult.exceptionOrNull() ?: Exception("Falha ao obter usuário")
+            )
+        }
+
+        val user =
+            userResult.getOrNull() ?: return Result.failure(Exception("Usuário não encontrado"))
+        val userState = user.address.state
+        val userCity = user.address.city
+
+        // Em seguida, usamos essas informações para buscar os preços mais recentes filtrados
+        return repository.fetchMostRecentAndCheapestPricesByLocation(productIds, userState, userCity)
     }
 }

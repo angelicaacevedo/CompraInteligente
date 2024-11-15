@@ -54,7 +54,12 @@ fun ListDetailScreen(
 
     LaunchedEffect(productIds) {
         viewModel.initialize(userId)
-        viewModel.handleIntent(ProductListViewModel.ProductListIntent.ViewProductsInList(productIds))
+        viewModel.handleIntent(
+            ProductListViewModel.ProductListIntent.ViewProductsInList(
+                userId,
+                productIds
+            )
+        )
     }
 
     Scaffold(

@@ -90,7 +90,7 @@ val appModule = module {
     factory { GetSupermarketSuggestionsUseCase(get()) }
     factory { GetCategoriesUseCase(get()) }
     factory { GetPriceHistoryUseCase(get()) }
-    factory { ProductListOperationsUseCase(get()) }
+    factory { ProductListOperationsUseCase(get(), get()) }
     factory { ProductOperationsUseCase(get(), get(), get()) }
     factory { GetLargestPriceDifferenceUseCase(get()) }
     factory { GetTopPricesUseCase(get()) }

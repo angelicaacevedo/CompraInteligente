@@ -1,6 +1,5 @@
 package br.com.angelica.comprainteligente.model
 
-
 data class User(
     val id: String,                   // ID único do usuário
     val username: String,             // Nome de usuário

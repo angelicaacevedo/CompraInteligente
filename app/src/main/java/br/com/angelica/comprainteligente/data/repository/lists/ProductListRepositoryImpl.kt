@@ -130,52 +130,90 @@ class ProductListRepositoryImpl(
         }
     }
 
-    override suspend fun fetchLatestPricesForList(productIds: List<String>): Result<List<ProductWithLatestPrice>> {
+    override suspend fun fetchMostRecentAndCheapestPricesByLocation(
+        productIds: List<String>,
+        userState: String,
+        userCity: String
+    ): Result<List<ProductWithLatestPrice>> {
         return try {
             if (productIds.isEmpty()) {
                 return Result.failure(Exception("Lista de productsIds vazia"))
             }
 
-            //1. Buscar os preços mais recentes para cada produto na lista
-            val pricesQuery = firestore.collection("prices")
-                .whereIn("productId", productIds)
-                .orderBy("date", Query.Direction.DESCENDING)
-
-            val pricesSnapshot = pricesQuery.get().await()
-
-            val latestPrices = pricesSnapshot.documents
-                .mapNotNull { it.toObject(Price::class.java) }
-                .groupBy { it.productId }
-                .mapValues { it.value.first() } // Mantém apenas o preço mais recente
-
-            //2. Buscar os detalhes dos produtos na coleção "products"
-            val productDetailQuery = firestore.collection("products")
-                .whereIn(FieldPath.documentId(), productIds)
-            val productsSnapshot = productDetailQuery.get().await()
-
-            val products =
-                productsSnapshot.documents.mapNotNull { it.toObject(Product::class.java) }
-
-            //3. Buscar os supermercados associados a cada preço mais recente
-            val supermarketIds = latestPrices.values.map { it.supermarketId }.distinct()
-            val supermarketQuery = firestore.collection("supermarkets")
-                .whereIn(FieldPath.documentId(), supermarketIds)
-            val supermarketsSnapshot = supermarketQuery.get().await()
-
-            val supermarkets = supermarketsSnapshot.documents.associateBy { it.id }
-                .mapValues { it.value.toObject(Supermarket::class.java) }
-
-            //4. Combinar os detalhes dos produtos com os preços mais recente e supermercado correspondete
-            val productWithPrices = products.mapNotNull { product ->
-                val latestPrice = latestPrices[product.id]
-                val supermarket = supermarkets[latestPrice?.supermarketId]
-                if (latestPrice != null && supermarket != null) {
-                    ProductWithLatestPrice(product, latestPrice, supermarket)
-                } else null
+            // 1. Consultar a coleção "supermarkets" para obter os IDs dos supermercados na cidade e estado do usuário
+            val supermarketsSnapshot = try {
+                firestore.collection("supermarkets")
+                    .whereEqualTo("state", userState)
+                    .whereEqualTo("city", userCity)
+                    .get()
+                    .await()
+            } catch (e: Exception) {
+                return Result.failure(Exception("Erro ao buscar supermercados para a localização especificada."))
             }
+
+            val supermarketIds = supermarketsSnapshot.documents.mapNotNull { it.id }
+            if (supermarketIds.isEmpty()) {
+                return Result.failure(Exception("Nenhum supermercado encontrado para a localização especificada."))
+            }
+
+            // 2. Consultar a coleção "prices" usando os productIds e supermarketIds
+            val pricesSnapshot = try {
+                firestore.collection("prices")
+                    .whereIn("productId", productIds)
+                    .whereIn("supermarketId", supermarketIds)
+                    .orderBy("date", Query.Direction.DESCENDING)  // Ordena por data mais recente
+                    .orderBy(
+                        "price",
+                        Query.Direction.ASCENDING
+                    )   // Ordena por preço mais baixo em caso de empate
+                    .get()
+                    .await()
+            } catch (e: Exception) {
+                return Result.failure(Exception("Erro ao buscar preços para os produtos e localização especificados."))
+            }
+
+            // Mapeia preços para cada productId e busca o mais recente e mais barato
+            val groupedPrices = pricesSnapshot.documents.groupBy { it.getString("productId") }
+            val productWithPrices = mutableListOf<ProductWithLatestPrice>()
+
+            for ((productId, priceDocs) in groupedPrices) {
+                // Como já ordenamos por data (mais recente) e preço (mais baixo), podemos pegar o primeiro da lista
+                val bestPriceDoc = priceDocs.firstOrNull()
+                val price = bestPriceDoc?.toObject(Price::class.java)
+
+                if (price != null) {
+                    // Obter detalhes do produto
+                    val productSnapshot = try {
+                        firestore.collection("products").document(productId!!).get().await()
+                    } catch (e: Exception) {
+                        return Result.failure(Exception("Erro ao buscar detalhes do produto."))
+                    }
+
+                    val product = Product(
+                        id = productId,
+                        name = productSnapshot.getString("name") ?: "Produto desconhecido",
+                        imageUrl = productSnapshot.getString("imageUrl") ?: ""
+                    )
+
+                    // Obter detalhes do supermercado
+                    val supermarket =
+                        supermarketsSnapshot.documents.find { it.id == price.supermarketId }
+                            ?.toObject(Supermarket::class.java)
+
+                    if (supermarket != null) {
+                        productWithPrices.add(
+                            ProductWithLatestPrice(
+                                product = product,
+                                latestPrice = price,
+                                supermarket = supermarket
+                            )
+                        )
+                    }
+                }
+            }
+
             Result.success(productWithPrices)
         } catch (e: Exception) {
-            println("Erro em fetchLatestPricesForList: ${e.message}")
             Result.failure(e)
         }
     }

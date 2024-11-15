@@ -45,7 +45,7 @@ class ProductListViewModel(
             is ProductListIntent.DeleteList -> deleteList(intent.listId, intent.userId)
             is ProductListIntent.ViewProductsInList -> {
                 if (intent.loadLatestPrices) {
-                    loadLatestPricesForList(intent.productIds)
+                    loadMostRecentAndCheapestPricesByLocation(intent.userId, intent.productIds)
                 } else {
                     loadProductsFromList(intent.productIds)
                 }
@@ -135,10 +135,10 @@ class ProductListViewModel(
         }
     }
 
-    private fun loadLatestPricesForList(productIds: List<String>) {
+    private fun loadMostRecentAndCheapestPricesByLocation(userId: String, productIds: List<String>) {
         viewModelScope.launch {
             _state.value = ProductListState.Loading
-            val result = productListOperationsUseCase.fetchLatestPricesForList(productIds)
+            val result = productListOperationsUseCase.fetchMostRecentAndCheapestPricesByLocation(userId, productIds)
             if (result.isSuccess) {
                 _state.value =
                     ProductListState.ProductsWithLatestPricesLoaded(result.getOrNull().orEmpty())
@@ -167,6 +167,7 @@ class ProductListViewModel(
 
         // Adicionando uma flag para especificar se queremos carregar preços
         data class ViewProductsInList(
+            val userId: String,
             val productIds: List<String>,
             val loadLatestPrices: Boolean = false
         ) : ProductListIntent()

@@ -404,6 +404,7 @@ private fun AnalyzeButton(
                 if (it.productIds.isNotEmpty()) {
                     productListViewModel.handleIntent(
                         ProductListViewModel.ProductListIntent.ViewProductsInList(
+                            userId = it.userId,
                             productIds = it.productIds,
                             loadLatestPrices = true
                         )

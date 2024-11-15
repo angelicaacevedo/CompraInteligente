@@ -34,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import br.com.angelica.comprainteligente.model.Product
@@ -72,7 +71,7 @@ fun NewListScreen(
             selectedProductIds = productIdsArg
             // Carregar os produtos com base nos IDs
             viewModel.handleIntent(
-                ProductListViewModel.ProductListIntent.ViewProductsInList(productIdsArg)
+                ProductListViewModel.ProductListIntent.ViewProductsInList(userId, productIdsArg)
             )
         }
     }
