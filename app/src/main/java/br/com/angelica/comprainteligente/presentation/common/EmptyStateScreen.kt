@@ -16,6 +16,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import br.com.angelica.comprainteligente.theme.LilacSoft
+import br.com.angelica.comprainteligente.theme.PrimaryBlue
+import br.com.angelica.comprainteligente.theme.SecondaryLilac
 import br.com.angelica.comprainteligente.theme.TextGray
 
 @Composable
@@ -35,7 +37,7 @@ fun EmptyStateScreen(
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = LilacSoft,
+            tint = PrimaryBlue,
             modifier = Modifier
                 .size(100.dp)
                 .padding(bottom = 16.dp)
@@ -44,7 +46,7 @@ fun EmptyStateScreen(
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium.copy(
-                color = TextGray,
+                color = SecondaryLilac,
                 fontWeight = FontWeight.Bold
             ),
             modifier = Modifier.padding(bottom = 8.dp)
