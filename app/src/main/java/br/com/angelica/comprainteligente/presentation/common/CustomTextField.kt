@@ -18,9 +18,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import br.com.angelica.comprainteligente.theme.GraySoft
-import br.com.angelica.comprainteligente.theme.LilacSoft
 import br.com.angelica.comprainteligente.theme.PrimaryBlue
-import br.com.angelica.comprainteligente.theme.RedSoft
 import br.com.angelica.comprainteligente.theme.TextGray
 
 @Composable

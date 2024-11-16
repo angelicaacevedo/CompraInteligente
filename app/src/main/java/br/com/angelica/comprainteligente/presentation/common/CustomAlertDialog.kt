@@ -21,12 +21,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import br.com.angelica.comprainteligente.theme.BlueSoft
 import br.com.angelica.comprainteligente.theme.ButtonGreen
 import br.com.angelica.comprainteligente.theme.ButtonRed
-import br.com.angelica.comprainteligente.theme.GreenStrong
 import br.com.angelica.comprainteligente.theme.PrimaryBlue
-import br.com.angelica.comprainteligente.theme.RedSoft
 import br.com.angelica.comprainteligente.theme.TextGray
 import br.com.angelica.comprainteligente.theme.White
 

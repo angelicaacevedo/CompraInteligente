@@ -12,15 +12,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -32,7 +27,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -47,13 +41,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import br.com.angelica.comprainteligente.presentation.common.CustomAlertDialog
 import br.com.angelica.comprainteligente.presentation.common.CustomTextField
 import br.com.angelica.comprainteligente.presentation.viewmodel.AuthViewModel
 import br.com.angelica.comprainteligente.theme.GraySoft
-import br.com.angelica.comprainteligente.theme.GreenStrong
-import br.com.angelica.comprainteligente.theme.HighlightYellow
 import br.com.angelica.comprainteligente.theme.PrimaryBlue
 import br.com.angelica.comprainteligente.theme.TextGray
 import kotlinx.coroutines.launch

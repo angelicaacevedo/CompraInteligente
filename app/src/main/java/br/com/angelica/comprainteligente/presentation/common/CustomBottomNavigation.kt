@@ -24,10 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import br.com.angelica.comprainteligente.theme.BackgroundLightGray
-import br.com.angelica.comprainteligente.theme.GreenStrong
-import br.com.angelica.comprainteligente.theme.LilacStrong
 import br.com.angelica.comprainteligente.theme.PrimaryBlue
-import br.com.angelica.comprainteligente.theme.TextGray
 import br.com.angelica.comprainteligente.theme.TextSecondary
 
 @Composable
