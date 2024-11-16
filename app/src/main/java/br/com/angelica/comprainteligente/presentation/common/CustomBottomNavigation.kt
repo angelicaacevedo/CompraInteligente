@@ -3,6 +3,7 @@ package br.com.angelica.comprainteligente.presentation.common
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
@@ -18,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -34,8 +36,10 @@ fun CustomBottomNavigation(navController: NavController, userId: String) {
     }
 
     NavigationBar(
+        modifier = Modifier
+            .shadow(10.dp, RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
         containerColor = BackgroundLightGray,
-        tonalElevation = 6.dp
+        tonalElevation = 8.dp
     ) {
         val items = listOf(
             BottomNavItem("home/$userId", Icons.Default.Home, "Início"),

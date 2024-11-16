@@ -15,7 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -39,6 +39,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigation
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
+import br.com.angelica.comprainteligente.theme.GraySoft
+import br.com.angelica.comprainteligente.theme.GreenStrong
+import br.com.angelica.comprainteligente.theme.PrimaryBlue
+import br.com.angelica.comprainteligente.theme.SecondaryLilac
+import br.com.angelica.comprainteligente.theme.TextGray
+import br.com.angelica.comprainteligente.theme.TextGreen
 import org.koin.androidx.compose.getViewModel
 
 @Composable
@@ -51,7 +57,7 @@ fun HistoryListScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
-    // Carrega as listas de produtos apneas quando a tela for carregada pela primeira vez
+    // Carrega as listas de produtos apenas quando a tela for carregada pela primeira vez
     LaunchedEffect(Unit) {
         viewModel.initialize(userId)
         viewModel.handleIntent(ProductListViewModel.ProductListIntent.LoadLists(userId))
@@ -94,11 +100,11 @@ private fun ProductListTopBar(onNavigateToCreateList: () -> Unit) {
                 text = "Histórico de Listas",
                 modifier = Modifier.fillMaxWidth(),
                 style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onPrimary
+                color = Color.White
             )
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primary
+            containerColor = PrimaryBlue
         ),
         actions = {
             IconButton(onClick = { onNavigateToCreateList() }) {
@@ -120,7 +126,7 @@ private fun ProductListLoadingProgress(paddingValues: PaddingValues) {
             .padding(paddingValues),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        CircularProgressIndicator(color = GreenStrong)
     }
 }
 
@@ -154,7 +160,7 @@ private fun ProductListCard(
                             )
                         },
                     shape = MaterialTheme.shapes.medium,
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    colors = CardDefaults.cardColors(containerColor = GraySoft),
                     elevation = CardDefaults.cardElevation(5.dp)
                 ) {
                     Row(
@@ -177,7 +183,7 @@ private fun ProductListCard(
                             Icon(
                                 Icons.Default.Delete,
                                 contentDescription = "Deletar Lista",
-                                tint = Color.DarkGray
+                                tint = TextGray
                             )
                         }
                     }
@@ -217,9 +223,9 @@ private fun EnhancedEmptyProductListMessage(paddingValues: PaddingValues) {
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            imageVector = Icons.Default.ShoppingCart,
+            imageVector = Icons.Outlined.ShoppingCart,
             contentDescription = "Carrinho vazio",
-            tint = MaterialTheme.colorScheme.primary,
+            tint = PrimaryBlue,
             modifier = Modifier
                 .size(100.dp)
                 .padding(bottom = 16.dp)
@@ -227,15 +233,17 @@ private fun EnhancedEmptyProductListMessage(paddingValues: PaddingValues) {
 
         Text(
             text = "Nenhuma lista adicionada!",
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.titleLarge.copy(
+                color = SecondaryLilac
+            ),
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
         Text(
             text = "Toque no botão para adicionar uma nova lista.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = TextGreen
+            ),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
