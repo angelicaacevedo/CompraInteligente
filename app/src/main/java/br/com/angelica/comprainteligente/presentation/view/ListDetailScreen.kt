@@ -31,6 +31,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -52,14 +54,21 @@ fun ListDetailScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
-    LaunchedEffect(productIds) {
-        viewModel.initialize(userId)
-        viewModel.handleIntent(
-            ProductListViewModel.ProductListIntent.ViewProductsInList(
-                userId,
-                productIds
+
+    // Verifica se o ViewModel já foi inicializado
+    val isInitialized = remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        if (!isInitialized.value) {
+            viewModel.initialize(userId)
+            viewModel.handleIntent(
+                ProductListViewModel.ProductListIntent.ViewProductsInList(
+                    userId,
+                    productIds
+                )
             )
-        )
+            isInitialized.value = true
+        }
     }
 
     Scaffold(
@@ -174,7 +183,6 @@ private fun ProductListDetailCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(text = product.name, style = MaterialTheme.typography.titleMedium)
-                        // Aqui você pode adicionar um botão de ação, como deletar ou editar o produto
                     }
                 }
             }
