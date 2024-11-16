@@ -25,6 +25,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import br.com.angelica.comprainteligente.theme.LilacSoft
+import br.com.angelica.comprainteligente.theme.TextGray
 
 @Composable
 fun LoadingAnimation(message: String) {
@@ -67,7 +69,7 @@ fun LoadingAnimation(message: String) {
                         .alpha(alpha)
                         .padding(bottom = 8.dp)
                         .background(
-                            color = MaterialTheme.colorScheme.primary,
+                            color = LilacSoft,
                             shape = CircleShape
                         )
                 )
@@ -77,10 +79,9 @@ fun LoadingAnimation(message: String) {
         // Mensagem ao lado dos círculos animados
         Text(
             text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.bodyMedium.copy(color = TextGray),
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(start = 16.dp)
+            modifier = Modifier.padding(top = 16.dp)
         )
     }
 }
