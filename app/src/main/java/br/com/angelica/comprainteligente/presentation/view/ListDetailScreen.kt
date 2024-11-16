@@ -13,9 +13,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -35,10 +35,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigation
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
+import br.com.angelica.comprainteligente.theme.BlueSoft
+import br.com.angelica.comprainteligente.theme.PrimaryBlue
+import br.com.angelica.comprainteligente.theme.TextBlack
+import br.com.angelica.comprainteligente.theme.White
 import org.koin.androidx.compose.getViewModel
 
 @Composable
@@ -53,7 +58,6 @@ fun ListDetailScreen(
     viewModel: ProductListViewModel = getViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
-
 
     // Verifica se o ViewModel já foi inicializado
     val isInitialized = remember { mutableStateOf(false) }
@@ -100,7 +104,11 @@ fun ListDetailScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "Erro: ${(state as ProductListViewModel.ProductListState.Error).message}")
+                    Text(
+                        text = "Erro: ${(state as ProductListViewModel.ProductListState.Error).message}",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                 }
             }
 
@@ -120,21 +128,26 @@ private fun ListDetailTopBar(
             Text(
                 text = "Produtos da Lista",
                 modifier = Modifier.fillMaxWidth(),
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onPrimary
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    color = White
+                )
             )
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primary
+            containerColor = PrimaryBlue
         ),
         navigationIcon = {
             IconButton(onClick = { onBack() }) {
-                Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = "Voltar")
+                Icon(
+                    Icons.AutoMirrored.Outlined.ArrowBack,
+                    contentDescription = "Voltar",
+                    tint = White
+                )
             }
         },
         actions = {
             IconButton(onClick = onEdit) {
-                Icon(Icons.Default.Edit, contentDescription = "Editar Lista")
+                Icon(Icons.Outlined.Edit, contentDescription = "Editar Lista", tint = White)
             }
         }
     )
@@ -147,7 +160,7 @@ private fun ListDetailCircularProgress() {
             .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator(modifier = Modifier.size(50.dp))
+        CircularProgressIndicator(color = PrimaryBlue, modifier = Modifier.size(50.dp))
     }
 }
 
@@ -165,6 +178,7 @@ private fun ProductListDetailCard(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .padding(top = 16.dp)
         ) {
             items(products) { product ->
                 Card(
@@ -172,7 +186,7 @@ private fun ProductListDetailCard(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    colors = CardDefaults.cardColors(containerColor = BlueSoft),
                     elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
                 ) {
                     Row(
@@ -182,7 +196,12 @@ private fun ProductListDetailCard(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = product.name, style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            text = product.name,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                color = TextBlack
+                            )
+                        )
                     }
                 }
             }
@@ -203,15 +222,16 @@ private fun EmptyListDetailMessage(paddingValues: PaddingValues) {
             verticalArrangement = Arrangement.Center
         ) {
             Icon(
-                imageVector = Icons.Default.Warning,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.primary
+                imageVector = Icons.Outlined.Warning,
+                contentDescription = "Lista Vazia",
+                tint = PrimaryBlue,
+                modifier = Modifier.size(64.dp)
             )
             Text(
-                text = "Nenhuma produto na Lista",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary
+                text = "Nenhum produto na lista",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    color = Color.Red
+                )
             )
         }
     }
