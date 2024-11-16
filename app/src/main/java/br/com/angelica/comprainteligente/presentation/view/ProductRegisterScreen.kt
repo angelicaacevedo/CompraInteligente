@@ -22,8 +22,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -51,6 +51,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
@@ -59,6 +60,9 @@ import br.com.angelica.comprainteligente.presentation.common.CustomAlertDialog
 import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigation
 import br.com.angelica.comprainteligente.presentation.common.CustomTextField
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductViewModel
+import br.com.angelica.comprainteligente.theme.BlueSoft
+import br.com.angelica.comprainteligente.theme.TextBlack
+import br.com.angelica.comprainteligente.theme.White
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.journeyapps.barcodescanner.ScanContract
@@ -104,8 +108,7 @@ fun ProductRegisterScreen(
 
     val context = LocalContext.current as Activity
 
-
-    val lazyListState = rememberLazyListState()  // State for controlling the LazyColumn
+    val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
     // Criação do launcher para abrir o scanner de código de barras
@@ -149,7 +152,6 @@ fun ProductRegisterScreen(
             }
         }
     }
-
 
     LaunchedEffect(state) {
         when (state) {
@@ -220,7 +222,8 @@ fun ProductRegisterScreen(
                 isBarcodeEditable = true
                 isSupermarketEditable = true
                 viewModel.resetState()
-            }
+            },
+            onDismiss = {}
         )
     }
 
@@ -230,8 +233,9 @@ fun ProductRegisterScreen(
                 title = {
                     Text(
                         text = "Cadastro de Produto", modifier = Modifier.fillMaxWidth(),
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = MaterialTheme.colorScheme.onPrimary
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -248,6 +252,7 @@ fun ProductRegisterScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .padding(top = 16.dp)
                 .padding(horizontal = 24.dp)
         ) {
             item {
@@ -270,7 +275,7 @@ fun ProductRegisterScreen(
                     },
                     leadingIcon = {
                         Icon(
-                            Icons.Default.Search,
+                            Icons.Outlined.Search,
                             contentDescription = "Buscar Código"
                         )
                     }
@@ -299,7 +304,13 @@ fun ProductRegisterScreen(
                         .fillMaxWidth()
                         .padding(vertical = 16.dp)
                 ) {
-                    Text("Escanear Código de Barras")
+                    Text(
+                        text = "Escanear Código de Barras",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
                 }
             }
 
@@ -411,7 +422,7 @@ fun ProductRegisterScreen(
                     errorMessage = "Campo obrigatório",
                     leadingIcon = {
                         Icon(
-                            Icons.Default.LocationOn,
+                            Icons.Outlined.LocationOn,
                             contentDescription = "Buscar Supermercado"
                         )
                     },
@@ -437,7 +448,7 @@ fun ProductRegisterScreen(
                                 shape = RoundedCornerShape(8.dp)
                             ),
                         shape = RoundedCornerShape(8.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        colors = CardDefaults.cardColors(containerColor = BlueSoft),
                         elevation = CardDefaults.cardElevation(5.dp)
                     ) {
                         Column(
@@ -458,15 +469,16 @@ fun ProductRegisterScreen(
                                         .padding(8.dp)
                                 ) {
                                     Icon(
-                                        Icons.Default.LocationOn,
+                                        Icons.Outlined.LocationOn,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.primary
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
                                         text = name,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        style = MaterialTheme.typography.bodyMedium
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            color = TextBlack
+                                        )
                                     )
                                 }
                                 if (index < suggestions.size - 1) {
@@ -506,7 +518,13 @@ fun ProductRegisterScreen(
                         .fillMaxWidth()
                         .padding(vertical = 16.dp)
                 ) {
-                    Text("Cadastrar Produto")
+                    Text(
+                        text = "Cadastrar Produto",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
                 }
             }
 
