@@ -12,8 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import br.com.angelica.comprainteligente.theme.LilacSoft
+import br.com.angelica.comprainteligente.theme.TextGray
 
 @Composable
 fun EmptyStateScreen(
@@ -32,7 +35,7 @@ fun EmptyStateScreen(
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = MaterialTheme.colorScheme.primary,
+            tint = LilacSoft,
             modifier = Modifier
                 .size(100.dp)
                 .padding(bottom = 16.dp)
@@ -40,15 +43,18 @@ fun EmptyStateScreen(
 
         Text(
             text = title,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.titleMedium.copy(
+                color = TextGray,
+                fontWeight = FontWeight.Bold
+            ),
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
         Text(
             text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = TextGray.copy(alpha = 0.7f)
+            ),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
