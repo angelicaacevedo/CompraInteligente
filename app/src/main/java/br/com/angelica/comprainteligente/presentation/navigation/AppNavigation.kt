@@ -69,6 +69,9 @@ fun AppNavigation(sessionManager: SessionManager) {
                         popUpTo("register") { inclusive = true }
                     }
                 },
+                onBackPress = {
+                    navController.popBackStack()
+                },
                 onNavigateToLogin = {
                     navController.navigate("login")
                 }

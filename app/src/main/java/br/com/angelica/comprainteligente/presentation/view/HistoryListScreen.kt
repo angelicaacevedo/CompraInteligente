@@ -13,8 +13,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -39,12 +39,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigation
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
-import br.com.angelica.comprainteligente.theme.GraySoft
-import br.com.angelica.comprainteligente.theme.GreenStrong
+import br.com.angelica.comprainteligente.theme.BlueSoft
 import br.com.angelica.comprainteligente.theme.PrimaryBlue
 import br.com.angelica.comprainteligente.theme.SecondaryLilac
-import br.com.angelica.comprainteligente.theme.TextGray
+import br.com.angelica.comprainteligente.theme.TextBlack
 import br.com.angelica.comprainteligente.theme.TextGreen
+import br.com.angelica.comprainteligente.theme.White
 import org.koin.androidx.compose.getViewModel
 
 @Composable
@@ -99,8 +99,9 @@ private fun ProductListTopBar(onNavigateToCreateList: () -> Unit) {
             Text(
                 text = "Histórico de Listas",
                 modifier = Modifier.fillMaxWidth(),
-                style = MaterialTheme.typography.headlineLarge,
-                color = Color.White
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    color = White
+                )
             )
         },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -109,9 +110,9 @@ private fun ProductListTopBar(onNavigateToCreateList: () -> Unit) {
         actions = {
             IconButton(onClick = { onNavigateToCreateList() }) {
                 Icon(
-                    imageVector = Icons.Default.Add,
+                    imageVector = Icons.Outlined.Add,
                     contentDescription = "Adicionar Lista",
-                    tint = Color.White
+                    tint = White
                 )
             }
         }
@@ -126,7 +127,7 @@ private fun ProductListLoadingProgress(paddingValues: PaddingValues) {
             .padding(paddingValues),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator(color = GreenStrong)
+        CircularProgressIndicator(color = PrimaryBlue)
     }
 }
 
@@ -146,6 +147,7 @@ private fun ProductListCard(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .padding(top = 16.dp)
         ) {
             items(lists) { list ->
                 Card(
@@ -160,7 +162,7 @@ private fun ProductListCard(
                             )
                         },
                     shape = MaterialTheme.shapes.medium,
-                    colors = CardDefaults.cardColors(containerColor = GraySoft),
+                    colors = CardDefaults.cardColors(containerColor = BlueSoft),
                     elevation = CardDefaults.cardElevation(5.dp)
                 ) {
                     Row(
@@ -172,18 +174,21 @@ private fun ProductListCard(
                     ) {
                         Text(
                             text = list.name,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        IconButton(onClick = {
-                            viewModel.handleIntent(
-                                ProductListViewModel.ProductListIntent.DeleteList(list.id, userId)
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                color = TextBlack
                             )
-                        }) {
+                        )
+                        IconButton(
+                            onClick = {
+                                viewModel.handleIntent(
+                                    ProductListViewModel.ProductListIntent.DeleteList(list.id, userId)
+                                )
+                            }
+                        ) {
                             Icon(
-                                Icons.Default.Delete,
+                                Icons.Outlined.Delete,
                                 contentDescription = "Deletar Lista",
-                                tint = TextGray
+                                tint = Color.Red
                             )
                         }
                     }
