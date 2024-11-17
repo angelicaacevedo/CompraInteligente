@@ -309,11 +309,11 @@ fun InflationChart(prices: List<Price>, selectedPeriod: String) {
         color = android.graphics.Color.parseColor("#6200EE")
         valueTextColor = android.graphics.Color.parseColor("#6200EE")
         lineWidth = 2f
-        circleRadius = 4f  // Diminui o tamanho dos círculos para evitar sobreposição
+        circleRadius = 6f  // Aumenta o tamanho dos círculos para melhorar visibilidade
         setDrawFilled(true)
         setCircleColor(android.graphics.Color.parseColor("#6200EE"))
         setDrawValues(true)
-        valueTextSize = 8f  // Diminui o tamanho do texto para evitar sobreposição
+        valueTextSize = 10f  // Aumenta o tamanho do texto para melhor legibilidade
         fillDrawable = ColorDrawable(android.graphics.Color.parseColor("#EDE7F6"))
         setDrawHighlightIndicators(false)
     }
@@ -323,13 +323,13 @@ fun InflationChart(prices: List<Price>, selectedPeriod: String) {
         color = android.graphics.Color.parseColor("#03DAC5")
         valueTextColor = android.graphics.Color.parseColor("#03DAC5")
         lineWidth = 2.5f
-        circleRadius = 4f
+        circleRadius = 6f  // Aumenta o tamanho dos círculos
         setDrawCircles(true)
         setCircleColor(android.graphics.Color.parseColor("#03DAC5"))
         setDrawFilled(true)
         fillDrawable = ColorDrawable(android.graphics.Color.parseColor("#C8E6C9"))
         setDrawHighlightIndicators(false)
-        valueTextSize = 8f
+        valueTextSize = 10f
     }
 
     val lineData = LineData(lineDataSet, inflationDataSet)
@@ -341,7 +341,7 @@ fun InflationChart(prices: List<Price>, selectedPeriod: String) {
                 description.isEnabled = false
                 legend.isEnabled = true
                 legend.textSize = 12f
-                setExtraOffsets(10f, 10f, 10f, 10f)  // Espaçamento extra ao redor do gráfico
+                setExtraOffsets(20f, 10f, 10f, 10f)  // Aumenta a margem esquerda para mais espaço
                 axisRight.isEnabled = false
                 animateX(1000)
 
@@ -349,10 +349,8 @@ fun InflationChart(prices: List<Price>, selectedPeriod: String) {
                 axisLeft.apply {
                     textColor = android.graphics.Color.BLACK
                     textSize = 10f
-                    axisMinimum = (prices.minOfOrNull { it.price.toFloat() }
-                        ?: 0f) - 4f  // Mais espaço abaixo do valor mínimo
-                    axisMaximum = (prices.maxOfOrNull { it.price.toFloat() }
-                        ?: 10f) + 4f  // Mais espaço acima do valor máximo
+                    axisMinimum = (prices.minOfOrNull { it.price.toFloat() } ?: 0f) - 5f  // Adiciona mais espaço abaixo do valor mínimo
+                    axisMaximum = (prices.maxOfOrNull { it.price.toFloat() } ?: 10f) + 5f  // Adiciona mais espaço acima do valor máximo
                     granularity = 1f
                     labelCount = 6
                     valueFormatter = object : ValueFormatter() {
