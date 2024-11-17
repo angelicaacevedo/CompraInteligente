@@ -1,6 +1,7 @@
 package br.com.angelica.comprainteligente.presentation.view
 
 import android.graphics.drawable.ColorDrawable
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -54,6 +57,8 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
+import com.github.mikephil.charting.highlight.Highlight
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import org.koin.androidx.compose.getViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -290,7 +295,6 @@ fun InflationScreen(
     )
 }
 
-
 @Composable
 fun InflationChart(prices: List<Price>, selectedPeriod: String) {
     // Mapeia os preços para entradas do gráfico
@@ -390,45 +394,59 @@ fun PriceHistoryChart(
     prices: List<Price>,
     supermarketNames: Map<String, String>
 ) {
-    // Agrupar os preços por supermercado
+    // Define uma lista de cores para aplicar aos supermercados
+    val colors = listOf(
+        android.graphics.Color.parseColor("#FF5733"), // Vermelho
+        android.graphics.Color.parseColor("#33B5E5"), // Azul
+        android.graphics.Color.parseColor("#FFEB3B"), // Amarelo
+        android.graphics.Color.parseColor("#4CAF50"), // Verde
+        android.graphics.Color.parseColor("#E91E63")  // Rosa
+    )
+
+    // Agrupa os preços por supermercado e cria entradas para o gráfico
     val entriesBySupermarket = prices.groupBy { it.supermarketId }.mapValues { (_, prices) ->
         prices.map { price ->
             Entry(price.date.toDate().time.toFloat(), price.price.toFloat())
         }
     }
 
-    // Criar um conjunto de dados para cada supermercado, usando o nome do supermercado para a legenda
-    val dataSets = entriesBySupermarket.map { (supermarketId, entries) ->
+    // Cria um conjunto de dados para cada supermercado, usando uma cor distinta para cada um
+    val dataSets = entriesBySupermarket.toList().mapIndexed { index, (supermarketId, entries) ->
         val supermarketName = supermarketNames[supermarketId] ?: supermarketId
         LineDataSet(entries, supermarketName).apply {
-            color = android.graphics.Color.parseColor("#FF9800") // Cor de cada linha
+            color = colors[index % colors.size]  // Cor diferente para cada supermercado
             lineWidth = 2f
             setDrawCircles(true)
-            circleRadius = 5f
-            setDrawValues(false) // Oculta valores para evitar poluição visual
+            circleRadius = 8f  // Aumenta o tamanho dos círculos para facilitar o toque
+            setCircleColor(color)  // Cor do ponto é a mesma da linha
+            setDrawValues(false)    // Oculta os valores para evitar poluição visual
         }
     }
 
     val lineData = LineData(dataSets)
 
+    var selectedEntry by remember { mutableStateOf<Entry?>(null) }
+
+    // Define o gráfico como uma view Android
     AndroidView(
         factory = { context ->
             LineChart(context).apply {
                 data = lineData
-                description.isEnabled = false
+                description.isEnabled = false  // Desativa a descrição padrão
+                setExtraOffsets(10f, 10f, 10f, 10f)  // Espaçamento extra ao redor do gráfico
+
+                // Configuração da legenda com quebra de linha e scroll horizontal
                 legend.apply {
                     isEnabled = true
                     textSize = 10f
-                    isWordWrapEnabled = true // Habilita quebra de linha para legendas longas
+                    isWordWrapEnabled = true  // Permite quebra de linha para legendas longas
+                    orientation = Legend.LegendOrientation.HORIZONTAL
                     verticalAlignment = Legend.LegendVerticalAlignment.BOTTOM
                     horizontalAlignment = Legend.LegendHorizontalAlignment.CENTER
-                    orientation = Legend.LegendOrientation.HORIZONTAL
                     setDrawInside(false)
                 }
-                axisRight.isEnabled = false
-                animateX(1000)
 
-                // Configurações do eixo Y
+                // Configuração do eixo Y (preços)
                 axisLeft.apply {
                     textColor = android.graphics.Color.BLACK
                     textSize = 10f
@@ -441,18 +459,33 @@ fun PriceHistoryChart(
                         }
                     }
                 }
+                axisRight.isEnabled = false  // Desativa o eixo Y à direita
 
-                // Configurações do eixo X
+                // Configuração do eixo X (datas)
                 xAxis.apply {
                     position = XAxis.XAxisPosition.BOTTOM
                     textColor = android.graphics.Color.BLACK
                     textSize = 10f
                     setDrawGridLines(false)
-                    labelRotationAngle = -30f
-                    granularity =
-                        86400000f * 30 // Aproximadamente um mês, ajustável conforme o período selecionado
-                    valueFormatter = DateAxisValueFormatter()
+                    labelRotationAngle = -30f  // Melhor rotação para legibilidade
+                    granularity = 86400000f * 30  // Aproximadamente um mês
+                    valueFormatter = DateAxisValueFormatter()  // Formatação de datas
                 }
+
+                // Habilita animação e marcadores para os pontos no gráfico
+                animateX(1000)
+
+                // Configura um listener para detectar o clique nos pontos e capturar o Entry
+                setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
+                    override fun onValueSelected(e: Entry?, h: Highlight?) {
+                        selectedEntry = e
+                        Log.d("PriceHistoryChart", "Point selected: ${e?.y}, Date: ${e?.x}")
+                    }
+
+                    override fun onNothingSelected() {
+                        selectedEntry = null
+                    }
+                })
             }
         },
         modifier = Modifier
@@ -460,6 +493,42 @@ fun PriceHistoryChart(
             .height(300.dp)
             .padding(16.dp)
     )
+
+    // Exibe o marcador em Compose quando um ponto é selecionado
+    selectedEntry?.let { entry ->
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Card(
+                shape = RoundedCornerShape(8.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Preço: R$ ${"%.2f".format(entry.y)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Data: ${
+                            SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(
+                                Date(entry.x.toLong())
+                            )
+                        }",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+    }
 }
 
 // Classe para formatar datas no eixo X
