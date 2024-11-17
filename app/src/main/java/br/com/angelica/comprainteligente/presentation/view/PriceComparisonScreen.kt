@@ -312,7 +312,7 @@ fun calculateTotalPrice(
     specificSupermarket: String? = null
 ): Double {
     return productsWithPrices
-        .filter { specificSupermarket == null || it.supermarket.name == specificSupermarket }
+        .filter { specificSupermarket == null || it.supermarket.name.startsWith(specificSupermarket) }
         .sumOf { it.latestPrice.price }
 }
 
