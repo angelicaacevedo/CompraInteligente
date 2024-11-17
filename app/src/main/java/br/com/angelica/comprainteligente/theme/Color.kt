@@ -2,18 +2,29 @@ package br.com.angelica.comprainteligente.theme
 
 import androidx.compose.ui.graphics.Color
 
-val GreenLight = Color(0xFF66BB6A)
-val GreenDark = Color(0xFF388E3C)
-val BlueGrayLight = Color(0xFF90A4AE)
-val BlueGrayDark = Color(0xFF546E7A)
-val NeutralGrayLight = Color(0xFFF5F5F5)
-val SurfaceGrayLight = Color(0xFFECEFF1)
-val BottomNavigationGreen = Color(0xFFA5D6A7)
-
-// theme/Colors.kt
-val TrophyGold = Color(0xFFFFD700)
+// Base Colors
+val BlueSoft = Color(0xFFD1E3F1)
+val GraySoft = Color(0xFFF1F1F1)
+val White = Color(0xFFFFFFFF)
+val LilacStrong = Color(0xFF9575CD)
 val CarouselGray = Color(0xFFB0BEC5)
-val CardBackgroundLight = Color(0xFFF1F8E9)
-val TextDarkGray = Color(0xFF455A64)
-val ProgressBarColor = Color(0xFFD13C3C)
+val TrophyGold = Color(0xFFFFD700)
 
+// Cores Primárias e Secundárias
+val PrimaryBlue = Color(0xFF2196F3)
+val SecondaryLilac = Color(0xFF9575CD)
+val BackgroundLightGray = Color(0xFFF5F5F5)
+val SurfaceWhite = Color(0xFFFFFFFF)
+
+// Cores para Botões e Ações
+val ButtonGreen = Color(0xFF4CAF50)
+val ButtonRed = Color(0xFFF44336)
+
+// Cores de Texto
+val TextPrimary = Color(0xFF212121)
+val TextSecondary = Color(0xFF757575)
+val TextAccent = Color(0xFF9E9E9E)
+val TextGreen = Color(0xFF4CAF50)
+val TextBlack = Color(0xFF000000)
+val TextGray = Color(0xFF616161)
+val TextBlue = Color(0xFF64B5F6)
