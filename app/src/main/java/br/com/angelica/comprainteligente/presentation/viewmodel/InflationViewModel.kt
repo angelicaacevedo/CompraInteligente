@@ -30,8 +30,16 @@ class InflationViewModel(
     fun handleIntent(intent: InflationIntent) {
         when (intent) {
             is InflationIntent.LoadProducts -> loadProducts()
-            is InflationIntent.LoadPriceHistory -> loadPriceHistory(intent.productId, intent.period, intent.userId)
+            is InflationIntent.LoadPriceHistory -> loadPriceHistory(
+                intent.productId,
+                intent.period,
+                intent.userId
+            )
+
             is InflationIntent.UpdatePeriod -> updatePeriod(intent.period, intent.userId)
+            is InflationIntent.UpdateAnalysisType -> {
+                updateAnalysisType(intent.analysisType, intent.userId)
+            }
         }
     }
 
@@ -59,13 +67,11 @@ class InflationViewModel(
         viewModelScope.launch {
             val result = getSupermarketSuggestionsUseCase()
             result.onSuccess { supermarketList ->
-                // Mapeia supermarketId para apenas o nome antes do primeiro hífen
                 val supermarketNames = supermarketList.associateBy(
                     keySelector = { it.id },
-                    valueTransform = { it.name.split(" - ")[0] } // Pega apenas a parte inicial antes do hífen
+                    valueTransform = { it.name.split(" - ")[0] }
                 )
 
-                // Atualiza o estado com os nomes simplificados dos supermercados
                 _state.value = _state.value.copy(
                     supermarketNames = supermarketNames
                 )
@@ -77,17 +83,25 @@ class InflationViewModel(
         }
     }
 
-    // Define o produto selecionado e carrega o histórico de preços
     fun setSelectedProduct(product: Product, userId: String) {
         _state.value = _state.value.copy(
             products = _state.value.products.copy(selectedProduct = product)
         )
-
-        // Carrega o histórico de preços para o produto selecionado
-        loadPriceHistory(productId = product.id, period = _state.value.prices.period, userId = userId)
+        if (_state.value.analysisType == "Histórico de Preços") {
+            loadPriceHistory(
+                productId = product.id,
+                period = _state.value.prices.period,
+                userId = userId
+            )
+        } else if (_state.value.analysisType == "Inflação de Produtos") {
+            loadPriceHistory(
+                productId = product.id,
+                period = _state.value.prices.period,
+                userId = userId
+            )
+        }
     }
 
-    // Atualiza o período e recarrega o histórico de preços
     private fun updatePeriod(period: String, userId: String) {
         _state.value = _state.value.copy(
             prices = _state.value.prices.copy(period = period)
@@ -99,12 +113,27 @@ class InflationViewModel(
         }
     }
 
+    private fun updateAnalysisType(analysisType: String, userId: String) {
+        _state.value = _state.value.copy(analysisType = analysisType)
+
+        val selectedProduct = _state.value.products.selectedProduct
+
+        if (analysisType == "Histórico de Preços" && selectedProduct != null) {
+            loadPriceHistory(
+                productId = selectedProduct.id,
+                period = _state.value.prices.period,
+                userId = userId
+            )
+        }
+    }
+
     private fun loadPriceHistory(productId: String, period: String, userId: String) {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
 
             val result = getPriceHistoryUseCase(productId, period, userId)
             result.onSuccess { priceList ->
+
                 // Calcular a inflação entre o primeiro e o último preço do período
                 val inflationRate = calculateInflationRate(priceList)
 
@@ -145,8 +174,6 @@ class InflationViewModel(
         }
     }
 
-
-    // Definindo as Intents possíveis para a interface de inflação
     sealed class InflationIntent {
         object LoadProducts : InflationIntent()
         data class LoadPriceHistory(
@@ -154,10 +181,12 @@ class InflationViewModel(
             val period: String,
             val userId: String
         ) : InflationIntent()
+
         data class UpdatePeriod(val period: String, val userId: String) : InflationIntent()
+        data class UpdateAnalysisType(val analysisType: String, val userId: String) :
+            InflationIntent()
     }
 
-    // Representação do estado da interface para a tela de inflação
     data class InflationViewState(
         val isLoading: Boolean = false,
         val products: ProductState = ProductState(),
@@ -167,7 +196,8 @@ class InflationViewModel(
         val entriesBySupermarket: Map<String, List<Entry>> = emptyMap(),
         val error: String? = null,
         val userState: String = "",
-        val userCity: String = ""
+        val userCity: String = "",
+        val analysisType: String = "Inflação de Produtos"
     )
 
     data class ProductState(

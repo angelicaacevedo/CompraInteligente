@@ -74,8 +74,8 @@ fun InflationScreen(
     val analysisOptions = listOf("Inflação de Produtos", "Histórico de Preços")
     var selectedAnalysis by remember { mutableStateOf(analysisOptions[0]) }
     var analysisMenuExpanded by remember { mutableStateOf(false) }
-    val periodOptions = listOf("7 dias", "1 mês", "6 meses", "1 ano", "5 anos") // Opções de período
-    var periodMenuExpanded by remember { mutableStateOf(false) } // Controle de expansão do menu
+    val periodOptions = listOf("7 dias", "1 mês", "6 meses", "1 ano", "5 anos")
+    var periodMenuExpanded by remember { mutableStateOf(false) }
 
 
     Scaffold(
@@ -136,6 +136,12 @@ fun InflationScreen(
                                 onClick = {
                                     selectedAnalysis = analysis
                                     analysisMenuExpanded = false
+                                    viewModel.handleIntent(
+                                        InflationViewModel.InflationIntent.UpdateAnalysisType(
+                                            analysisType = selectedAnalysis,
+                                            userId = userId
+                                        )
+                                    )
                                 }
                             )
                         }
@@ -248,7 +254,7 @@ fun InflationScreen(
                     }
 
                     state.prices.items.isNotEmpty() -> {
-                        if (selectedAnalysis == "Inflação de Produtos") {
+                        if (state.analysisType == "Inflação de Produtos") {
                             Text(
                                 text = "Inflação do Período: ${state.inflationRate}%",
                                 style = MaterialTheme.typography.bodyLarge.copy(color = Color.Red),
@@ -260,7 +266,9 @@ fun InflationScreen(
                                 prices = state.prices.items,
                                 selectedPeriod = state.prices.period
                             )
-                        } else {
+                        }
+
+                        if (state.analysisType == "Histórico de Preços") {
                             PriceHistoryChart(
                                 prices = state.prices.items,
                                 supermarketNames = state.supermarketNames
