@@ -2,6 +2,7 @@ package br.com.angelica.comprainteligente.data.repository.price
 
 import br.com.angelica.comprainteligente.model.Price
 import br.com.angelica.comprainteligente.model.Product
+import br.com.angelica.comprainteligente.utils.StateMapper
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -49,23 +50,53 @@ class PriceRepositoryImpl(
         }
     }
 
-    override suspend fun getPriceHistory(productId: String, period: String): Result<List<Price>> {
+    override suspend fun getPriceHistory(productId: String, period: String, state: String, city: String): Result<List<Price>> {
         return try {
+            // Usa o mapeador para obter o nome completo do estado
+            val userState = StateMapper.getFullStateName(state)
+
+            // Define a data de início para o filtro de período
             val startDate = calculateStartDate(period)
 
-            val prices = priceCollection
-                .whereEqualTo("productId", productId)
-                .whereGreaterThan("date", startDate)
-                .orderBy("date", Query.Direction.ASCENDING)
-                .get()
-                .await()
-                .toObjects(Price::class.java)
+            // 1. Consultar a coleção "supermarkets" para obter os IDs dos supermercados na cidade e estado do usuário
+            val supermarketsSnapshot = try {
+                firestore.collection("supermarkets")
+                    .whereEqualTo("state", userState)
+                    .whereEqualTo("city", city)
+                    .get()
+                    .await()
+            } catch (e: Exception) {
+                return Result.failure(Exception("Erro ao buscar supermercados para a localização especificada."))
+            }
+
+            // Obter IDs dos supermercados encontrados
+            val supermarketIds = supermarketsSnapshot.documents.mapNotNull { it.id }
+            if (supermarketIds.isEmpty()) {
+                return Result.failure(Exception("Nenhum supermercado encontrado para a localização especificada."))
+            }
+
+            // 2. Consultar a coleção "prices" usando o productId e os IDs dos supermercados
+            val pricesSnapshot = try {
+                firestore.collection("prices")
+                    .whereEqualTo("productId", productId)
+                    .whereIn("supermarketId", supermarketIds)
+                    .whereGreaterThan("date", startDate)
+                    .orderBy("date", Query.Direction.ASCENDING)
+                    .get()
+                    .await()
+            } catch (e: Exception) {
+                return Result.failure(Exception("Erro ao buscar histórico de preços para o produto especificado e localização."))
+            }
+
+            // Converter resultados para objetos `Price`
+            val prices = pricesSnapshot.toObjects(Price::class.java)
 
             Result.success(prices)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
+
 
     private fun calculateStartDate(period: String): Timestamp {
         val calendar = Calendar.getInstance()

@@ -89,7 +89,7 @@ val appModule = module {
     factory { AuthUseCases(get()) }
     factory { GetSupermarketSuggestionsUseCase(get()) }
     factory { GetCategoriesUseCase(get()) }
-    factory { GetPriceHistoryUseCase(get()) }
+    factory { GetPriceHistoryUseCase(get(), get()) }
     factory { ProductListOperationsUseCase(get(), get()) }
     factory { ProductOperationsUseCase(get(), get(), get()) }
     factory { GetLargestPriceDifferenceUseCase(get()) }
@@ -100,7 +100,7 @@ val appModule = module {
     viewModel { AuthViewModel(get(), get(), get(), get()) }
     viewModel { ProductViewModel(get(), get(), get()) }
     viewModel { ProductListViewModel(get()) }
-    viewModel { InflationViewModel(get(), get()) }
+    viewModel { InflationViewModel(get(), get(), get()) }
     viewModel { UserProfileViewModel(get()) }
     viewModel { HomeViewModel(get(), get(), get()) }
 }

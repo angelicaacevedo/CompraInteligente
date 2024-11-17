@@ -74,5 +74,14 @@ class SupermarketRepositoryImpl(
             Result.failure(e)
         }
     }
+
+    override suspend fun getAllSupermarkets(): List<Supermarket> {
+        return try {
+            val snapshot = supermarketCollection.get().await()
+            snapshot.toObjects(Supermarket::class.java)
+        } catch (e: Exception) {
+            emptyList() // Retorna uma lista vazia em caso de erro
+        }
+    }
 }
 

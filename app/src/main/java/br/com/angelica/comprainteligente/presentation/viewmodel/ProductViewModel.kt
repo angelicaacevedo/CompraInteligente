@@ -96,7 +96,6 @@ class ProductViewModel(
         return Product(
             id = intent.barcode,
             name = intent.name,
-            categoryId = "", // Pode ser ajustado para adicionar uma categoria real
             imageUrl = imageUrl,
             userId = intent.userId
         )
