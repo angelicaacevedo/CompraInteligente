@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.ShoppingCart
@@ -22,6 +22,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -76,18 +78,19 @@ fun PriceComparisonScreen(
 ) {
     val state by productListViewModel.state.collectAsState()
     var selectedList by remember { mutableStateOf<ProductList?>(null) }
+    var specificSupermarket by remember { mutableStateOf<String?>(null) }
+    var totalPrice by remember { mutableStateOf(0.0) }
+
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val coroutineScope = rememberCoroutineScope()
     var isAnalyzeButtonVisible by remember { mutableStateOf(true) }
     var segmentSelection by remember { mutableStateOf("Produtos") }
 
-    // Carrega listas no inicio se ainda não estiverem carregadas
-    LaunchedEffect(Unit) {
-        productListViewModel.initialize(userId)
-        if (state !is ProductListViewModel.ProductListState.ListsLoaded) {
-            productListViewModel.handleIntent(
-                ProductListViewModel.ProductListIntent.LoadLists(userId)
-            )
+    LaunchedEffect(state) {
+        if (state is ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded) {
+            val productsWithPrices =
+                (state as ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded).products
+            totalPrice = calculateTotalPrice(productsWithPrices, specificSupermarket)
         }
     }
 
@@ -114,22 +117,59 @@ fun PriceComparisonScreen(
         content = { paddingValues ->
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .padding(paddingValues)
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
+                // Exibe o total e o valor em uma linha
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Total: ",
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                    Text(
+                        text = "R$ ${"%.2f".format(totalPrice)}",
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            color = TextGreen,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+
+                // Campo de seleção de supermercado específico
+                DropdownMenuSupermarketSelector(
+                    productsWithPrices = if (state is ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded)
+                        (state as ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded).products else emptyList(),
+                    onSupermarketSelected = { selectedSupermarket ->
+                        specificSupermarket = selectedSupermarket
+                        totalPrice = calculateTotalPrice(
+                            (state as? ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded)?.products.orEmpty(),
+                            specificSupermarket
+                        )
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 ListShoppingTextField(
-                    selectedList,
-                    coroutineScope,
-                    sheetState,
+                    selectedList, coroutineScope, sheetState,
                     onListSelected = { isAnalyzeButtonVisible = true }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Controle de segmentação (Segmented Control) para alternar visualizações
+                // Controle de segmentação para alternar visualizações
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -165,6 +205,7 @@ fun PriceComparisonScreen(
                     )
                 }
 
+                // Exibe as listas de preços por produtos ou supermercados
                 when (state) {
                     is ProductListViewModel.ProductListState.Loading -> {
                         LoadingAnimation(message = "Aguarde, estamos trazendo os dados...")
@@ -264,6 +305,66 @@ fun PriceComparisonScreen(
         )
     }
 }
+
+fun calculateTotalPrice(
+    productsWithPrices: List<ProductWithLatestPrice>,
+    specificSupermarket: String? = null
+): Double {
+    return productsWithPrices
+        .filter { specificSupermarket == null || it.supermarket.name == specificSupermarket }
+        .sumOf { it.latestPrice.price }
+}
+
+@Composable
+fun DropdownMenuSupermarketSelector(
+    productsWithPrices: List<ProductWithLatestPrice>,
+    onSupermarketSelected: (String?) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var selectedSupermarket by remember { mutableStateOf<String?>(null) }
+    val supermarkets = productsWithPrices.map { it.supermarket.name }.distinct()
+
+    Column {
+        OutlinedTextField(
+            value = selectedSupermarket ?: "Todos os Supermercados",
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Supermercado") },
+            trailingIcon = {
+                IconButton(onClick = { expanded = true }) {
+                    Icon(
+                        Icons.Default.ArrowDropDown,
+                        contentDescription = "Selecionar Supermercado"
+                    )
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Todos os Supermercados") },
+                onClick = {
+                    selectedSupermarket = null
+                    onSupermarketSelected(null)
+                    expanded = false
+                })
+            supermarkets.forEach { supermarket ->
+                DropdownMenuItem(
+                    text = { Text(supermarket) },
+                    onClick = {
+                        selectedSupermarket = supermarket
+                        onSupermarketSelected(supermarket)
+                        expanded = false
+                    })
+            }
+        }
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
