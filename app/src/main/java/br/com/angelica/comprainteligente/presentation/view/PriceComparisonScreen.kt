@@ -25,6 +25,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -321,12 +322,15 @@ fun DropdownMenuSupermarketSelector(
     onSupermarketSelected: (String?) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var selectedSupermarket by remember { mutableStateOf<String?>(null) }
-    val supermarkets = productsWithPrices.map { it.supermarket.name }.distinct()
+    var selectedSupermarketName by remember { mutableStateOf<String?>(null) }
+    var selectedSupermarketAddress by remember { mutableStateOf<String?>(null) }
+    val supermarkets = productsWithPrices.map {
+        it.supermarket.name.substringBefore(" - ") to "${it.supermarket.street}, ${it.supermarket.city}, ${it.supermarket.state}, ${it.supermarket.zipCode}"
+    }.distinct()
 
     Column {
         OutlinedTextField(
-            value = selectedSupermarket ?: "Todos os Supermercados",
+            value = selectedSupermarketName ?: "Todos os Supermercados",
             onValueChange = {},
             readOnly = true,
             label = { Text("Supermercado") },
@@ -348,23 +352,59 @@ fun DropdownMenuSupermarketSelector(
             DropdownMenuItem(
                 text = { Text("Todos os Supermercados") },
                 onClick = {
-                    selectedSupermarket = null
+                    selectedSupermarketName = null
+                    selectedSupermarketAddress = null
                     onSupermarketSelected(null)
                     expanded = false
-                })
-            supermarkets.forEach { supermarket ->
+                }
+            )
+
+            supermarkets.forEachIndexed { index, (name, address) ->
+                if (index > 0) HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
                 DropdownMenuItem(
-                    text = { Text(supermarket) },
+                    text = {
+                        Column {
+                            // Nome do Supermercado em negrito (apenas a parte antes do primeiro '-')
+                            Text(
+                                text = name,
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                            // Endereço em cinza claro
+                            Text(
+                                text = address,
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                )
+                            )
+                        }
+                    },
                     onClick = {
-                        selectedSupermarket = supermarket
-                        onSupermarketSelected(supermarket)
+                        selectedSupermarketName = name  // Exibe apenas o nome selecionado
+                        selectedSupermarketAddress =
+                            address  // Guarda o endereço completo para exibição
+                        onSupermarketSelected(name)
                         expanded = false
-                    })
+                    },
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
             }
+        }
+
+        // Exibe o endereço completo abaixo do campo de seleção, se um supermercado for selecionado
+        selectedSupermarketAddress?.let { address ->
+            Text(
+                text = address,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                ),
+                modifier = Modifier.padding(top = 4.dp)
+            )
         }
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
