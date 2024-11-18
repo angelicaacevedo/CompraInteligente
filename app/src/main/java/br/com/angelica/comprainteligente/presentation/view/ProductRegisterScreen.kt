@@ -192,6 +192,7 @@ fun ProductRegisterScreen(
                 productImageUrl = ""
                 productPrice = ""
                 barcode = ""
+                selectedCategory = null
                 selectedSupermarket = ""
                 isFormSubmitted = false
                 isBarcodeEditable = true
