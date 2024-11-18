@@ -105,6 +105,9 @@ dependencies {
     // MPAAndroidChart for Graphics
     implementation(libs.mpandroidchart.v310)
 
+    // Library Accompanist for Pager
+    implementation(libs.google.accompanist.pager)
+    implementation (libs.google.accompanist.pager.indicators)
     implementation(libs.google.accompanist.systemuicontroller)
 
     // Testing dependencies

@@ -19,6 +19,7 @@ import br.com.angelica.comprainteligente.presentation.view.InflationScreen
 import br.com.angelica.comprainteligente.presentation.view.ListDetailScreen
 import br.com.angelica.comprainteligente.presentation.view.LoginScreen
 import br.com.angelica.comprainteligente.presentation.view.NewListScreen
+import br.com.angelica.comprainteligente.presentation.view.OnboardingScreen
 import br.com.angelica.comprainteligente.presentation.view.PriceComparisonScreen
 import br.com.angelica.comprainteligente.presentation.view.ProductRegisterScreen
 import br.com.angelica.comprainteligente.presentation.view.RegisterScreen
@@ -37,9 +38,13 @@ fun AppNavigation(sessionManager: SessionManager) {
         systemUiController.setStatusBarColor(color = statusBarColor)
     }
 
-    // Use LaunchedEffect to navigate based on login state
+    // Verificação da tela de Onboarding
     LaunchedEffect(isUserLoggedIn.value) {
-        val startDestination = if (isUserLoggedIn.value) "home/${sessionManager.userId}" else "login"
+        val startDestination = when {
+            isUserLoggedIn.value && !sessionManager.hasSeenOnboarding -> "onboarding"
+            isUserLoggedIn.value -> "home/${sessionManager.userId}"
+            else -> "login"
+        }
         navController.navigate(startDestination) {
             popUpTo(navController.graph.startDestinationId) { inclusive = true }
             launchSingleTop = true
@@ -47,12 +52,27 @@ fun AppNavigation(sessionManager: SessionManager) {
     }
 
     NavHost(navController = navController, startDestination = "login") {
+        // Onboarding Screen
+        composable("onboarding") {
+            OnboardingScreen(
+                navController = navController,
+                sessionManager = sessionManager
+            )
+        }
+
         // Login Screen
         composable("login") {
             LoginScreen(
                 onLoginSuccess = { loginUserId ->
-                    navController.navigate("home/$loginUserId") {
-                        popUpTo("login") { inclusive = true }
+                    // Verificar se o onboarding já foi visto
+                    if (!sessionManager.hasSeenOnboarding) {
+                        navController.navigate("onboarding") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate("home/$loginUserId") {
+                            popUpTo("login") { inclusive = true }
+                        }
                     }
                 },
                 onNavigateToRegister = {
@@ -65,8 +85,15 @@ fun AppNavigation(sessionManager: SessionManager) {
         composable("register") {
             RegisterScreen(
                 onRegisterSuccess = { registerUserId ->
-                    navController.navigate("home/$registerUserId") {
-                        popUpTo("register") { inclusive = true }
+                    // Verificar se o onboarding já foi visto
+                    if (!sessionManager.hasSeenOnboarding) {
+                        navController.navigate("onboarding") {
+                            popUpTo("register") { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate("home/$registerUserId") {
+                            popUpTo("register") { inclusive = true }
+                        }
                     }
                 },
                 onBackPress = {
@@ -86,7 +113,6 @@ fun AppNavigation(sessionManager: SessionManager) {
             val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
             HomeScreen(navController = navController, currentUserId)
         }
-
 
         // Product Register Screen
         composable(
@@ -241,6 +267,9 @@ fun AppNavigation(sessionManager: SessionManager) {
                 onLogoutClick = {
                     sessionManager.logout()
                     isUserLoggedIn.value = false
+                    navController.navigate("login") {
+                        popUpTo("home/$currentUserId") { inclusive = true }
+                    }
                 },
                 navController = navController
             )

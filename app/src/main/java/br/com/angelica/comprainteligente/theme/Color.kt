@@ -28,3 +28,10 @@ val TextGreen = Color(0xFF4CAF50)
 val TextBlack = Color(0xFF000000)
 val TextGray = Color(0xFF616161)
 val TextBlue = Color(0xFF64B5F6)
+
+// Cores Pages
+val PageGreen = Color(0xFF4CAF50)
+val PageRed = Color(0xFFF44336)
+val PageBlue = Color(0xFF5CAAE9)
+val PageYellow = Color(0xFFDFB32A)
+val PageLilac = Color(0xFF9575CD)
