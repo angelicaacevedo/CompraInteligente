@@ -87,7 +87,17 @@ fun PriceComparisonScreen(
     var isAnalyzeButtonVisible by remember { mutableStateOf(true) }
     var segmentSelection by remember { mutableStateOf("Produtos") }
 
+    // Calcula o total quando a tela é aberta pela primeira vez
     LaunchedEffect(state) {
+        if (state is ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded && specificSupermarket == null) {
+            val productsWithPrices =
+                (state as ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded).products
+            totalPrice = calculateTotalPrice(productsWithPrices, specificSupermarket)
+        }
+    }
+
+    // Atualiza o preço total e a lista de produtos quando `specificSupermarket` mudar
+    LaunchedEffect(specificSupermarket) {
         if (state is ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded) {
             val productsWithPrices =
                 (state as ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded).products
@@ -216,7 +226,7 @@ fun PriceComparisonScreen(
                         val productsWithPrices =
                             (state as ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded).products
                         if (segmentSelection == "Produtos") {
-                            ProductsPriceList(productsWithPrices)
+                            ProductsPriceList(productsWithPrices, specificSupermarket)
                         } else {
                             SupermarketsPriceList(productsWithPrices)
                         }
@@ -448,9 +458,15 @@ fun ListShoppingTextField(
 }
 
 @Composable
-fun ProductsPriceList(productsWithPrices: List<ProductWithLatestPrice>) {
+fun ProductsPriceList(
+    productsWithPrices: List<ProductWithLatestPrice>,
+    specificSupermarket: String?
+) {
     LazyColumn {
         items(productsWithPrices) { item ->
+            val hasPriceForSupermarket =
+                specificSupermarket == null || item.supermarket.name.startsWith(specificSupermarket)
+
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -467,28 +483,40 @@ fun ProductsPriceList(productsWithPrices: List<ProductWithLatestPrice>) {
                     // Nome do Produto
                     Text(
                         text = item.product.name,
-                        style = MaterialTheme.typography.titleLarge.copy(
+                        style = MaterialTheme.typography.titleMedium.copy(
                             color = TextBlack
                         ),
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
 
-                    // Preço com destaque
-                    Text(
-                        text = "R$ ${item.latestPrice.price}",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            color = TextGreen
-                        ),
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-
-                    // Nome do Supermercado com estilo sutil
-                    Text(
-                        text = item.supermarket.name,
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            color = TextAccent
+                    if (hasPriceForSupermarket) {
+                        // Exibe o preço caso o supermercado tenha informação de preço
+                        Text(
+                            text = "R$ ${item.latestPrice.price}",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                color = TextGreen
+                            ),
+                            modifier = Modifier.padding(bottom = 8.dp)
                         )
-                    )
+
+                        // Nome do Supermercado com estilo sutil
+                        Text(
+                            text = item.supermarket.name,
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = TextAccent
+                            )
+                        )
+                    } else {
+                        // Exibe uma mensagem de aviso se o preço estiver indisponível
+                        Text(
+                            text = "Informação de preço indisponível para o supermercado selecionado",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = Color.Red,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
                 }
             }
         }
