@@ -41,9 +41,24 @@ class ProductRepositoryImpl(
                 // Cadastra o produto na coleção de produtos se ele ainda não existir
                 productCollection.document(product.id).set(product).await()
             }
-            Result.success(product) // Retorna o produto cadastrado ou encontrado
+            Result.success(product)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    override suspend fun countUserProducts(userId: String): Int {
+        return try {
+            // Consulta a coleção "products" filtrando pelo campo "userId"
+            val querySnapshot = firestore.collection("products")
+                .whereEqualTo("userId", userId)
+                .get()
+                .await()
+
+            // Retorna a quantidade de documentos encontrados
+            querySnapshot.size()
+        } catch (e: Exception) {
+            0
         }
     }
 }

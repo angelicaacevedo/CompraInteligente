@@ -111,7 +111,13 @@ fun AppNavigation(sessionManager: SessionManager) {
             arguments = listOf(navArgument("userId") { type = NavType.StringType })
         ) { backStackEntry ->
             val currentUserId = backStackEntry.arguments?.getString("userId") ?: ""
-            HomeScreen(navController = navController, currentUserId)
+            HomeScreen(
+                userId = currentUserId,
+                onUserProfile = {
+                    navController.navigate("profile/$currentUserId")
+                },
+                navController = navController
+            )
         }
 
         // Product Register Screen

@@ -116,27 +116,4 @@ class AuthRepositoryImpl(
     override suspend fun logout() {
         firebaseAuth.signOut()
     }
-
-    override suspend fun getUserLevel(): Result<UserLevel> {
-        return try {
-            val userDocument = firestore.collection("users")
-                .document("user_id_placeholder") // Substitua pelo ID dinâmico
-                .get()
-                .await()
-
-            val contributions = userDocument.getLong("contributions") ?: 0L
-            val level = when {
-                contributions >= 100 -> "Nível 5"
-                contributions >= 50 -> "Nível 4"
-                contributions >= 20 -> "Nível 3"
-                contributions >= 10 -> "Nível 2"
-                else -> "Nível 1"
-            }
-            val progress = (contributions % 10 * 10).toInt()
-
-            Result.success(UserLevel(level, progress))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
 }

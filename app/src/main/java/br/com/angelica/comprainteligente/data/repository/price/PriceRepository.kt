@@ -10,4 +10,6 @@ interface PriceRepository {
     suspend fun getPriceHistory(productId: String, period: String, state: String, city: String): Result<List<Price>>
     suspend fun fetchLargestPriceDifference(): Result<String>
     suspend fun fetchTopPrices(): Result<List<String>>
+    suspend fun getRecentPurchases(userId: String, limit: Int): List<Price>
+    suspend fun getPricesForCurrentMonth(userId: String): List<Price>
 }

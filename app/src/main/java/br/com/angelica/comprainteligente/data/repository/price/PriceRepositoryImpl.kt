@@ -162,4 +162,66 @@ class PriceRepositoryImpl(
             Result.failure(e)
         }
     }
+
+    override suspend fun getRecentPurchases(userId: String, limit: Int): List<Price> {
+        return try {
+            // Consulta a coleção "prices" filtrando pelo "userId" e ordenando pela data mais recente
+            val querySnapshot = firestore.collection("prices")
+                .whereEqualTo("userId", userId)
+                .orderBy("date", Query.Direction.DESCENDING)
+                .limit(limit.toLong())  // Limita o número de resultados conforme o parâmetro recebido
+                .get()
+                .await()
+
+            // Mapeia os documentos para uma lista de objetos Price
+            querySnapshot.documents.mapNotNull { it.toObject(Price::class.java) }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    override suspend fun getPricesForCurrentMonth(userId: String): List<Price> {
+        return try {
+            // Obtém a data de início e fim do mês atual
+            val startOfMonth = getStartOfCurrentMonth()
+            val endOfMonth = getEndOfCurrentMonth()
+
+            // Consulta a coleção "prices" filtrando pelo "userId" e pelo intervalo de datas
+            val querySnapshot = firestore.collection("prices")
+                .whereEqualTo("userId", userId)
+                .whereGreaterThanOrEqualTo("date", startOfMonth)
+                .whereLessThanOrEqualTo("date", endOfMonth)
+                .get()
+                .await()
+
+            // Mapeia os documentos para uma lista de objetos Price
+            querySnapshot.documents.mapNotNull { it.toObject(Price::class.java) }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    // Função auxiliar para obter o início do mês atual
+    private fun getStartOfCurrentMonth(): Timestamp {
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        return Timestamp(calendar.time)
+    }
+
+    // Função auxiliar para obter o final do mês atual
+    private fun getEndOfCurrentMonth(): Timestamp {
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH))
+            set(Calendar.HOUR_OF_DAY, 23)
+            set(Calendar.MINUTE, 59)
+            set(Calendar.SECOND, 59)
+            set(Calendar.MILLISECOND, 999)
+        }
+        return Timestamp(calendar.time)
+    }
 }

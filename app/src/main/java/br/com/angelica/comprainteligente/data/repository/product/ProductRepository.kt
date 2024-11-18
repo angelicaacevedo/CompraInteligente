@@ -6,5 +6,6 @@ import br.com.angelica.comprainteligente.model.remote.ProductDetails
 interface ProductRepository {
     suspend fun getProductInfoFromBarcode(barcode: String): Result<ProductDetails>
     suspend fun registerProduct(product: Product): Result<Product>
+    suspend fun countUserProducts(userId: String): Int
 }
 
