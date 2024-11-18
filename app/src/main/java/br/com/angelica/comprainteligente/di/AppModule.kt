@@ -102,5 +102,5 @@ val appModule = module {
     viewModel { ProductListViewModel(get()) }
     viewModel { InflationViewModel(get(), get(), get()) }
     viewModel { UserProfileViewModel(get()) }
-    viewModel { HomeViewModel(get(), get(), get()) }
+    viewModel { HomeViewModel(get(), get(), get(), get()) }
 }
