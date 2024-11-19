@@ -1,14 +1,17 @@
 package br.com.angelica.comprainteligente.presentation.view
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,7 +32,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -73,6 +75,7 @@ import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
+@SuppressLint("UnrememberedMutableInteractionSource")
 @OptIn(ExperimentalCoilApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ProductRegisterScreen(
@@ -173,11 +176,15 @@ fun ProductRegisterScreen(
                 isLoading = false
             }
 
-            is ProductViewModel.ProductState.ProductRegistered -> showSuccessDialog = true
+            is ProductViewModel.ProductState.ProductRegistered -> {
+                showSuccessDialog = true
+                isLoading = false
+            }
 
             is ProductViewModel.ProductState.Error -> {
                 errorMessage = (state as ProductViewModel.ProductState.Error).message
                 showErrorDialog = true
+                isLoading = false
             }
 
             else -> Unit
@@ -252,379 +259,398 @@ fun ProductRegisterScreen(
             CustomBottomNavigation(navController = navController, userId = userId)
         },
     ) { paddingValues ->
-        LazyColumn(
-            state = lazyListState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(top = 16.dp)
-                .padding(horizontal = 24.dp)
-        ) {
-            // Alternar entre cadastro com código de barras ou manual
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = if (isManualEntry) "Cadastro Manual" else "Código de Barras",
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
-                    )
-                    Switch(
-                        checked = isManualEntry,
-                        onCheckedChange = { isManualEntry = it }
-                    )
-                }
-            }
-
-            // Campo para nome do produto (apenas para cadastro manual)
-            if (isManualEntry) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                state = lazyListState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(top = 16.dp)
+                    .padding(horizontal = 24.dp)
+            ) {
+                // Alternar entre cadastro com código de barras ou manual
                 item {
-                    CustomTextField(
-                        value = productName,
-                        onValueChange = { productName = it },
-                        label = "Nome do Produto",
-                        isError = isFormSubmitted && productName.isEmpty(),
-                        errorMessage = "Campo obrigatório"
-                    )
-                }
-            } else {
-                // Campo para código de barras (somente para cadastro com scanner ou manual por código)
-                item {
-                    CustomTextField(
-                        value = barcode,
-                        onValueChange = { barcode = it },
-                        label = "Código de Barras",
-                        isError = isFormSubmitted && barcode.isEmpty(),
-                        errorMessage = "Campo obrigatório",
-                        enabled = isBarcodeEditable,
-                        isNumeric = true,
-                        onFocusChanged = { focusState ->
-                            if (!focusState.isFocused && barcode.isNotEmpty()) {
-                                isBarcodeEditable = false
-                                isLoading = true
-                                viewModel.handleIntent(
-                                    ProductViewModel.ProductIntent.ScanProduct(barcode)
-                                )
-                            }
-                        },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Outlined.Search,
-                                contentDescription = "Buscar Código"
-                            )
-                        }
-                    )
-                }
-            }
-
-            if (isManualEntry) {
-                // DropdownMenu para selecionar unidade de medida
-                item {
-                    var selectedUnit by remember { mutableStateOf("Unidade") }
-                    var isDropdownExpanded by remember { mutableStateOf(false) }
-
-                    ExposedDropdownMenuBox(
-                        expanded = isDropdownExpanded,
-                        onExpandedChange = { isDropdownExpanded = !isDropdownExpanded }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        OutlinedTextField(
-                            value = selectedUnit,
-                            onValueChange = {},
-                            label = { Text("Unidade de Medida") },
-                            readOnly = true,
-                            trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded)
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .menuAnchor()
+                        Text(
+                            text = if (isManualEntry) "Cadastro Manual" else "Código de Barras",
+                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                         )
-                        ExposedDropdownMenu(
-                            expanded = isDropdownExpanded,
-                            onDismissRequest = { isDropdownExpanded = false }
-                        ) {
-                            listOf("Unidade", "Kg", "Gr", "Litro").forEach { unit ->
-                                DropdownMenuItem(
-                                    text = { Text(unit) },
-                                    onClick = {
-                                        selectedUnit = unit
-                                        isDropdownExpanded = false
-                                    }
-                                )
-                            }
-                        }
+                        Switch(
+                            checked = isManualEntry,
+                            onCheckedChange = { isManualEntry = it }
+                        )
                     }
                 }
-            } else {
 
-                // Nome e Imagem do Produto
-                if (productName.isNotEmpty()) {
+                // Campo para nome do produto (apenas para cadastro manual)
+                if (isManualEntry) {
                     item {
                         CustomTextField(
                             value = productName,
                             onValueChange = { productName = it },
                             label = "Nome do Produto",
                             isError = isFormSubmitted && productName.isEmpty(),
-                            errorMessage = "Campo obrigatório",
-                            enabled = isProductInfoEditable
+                            errorMessage = "Campo obrigatório"
                         )
                     }
-                }
-
-                if (productImageUrl.isNotEmpty()) {
                     item {
-                        Image(
-                            painter = rememberImagePainter(productImageUrl),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(150.dp)
-                                .padding(vertical = 8.dp)
-                        )
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
-                }
-            }
-
-            item {
-                Button(
-                    onClick = {
-                        if (ContextCompat.checkSelfPermission(
-                                context,
-                                Manifest.permission.CAMERA
-                            ) == PackageManager.PERMISSION_GRANTED
-                        ) {
-                            barcodeScannerLauncher.launch(ScanOptions().apply {
-                                setPrompt("Posicione o código de barras dentro do quadro.")
-                                setCameraId(0)
-                                setBeepEnabled(true)
-                            })
-                        } else {
-                            // Solicitar permissão de câmera
-                            requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp)
-                ) {
-                    Text(
-                        text = "Escanear Código de Barras",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = White,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-                }
-            }
-
-
-            item {
-                ExposedDropdownMenuBox(
-                    expanded = isCategoryMenuExpanded,
-                    onExpandedChange = { isCategoryMenuExpanded = !isCategoryMenuExpanded }
-                ) {
-                    OutlinedTextField(
-                        value = selectedCategory?.name ?: "Selecione uma categoria",
-                        onValueChange = {},
-                        label = { Text("Categoria") },
-                        readOnly = true,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor()
-                            .clickable { isCategoryMenuExpanded = true },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = isCategoryMenuExpanded)
-                        }
-                    )
-                    ExposedDropdownMenu(
-                        expanded = isCategoryMenuExpanded,
-                        onDismissRequest = { isCategoryMenuExpanded = false },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        categories.forEach { category ->
-                            DropdownMenuItem(
-                                text = { Text(text = category.name) },
-                                onClick = {
-                                    selectedCategory = category
-                                    isCategoryMenuExpanded = false
+                } else {
+                    // Campo para código de barras (somente para cadastro com scanner ou manual por código)
+                    item {
+                        CustomTextField(
+                            value = barcode,
+                            onValueChange = { barcode = it },
+                            label = "Código de Barras",
+                            isError = isFormSubmitted && barcode.isEmpty(),
+                            errorMessage = "Campo obrigatório",
+                            enabled = isBarcodeEditable,
+                            isNumeric = true,
+                            onFocusChanged = { focusState ->
+                                if (!focusState.isFocused && barcode.isNotEmpty()) {
+                                    isBarcodeEditable = false
+                                    isLoading = true
+                                    viewModel.handleIntent(
+                                        ProductViewModel.ProductIntent.ScanProduct(barcode)
+                                    )
                                 }
-                            )
-                        }
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Outlined.Search,
+                                    contentDescription = "Buscar Código"
+                                )
+                            }
+                        )
                     }
                 }
-            }
 
-            // Campo para inserir o preço do produto
-            item {
-                CustomTextField(
-                    value = productPrice,
-                    onValueChange = {
-                        productPrice = it
-                        val priceValue = it.replace(",", ".").toDoubleOrNull()
-                        if (priceValue == null || priceValue <= 0) {
-                            priceError = true
-                            priceErrorMessage = "O preço não pode ser zero ou negativo"
-                        } else {
-                            priceError = false
-                            priceErrorMessage = ""
-                        }
-                    },
-                    label = "Preço",
-                    isNumeric = true,
-                    isError = isFormSubmitted && (productPrice.isEmpty() || priceError),
-                    errorMessage = if (priceError) priceErrorMessage else "Campo obrigatório",
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
+                if (isManualEntry) {
+                    // DropdownMenu para selecionar unidade de medida
+                    item {
+                        var selectedUnit by remember { mutableStateOf("Unidade") }
+                        var isDropdownExpanded by remember { mutableStateOf(false) }
 
-            // Campo para selecionar supermercado
-            item {
-                CustomTextField(
-                    value = selectedSupermarket,
-                    onValueChange = {
-                        if (isSupermarketEditable) {
-                            selectedSupermarket = it
-                            if (selectedSupermarket.isNotEmpty()) {
-                                isSearchCompleted = false
-                                viewModel.handleIntent(
-                                    ProductViewModel.ProductIntent.LoadSuggestions(it)
-                                )
-                            } else {
-                                suggestions = emptyList()
-                            }
-                        }
-                    },
-                    label = "Supermercado",
-                    isError = isFormSubmitted && selectedSupermarket.isEmpty(),
-                    errorMessage = "Campo obrigatório",
-                    leadingIcon = {
-                        Icon(
-                            Icons.Outlined.LocationOn,
-                            contentDescription = "Buscar Supermercado"
-                        )
-                    },
-                    onFocusChanged = { focusState ->
-                        if (!focusState.isFocused) {
-                            isSearchCompleted = true
-                            suggestions = emptyList()
-                        }
-                    }
-                )
-            }
-
-            // Sugestões de Supermercados
-            if (suggestions.isNotEmpty()) {
-                item {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                            .border(
-                                1.dp,
-                                MaterialTheme.colorScheme.primary,
-                                shape = RoundedCornerShape(8.dp)
-                            ),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = CardDefaults.cardColors(containerColor = BlueSoft),
-                        elevation = CardDefaults.cardElevation(5.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp)
+                        ExposedDropdownMenuBox(
+                            expanded = isDropdownExpanded,
+                            onExpandedChange = { isDropdownExpanded = !isDropdownExpanded }
                         ) {
-                            suggestions.forEachIndexed { index, (name, placeId) ->
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            selectedSupermarket = name
-                                            selectedPlaceId = placeId
-                                            suggestions = emptyList()
-                                            isSupermarketEditable = false
+                            OutlinedTextField(
+                                value = selectedUnit,
+                                onValueChange = {},
+                                readOnly = true,
+                                trailingIcon = {
+                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded)
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .menuAnchor()
+                            )
+                            ExposedDropdownMenu(
+                                expanded = isDropdownExpanded,
+                                onDismissRequest = { isDropdownExpanded = false }
+                            ) {
+                                listOf("Selecione a Unidade", "Kg", "Gr", "Litro").forEach { unit ->
+                                    DropdownMenuItem(
+                                        text = { Text(unit) },
+                                        onClick = {
+                                            selectedUnit = unit
+                                            isDropdownExpanded = false
                                         }
-                                        .padding(8.dp)
-                                ) {
-                                    Icon(
-                                        Icons.Outlined.LocationOn,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary
                                     )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = name,
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            color = TextBlack
-                                        )
-                                    )
-                                }
-                                if (index < suggestions.size - 1) {
-                                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
                                 }
                             }
                         }
                     }
-                }
-            }
+                } else {
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
 
-            // Botão para registrar o produto
-            item {
-                Button(
-                    onClick = {
-                        isFormSubmitted = true
-                        val priceValue = productPrice.replace(",", ".").toDoubleOrNull()
-
-                        // Validação completa
-                        if (((isManualEntry && productName.isNotEmpty()) || (!isManualEntry && barcode.isNotEmpty())) &&
-                            selectedSupermarket.isNotEmpty() && priceValue != null && priceValue > 0
-                        ) {
-                            viewModel.handleIntent(
-                                ProductViewModel.ProductIntent.RegisterProduct(
-                                    barcode = barcode,
-                                    name = productName,
-                                    price = productPrice,
-                                    supermarket = selectedSupermarket,
-                                    userId = userId,
-                                    placeId = selectedPlaceId,
-                                    isManual = isManualEntry
-                                )
+                    // Nome e Imagem do Produto
+                    if (productName.isNotEmpty()) {
+                        item {
+                            CustomTextField(
+                                value = productName,
+                                onValueChange = { productName = it },
+                                label = "Nome do Produto",
+                                isError = isFormSubmitted && productName.isEmpty(),
+                                errorMessage = "Campo obrigatório",
+                                enabled = isProductInfoEditable
                             )
-                        } else {
-                            // Exibe mensagens de erro nos campos com problema
-                            if (selectedSupermarket.isEmpty()) {
-                                Toast.makeText(
+                        }
+                    }
+
+                    if (productImageUrl.isNotEmpty()) {
+                        item {
+                            Image(
+                                painter = rememberImagePainter(productImageUrl),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(150.dp)
+                                    .padding(vertical = 8.dp)
+                            )
+                        }
+                    }
+                }
+
+                item {
+                    Button(
+                        onClick = {
+                            if (ContextCompat.checkSelfPermission(
                                     context,
-                                    "Por favor, selecione um supermercado.",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                    Manifest.permission.CAMERA
+                                ) == PackageManager.PERMISSION_GRANTED
+                            ) {
+                                barcodeScannerLauncher.launch(ScanOptions().apply {
+                                    setPrompt("Posicione o código de barras dentro do quadro.")
+                                    setCameraId(0)
+                                    setBeepEnabled(true)
+                                })
+                            } else {
+                                // Solicitar permissão de câmera
+                                requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                             }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp)
+                    ) {
+                        Text(
+                            text = "Escanear Código de Barras",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = White,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+                }
+
+
+                item {
+                    ExposedDropdownMenuBox(
+                        expanded = isCategoryMenuExpanded,
+                        onExpandedChange = { isCategoryMenuExpanded = !isCategoryMenuExpanded }
+                    ) {
+                        OutlinedTextField(
+                            value = selectedCategory?.name ?: "Selecione uma categoria",
+                            onValueChange = {},
+                            label = { Text("Categoria") },
+                            readOnly = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor()
+                                .clickable { isCategoryMenuExpanded = true },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = isCategoryMenuExpanded)
+                            }
+                        )
+                        ExposedDropdownMenu(
+                            expanded = isCategoryMenuExpanded,
+                            onDismissRequest = { isCategoryMenuExpanded = false },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            categories.forEach { category ->
+                                DropdownMenuItem(
+                                    text = { Text(text = category.name) },
+                                    onClick = {
+                                        selectedCategory = category
+                                        isCategoryMenuExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Campo para inserir o preço do produto
+                item {
+                    CustomTextField(
+                        value = productPrice,
+                        onValueChange = {
+                            productPrice = it
+                            val priceValue = it.replace(",", ".").toDoubleOrNull()
                             if (priceValue == null || priceValue <= 0) {
                                 priceError = true
                                 priceErrorMessage = "O preço não pode ser zero ou negativo"
+                            } else {
+                                priceError = false
+                                priceErrorMessage = ""
+                            }
+                        },
+                        label = "Preço",
+                        isNumeric = true,
+                        isError = isFormSubmitted && (productPrice.isEmpty() || priceError),
+                        errorMessage = if (priceError) priceErrorMessage else "Campo obrigatório",
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+
+                // Campo para selecionar supermercado
+                item {
+                    CustomTextField(
+                        value = selectedSupermarket,
+                        onValueChange = {
+                            if (isSupermarketEditable) {
+                                selectedSupermarket = it
+                                if (selectedSupermarket.isNotEmpty()) {
+                                    isSearchCompleted = false
+                                    viewModel.handleIntent(
+                                        ProductViewModel.ProductIntent.LoadSuggestions(it)
+                                    )
+                                } else {
+                                    suggestions = emptyList()
+                                }
+                            }
+                        },
+                        label = "Supermercado",
+                        isError = isFormSubmitted && selectedSupermarket.isEmpty(),
+                        errorMessage = "Campo obrigatório",
+                        leadingIcon = {
+                            Icon(
+                                Icons.Outlined.LocationOn,
+                                contentDescription = "Buscar Supermercado"
+                            )
+                        },
+                        onFocusChanged = { focusState ->
+                            if (!focusState.isFocused) {
+                                isSearchCompleted = true
+                                suggestions = emptyList()
                             }
                         }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp)
-                ) {
-                    Text(
-                        text = "Cadastrar Produto",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = White,
-                            fontWeight = FontWeight.Bold
-                        )
                     )
+                }
+
+                // Sugestões de Supermercados
+                if (suggestions.isNotEmpty()) {
+                    item {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                                .border(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.primary,
+                                    shape = RoundedCornerShape(8.dp)
+                                ),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = CardDefaults.cardColors(containerColor = BlueSoft),
+                            elevation = CardDefaults.cardElevation(5.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp)
+                            ) {
+                                suggestions.forEachIndexed { index, (name, placeId) ->
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                selectedSupermarket = name
+                                                selectedPlaceId = placeId
+                                                suggestions = emptyList()
+                                                isSupermarketEditable = false
+                                            }
+                                            .padding(8.dp)
+                                    ) {
+                                        Icon(
+                                            Icons.Outlined.LocationOn,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = name,
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                color = TextBlack
+                                            )
+                                        )
+                                    }
+                                    if (index < suggestions.size - 1) {
+                                        HorizontalDivider(
+                                            color = MaterialTheme.colorScheme.onSurface.copy(
+                                                alpha = 0.1f
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Botão para registrar o produto
+                item {
+                    Button(
+                        onClick = {
+                            isFormSubmitted = true
+                            val priceValue = productPrice.replace(",", ".").toDoubleOrNull()
+
+                            // Validação completa
+                            if (((isManualEntry && productName.isNotEmpty()) || (!isManualEntry && barcode.isNotEmpty())) &&
+                                selectedSupermarket.isNotEmpty() && priceValue != null && priceValue > 0
+                            ) {
+                                viewModel.handleIntent(
+                                    ProductViewModel.ProductIntent.RegisterProduct(
+                                        barcode = barcode,
+                                        name = productName,
+                                        price = productPrice,
+                                        supermarket = selectedSupermarket,
+                                        userId = userId,
+                                        placeId = selectedPlaceId,
+                                        isManual = isManualEntry
+                                    )
+                                )
+                            } else {
+                                // Exibe mensagens de erro nos campos com problema
+                                if (selectedSupermarket.isEmpty()) {
+                                    Toast.makeText(
+                                        context,
+                                        "Por favor, selecione um supermercado.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                                if (priceValue == null || priceValue <= 0) {
+                                    priceError = true
+                                    priceErrorMessage = "O preço não pode ser zero ou negativo"
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp)
+                    ) {
+                        Text(
+                            text = "Cadastrar Produto",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = White,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
                 }
             }
 
+            // Exibe o indicador de carregamento cobrindo toda a tela
             if (isLoading) {
-                item {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                    }
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                        .clickable(
+                            interactionSource = MutableInteractionSource(),
+                            indication = null
+                        ) { /* Bloqueia cliques enquanto carrega */ },
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }
         }
