@@ -42,6 +42,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -65,7 +66,10 @@ import br.com.angelica.comprainteligente.presentation.common.CustomAlertDialog
 import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigation
 import br.com.angelica.comprainteligente.presentation.common.CustomTextField
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductViewModel
+import br.com.angelica.comprainteligente.theme.BackgroundLightGray
 import br.com.angelica.comprainteligente.theme.BlueSoft
+import br.com.angelica.comprainteligente.theme.PrimaryBlue
+import br.com.angelica.comprainteligente.theme.TextAccent
 import br.com.angelica.comprainteligente.theme.TextBlack
 import br.com.angelica.comprainteligente.theme.White
 import coil.annotation.ExperimentalCoilApi
@@ -281,7 +285,14 @@ fun ProductRegisterScreen(
                         )
                         Switch(
                             checked = isManualEntry,
-                            onCheckedChange = { isManualEntry = it }
+                            onCheckedChange = { isManualEntry = it },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = PrimaryBlue, // Cor do botão circular quando ligado
+                                checkedTrackColor = BackgroundLightGray, // Cor da trilha quando ligado
+                                uncheckedThumbColor = TextAccent, // Cor do botão circular quando desligado
+                                uncheckedTrackColor = BackgroundLightGray, // Cor da trilha quando desligado
+                            ),
+                            modifier = Modifier.padding(8.dp) // Adiciona espaçamento ao redor
                         )
                     }
                 }
