@@ -35,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import br.com.angelica.comprainteligente.model.MonthlySummaryState
@@ -247,14 +248,20 @@ fun ProductCard(purchase: Price, productName: String) {
                 text = productName,
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = TextPrimary,
-                )
+                ),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = "R$${"%.2f".format(purchase.price)}",
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = TextGreen,
                     fontWeight = FontWeight.Bold
-                )
+                ),
+                modifier = Modifier.align(Alignment.CenterVertically)
             )
         }
     }
