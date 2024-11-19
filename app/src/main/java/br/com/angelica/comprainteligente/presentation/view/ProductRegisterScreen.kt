@@ -268,6 +268,7 @@ fun ProductRegisterScreen(
                     isNumeric = true,
                     onFocusChanged = { focusState ->
                         if (!focusState.isFocused && barcode.isNotEmpty()) {
+                            isBarcodeEditable = false
                             isLoading = true
                             viewModel.handleIntent(
                                 ProductViewModel.ProductIntent.ScanProduct(barcode)
