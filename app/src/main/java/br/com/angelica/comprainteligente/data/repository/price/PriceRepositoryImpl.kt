@@ -17,20 +17,23 @@ class PriceRepositoryImpl(
     private val priceCollection = firestore.collection("prices")
 
     override suspend fun checkDuplicatePrice(price: Price): Boolean {
-        val existingPriceQuery = priceCollection
-            .whereEqualTo("productId", price.productId)
-            .whereEqualTo("supermarketId", price.supermarketId)
-            .whereEqualTo("price", price.price)
-            .whereEqualTo("userId", price.userId)
-            .get()
-            .await()
+        return try {
+            val querySnapshot = firestore.collection("prices")
+                .whereEqualTo("productId", price.productId)
+                .whereEqualTo("supermarketId", price.supermarketId)
+                .whereEqualTo("price", price.price)
+                .get()
+                .await()
 
-        return !existingPriceQuery.isEmpty
+            querySnapshot.documents.isNotEmpty() // Retorna `true` se já existir duplicata
+        } catch (e: Exception) {
+            false // Retorna `false` em caso de erro
+        }
     }
 
     override suspend fun addPrice(price: Price): Result<Price> {
         return try {
-            if (price.productId.isEmpty()) {
+            if (price.productId.isBlank()) {
                 return Result.failure(Exception("Erro: o ID do produto está vazio."))
             }
             val newPriceId = priceCollection.document().id
@@ -54,7 +57,12 @@ class PriceRepositoryImpl(
         }
     }
 
-    override suspend fun getPriceHistory(productId: String, period: String, state: String, city: String): Result<List<Price>> {
+    override suspend fun getPriceHistory(
+        productId: String,
+        period: String,
+        state: String,
+        city: String
+    ): Result<List<Price>> {
         return try {
             // Usa o mapeador para obter o nome completo do estado
             val userState = StateMapper.getFullStateName(state)
@@ -132,7 +140,8 @@ class PriceRepositoryImpl(
                     val maxPrice = group.value.maxByOrNull { it.price }?.price
 
                     // Buscar o nome do produto pelo ID
-                    val productName = productCollection.document(group.key).get().await().getString("name")
+                    val productName =
+                        productCollection.document(group.key).get().await().getString("name")
 
                     "$productName: R$$minPrice - R$$maxPrice"
                 }
@@ -157,7 +166,8 @@ class PriceRepositoryImpl(
                 val price = document.getDouble("price") ?: 0.0
 
                 // Buscar o nome do produto pelo ID
-                val productName = productCollection.document(productId).get().await().getString("name")
+                val productName =
+                    productCollection.document(productId).get().await().getString("name")
                 "$productName - R$$price"
             }
 

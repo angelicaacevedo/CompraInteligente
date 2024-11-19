@@ -40,10 +40,7 @@ class ProductOperationsUseCase(
                 ?: return Result.failure(Exception("Erro ao obter ID do supermercado."))
 
             // Verifica se o produto é manual (sem código de barras) ou automático (com código de barras)
-            val productId = product.id.ifBlank {
-                UUID.randomUUID().toString() // Gera um ID para produtos manuais
-            }
-
+            val productId = if (product.id.isEmpty()) UUID.randomUUID().toString() else product.id
             val updatedProduct = product.copy(id = productId)
 
             // Registra o produto
@@ -52,17 +49,16 @@ class ProductOperationsUseCase(
                 return productResult
             }
 
-            // Atualiza o productId no objeto Price
-            price.productId = productId
-
-            // Verifica duplicação de preço e registra o preço, se necessário
-            if (!priceRepository.checkDuplicatePrice(price)) {
-                val addedPriceResult = priceRepository.addPrice(price)
-                if (addedPriceResult.isFailure) {
-                    return Result.failure(addedPriceResult.exceptionOrNull()!!)
-                }
-            } else {
+            // Verifica duplicação de preço antes de registrar
+            val isDuplicate = priceRepository.checkDuplicatePrice(price)
+            if (isDuplicate) {
                 return Result.failure(Exception("Esse produto com o mesmo supermercado e preço já está cadastrado."))
+            }
+
+            // Registra o preço se não for duplicado
+            val addedPriceResult = priceRepository.addPrice(price)
+            if (addedPriceResult.isFailure) {
+                return Result.failure(addedPriceResult.exceptionOrNull()!!)
             }
 
             productResult

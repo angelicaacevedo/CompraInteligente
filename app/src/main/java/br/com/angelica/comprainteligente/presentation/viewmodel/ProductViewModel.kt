@@ -82,9 +82,16 @@ class ProductViewModel(
             }
 
             val product = createProduct(intent)
-            val productPrice = createProductPrice(intent)
+            val productPrice = createProductPrice(intent, product.id)
 
-            registerProduct(product, productPrice, intent.placeId)
+            // Registra o produto e o preço
+            val result =
+                productOperationsUseCase.registerProduct(product, productPrice, intent.placeId)
+            _state.value = if (result.isSuccess) {
+                ProductState.ProductRegistered
+            } else {
+                ProductState.Error(result.exceptionOrNull()?.message ?: "Erro desconhecido")
+            }
         }
     }
 
@@ -95,12 +102,13 @@ class ProductViewModel(
             intent.barcode
         }
 
+        // Para produtos automáticos, busca informações do OpenFoodFacts
         val productDetailsResult =
-            productOperationsUseCase.getProductInfoFromBarcode(productId)
-        val imageUrl = productDetailsResult.getOrNull()?.image_url ?: ""
+            if (!intent.isManual) productOperationsUseCase.getProductInfoFromBarcode(productId) else null
+        val imageUrl = productDetailsResult?.getOrNull()?.image_url ?: ""
 
         return Product(
-            id = intent.barcode,
+            id = productId,
             name = intent.name,
             imageUrl = imageUrl,
             userId = intent.userId,
@@ -108,10 +116,13 @@ class ProductViewModel(
         )
     }
 
-    private fun createProductPrice(intent: ProductIntent.RegisterProduct): Price {
+    private fun createProductPrice(
+        intent: ProductIntent.RegisterProduct,
+        productId: String
+    ): Price {
         val priceValue = intent.price.replace(",", ".").toDouble()
         return Price(
-            productId = intent.barcode,
+            productId = productId, // Garante que o ID do produto está associado corretamente
             supermarketId = intent.supermarket,
             price = priceValue,
             date = Timestamp.now(),
