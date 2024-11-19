@@ -9,6 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,10 +34,12 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -105,6 +108,7 @@ fun ProductRegisterScreen(
     var isSupermarketEditable by remember { mutableStateOf(true) }
     var isLoading by remember { mutableStateOf(false) }
     var isSearchCompleted by remember { mutableStateOf(false) }
+    var isManualEntry by remember { mutableStateOf(false) }
 
     val context = LocalContext.current as Activity
 
@@ -256,32 +260,131 @@ fun ProductRegisterScreen(
                 .padding(top = 16.dp)
                 .padding(horizontal = 24.dp)
         ) {
+            // Alternar entre cadastro com código de barras ou manual
             item {
-                // Campo para inserir ou escanear o código de barras
-                CustomTextField(
-                    value = barcode,
-                    onValueChange = { barcode = it },
-                    label = "Código de Barras",
-                    isError = isFormSubmitted && barcode.isEmpty(),
-                    errorMessage = "Campo obrigatório",
-                    enabled = isBarcodeEditable,
-                    isNumeric = true,
-                    onFocusChanged = { focusState ->
-                        if (!focusState.isFocused && barcode.isNotEmpty()) {
-                            isBarcodeEditable = false
-                            isLoading = true
-                            viewModel.handleIntent(
-                                ProductViewModel.ProductIntent.ScanProduct(barcode)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (isManualEntry) "Cadastro Manual" else "Código de Barras",
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                    )
+                    Switch(
+                        checked = isManualEntry,
+                        onCheckedChange = { isManualEntry = it }
+                    )
+                }
+            }
+
+            // Campo para nome do produto (apenas para cadastro manual)
+            if (isManualEntry) {
+                item {
+                    CustomTextField(
+                        value = productName,
+                        onValueChange = { productName = it },
+                        label = "Nome do Produto",
+                        isError = isFormSubmitted && productName.isEmpty(),
+                        errorMessage = "Campo obrigatório"
+                    )
+                }
+            } else {
+                // Campo para código de barras (somente para cadastro com scanner ou manual por código)
+                item {
+                    CustomTextField(
+                        value = barcode,
+                        onValueChange = { barcode = it },
+                        label = "Código de Barras",
+                        isError = isFormSubmitted && barcode.isEmpty(),
+                        errorMessage = "Campo obrigatório",
+                        enabled = isBarcodeEditable,
+                        isNumeric = true,
+                        onFocusChanged = { focusState ->
+                            if (!focusState.isFocused && barcode.isNotEmpty()) {
+                                isBarcodeEditable = false
+                                isLoading = true
+                                viewModel.handleIntent(
+                                    ProductViewModel.ProductIntent.ScanProduct(barcode)
+                                )
+                            }
+                        },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Outlined.Search,
+                                contentDescription = "Buscar Código"
                             )
                         }
-                    },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Outlined.Search,
-                            contentDescription = "Buscar Código"
+                    )
+                }
+            }
+
+            if (isManualEntry) {
+                // DropdownMenu para selecionar unidade de medida
+                item {
+                    var selectedUnit by remember { mutableStateOf("Unidade") }
+                    var isDropdownExpanded by remember { mutableStateOf(false) }
+
+                    ExposedDropdownMenuBox(
+                        expanded = isDropdownExpanded,
+                        onExpandedChange = { isDropdownExpanded = !isDropdownExpanded }
+                    ) {
+                        OutlinedTextField(
+                            value = selectedUnit,
+                            onValueChange = {},
+                            label = { Text("Unidade de Medida") },
+                            readOnly = true,
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = isDropdownExpanded,
+                            onDismissRequest = { isDropdownExpanded = false }
+                        ) {
+                            listOf("Unidade", "Kg", "Gr", "Litro").forEach { unit ->
+                                DropdownMenuItem(
+                                    text = { Text(unit) },
+                                    onClick = {
+                                        selectedUnit = unit
+                                        isDropdownExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
+
+                // Nome e Imagem do Produto
+                if (productName.isNotEmpty()) {
+                    item {
+                        CustomTextField(
+                            value = productName,
+                            onValueChange = { productName = it },
+                            label = "Nome do Produto",
+                            isError = isFormSubmitted && productName.isEmpty(),
+                            errorMessage = "Campo obrigatório",
+                            enabled = isProductInfoEditable
                         )
                     }
-                )
+                }
+
+                if (productImageUrl.isNotEmpty()) {
+                    item {
+                        Image(
+                            painter = rememberImagePainter(productImageUrl),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(150.dp)
+                                .padding(vertical = 8.dp)
+                        )
+                    }
+                }
             }
 
             item {
@@ -316,32 +419,6 @@ fun ProductRegisterScreen(
                 }
             }
 
-            // Nome e Imagem do Produto
-            if (productName.isNotEmpty()) {
-                item {
-                    CustomTextField(
-                        value = productName,
-                        onValueChange = { productName = it },
-                        label = "Nome do Produto",
-                        isError = isFormSubmitted && productName.isEmpty(),
-                        errorMessage = "Campo obrigatório",
-                        enabled = isProductInfoEditable
-                    )
-                }
-            }
-
-            if (productImageUrl.isNotEmpty()) {
-                item {
-                    Image(
-                        painter = rememberImagePainter(productImageUrl),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(150.dp)
-                            .padding(vertical = 8.dp)
-                    )
-                }
-            }
 
             item {
                 ExposedDropdownMenuBox(
@@ -484,14 +561,13 @@ fun ProductRegisterScreen(
                                     )
                                 }
                                 if (index < suggestions.size - 1) {
-                                    Divider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
                                 }
                             }
                         }
                     }
                 }
             }
-
 
             // Botão para registrar o produto
             item {
@@ -500,7 +576,10 @@ fun ProductRegisterScreen(
                         isFormSubmitted = true
                         val priceValue = productPrice.replace(",", ".").toDoubleOrNull()
 
-                        if (barcode.isNotEmpty() && selectedSupermarket.isNotEmpty() && priceValue != null && priceValue > 0) {
+                        // Validação completa
+                        if (((isManualEntry && productName.isNotEmpty()) || (!isManualEntry && barcode.isNotEmpty())) &&
+                            selectedSupermarket.isNotEmpty() && priceValue != null && priceValue > 0
+                        ) {
                             viewModel.handleIntent(
                                 ProductViewModel.ProductIntent.RegisterProduct(
                                     barcode = barcode,
@@ -508,12 +587,23 @@ fun ProductRegisterScreen(
                                     price = productPrice,
                                     supermarket = selectedSupermarket,
                                     userId = userId,
-                                    placeId = selectedPlaceId
+                                    placeId = selectedPlaceId,
+                                    isManual = isManualEntry
                                 )
                             )
-                        } else if (priceValue == null || priceValue <= 0) {
-                            priceError = true
-                            priceErrorMessage = "O preço não pode ser zero ou negativo"
+                        } else {
+                            // Exibe mensagens de erro nos campos com problema
+                            if (selectedSupermarket.isEmpty()) {
+                                Toast.makeText(
+                                    context,
+                                    "Por favor, selecione um supermercado.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            if (priceValue == null || priceValue <= 0) {
+                                priceError = true
+                                priceErrorMessage = "O preço não pode ser zero ou negativo"
+                            }
                         }
                     },
                     modifier = Modifier

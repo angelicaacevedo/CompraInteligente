@@ -7,5 +7,6 @@ data class Product(
     val name: String = "",                 // Nome do produto
     val imageUrl: String = "",              // URL da imagem do produto
     val updateData: Timestamp = Timestamp.now(), // Data de atualização do produto
-    var userId: String = ""
+    var userId: String = "",
+    val isManual: Boolean = false           // Indica se o produto foi cadastrado manualmente
 )

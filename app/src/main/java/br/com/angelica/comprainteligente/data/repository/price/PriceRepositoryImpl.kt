@@ -21,6 +21,7 @@ class PriceRepositoryImpl(
             .whereEqualTo("productId", price.productId)
             .whereEqualTo("supermarketId", price.supermarketId)
             .whereEqualTo("price", price.price)
+            .whereEqualTo("userId", price.userId)
             .get()
             .await()
 
@@ -29,6 +30,9 @@ class PriceRepositoryImpl(
 
     override suspend fun addPrice(price: Price): Result<Price> {
         return try {
+            if (price.productId.isEmpty()) {
+                return Result.failure(Exception("Erro: o ID do produto está vazio."))
+            }
             val newPriceId = priceCollection.document().id
             price.id = newPriceId
             priceCollection.document(newPriceId).set(price).await()

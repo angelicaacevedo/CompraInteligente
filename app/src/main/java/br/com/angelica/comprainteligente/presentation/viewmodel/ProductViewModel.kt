@@ -13,6 +13,7 @@ import com.google.firebase.Timestamp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 class ProductViewModel(
     private val getSupermarketSuggestionsUseCase: GetSupermarketSuggestionsUseCase,
@@ -27,7 +28,6 @@ class ProductViewModel(
     val categories: StateFlow<List<Category>> = _categories
 
     private var isSearchCompleted = false
-
 
     init {
         loadCategories()
@@ -89,15 +89,22 @@ class ProductViewModel(
     }
 
     private suspend fun createProduct(intent: ProductIntent.RegisterProduct): Product {
+        val productId = if (intent.isManual) {
+            UUID.randomUUID().toString() // Gera ID para produtos manuais
+        } else {
+            intent.barcode
+        }
+
         val productDetailsResult =
-            productOperationsUseCase.getProductInfoFromBarcode(intent.barcode)
+            productOperationsUseCase.getProductInfoFromBarcode(productId)
         val imageUrl = productDetailsResult.getOrNull()?.image_url ?: ""
 
         return Product(
             id = intent.barcode,
             name = intent.name,
             imageUrl = imageUrl,
-            userId = intent.userId
+            userId = intent.userId,
+            isManual = intent.isManual
         )
     }
 
@@ -115,13 +122,25 @@ class ProductViewModel(
     private fun registerProduct(product: Product, productPrice: Price, placeId: String) {
         viewModelScope.launch {
             if (placeId.isEmpty()) {
-                _state.value = ProductState.Error("Erro: Place ID do supermercado é inválido ou vazio.")
+                _state.value =
+                    ProductState.Error("Erro: Place ID do supermercado é inválido ou vazio.")
                 return@launch
             }
 
             val result = productOperationsUseCase.registerProduct(product, productPrice, placeId)
             _state.value = if (result.isSuccess) {
-                ProductState.ProductRegistered
+                val registeredProduct = result.getOrNull()
+                if (registeredProduct != null) {
+                    productPrice.productId = registeredProduct.id
+                    val priceResult = productOperationsUseCase.registerPrice(productPrice)
+                    if (priceResult.isSuccess) {
+                        ProductState.ProductRegistered
+                    } else {
+                        ProductState.Error("Erro ao registrar o preço: ${priceResult.exceptionOrNull()?.message}")
+                    }
+                } else {
+                    ProductState.Error("Erro ao obter produto registrado.")
+                }
             } else {
                 val errorMessage = result.exceptionOrNull()?.message
                 if (errorMessage == "Esse produto com o mesmo supermercado e preço já está cadastrado.") {
@@ -148,7 +167,9 @@ class ProductViewModel(
         object Loading : ProductState()
         object ProductRegistered : ProductState()
         data class ProductScanned(val productDetails: ProductDetails?) : ProductState()
-        data class SuggestionsLoaded(val suggestions: List<Pair<String, String>>) : ProductState() // Nome e PlaceId
+        data class SuggestionsLoaded(val suggestions: List<Pair<String, String>>) :
+            ProductState() // Nome e PlaceId
+
         data class Error(val message: String) : ProductState()
     }
 
@@ -161,7 +182,8 @@ class ProductViewModel(
             val price: String,
             val supermarket: String,
             val userId: String,
-            val placeId: String
+            val placeId: String,
+            val isManual: Boolean
         ) : ProductIntent()
 
         data class LoadSuggestions(val query: String) : ProductIntent()
