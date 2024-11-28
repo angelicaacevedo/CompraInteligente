@@ -1,8 +1,8 @@
 package br.com.angelica.comprainteligente.presentation.view
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,18 +10,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,255 +34,266 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import br.com.angelica.comprainteligente.model.MonthlySummaryState
+import br.com.angelica.comprainteligente.model.Price
+import br.com.angelica.comprainteligente.model.UserProgressState
 import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigation
 import br.com.angelica.comprainteligente.presentation.common.LoadingAnimation
 import br.com.angelica.comprainteligente.presentation.viewmodel.HomeViewModel
-import br.com.angelica.comprainteligente.theme.CarouselGray
-import br.com.angelica.comprainteligente.theme.NeutralGrayLight
-import br.com.angelica.comprainteligente.theme.ProgressBarColor
+import br.com.angelica.comprainteligente.theme.BackgroundLightGray
+import br.com.angelica.comprainteligente.theme.BlueSoft
+import br.com.angelica.comprainteligente.theme.ButtonGreen
+import br.com.angelica.comprainteligente.theme.PrimaryBlue
+import br.com.angelica.comprainteligente.theme.TextBlack
+import br.com.angelica.comprainteligente.theme.TextGreen
+import br.com.angelica.comprainteligente.theme.TextPrimary
 import br.com.angelica.comprainteligente.theme.TrophyGold
+import br.com.angelica.comprainteligente.theme.White
 import org.koin.androidx.compose.getViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    navController: NavController,
     userId: String,
+    navController: NavController,
+    onUserProfile: () -> Unit,
     viewModel: HomeViewModel = getViewModel()
 ) {
-    val uiState by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.handleIntent(HomeViewModel.HomeIntent.LoadHomeData)
+        viewModel.handleIntent(HomeViewModel.HomeIntent.LoadHomeData(userId))
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Compra Inteligente",
-                        modifier = Modifier.fillMaxWidth(),
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                ),
-                actions = {
-                    IconButton(onClick = {
-                        navController.navigate("profile/$userId")
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Perfil",
-                            tint = Color.White
-                        )
+        topBar = { HomeTopAppBar(onUserProfile) },
+        bottomBar = { CustomBottomNavigation(navController = navController, userId = userId) },
+        content = { paddingValues ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                when {
+                    state.isLoading -> {
+                        LoadingContent()
+                    }
+                    state.error != null -> {
+                        ErrorContent(state.error!!) {
+                            viewModel.handleIntent(HomeViewModel.HomeIntent.ClearError)
+                        }
+                    }
+                    else -> {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp)
+                                .verticalScroll(rememberScrollState())
+                        ) {
+                            state.userProgress?.let {
+                                UserProgressCard(it)
+                            }
+                            state.monthlySummary?.let {
+                                MonthlySummaryCard(it)
+                            }
+                            if (state.recentPurchases.isNotEmpty()) {
+                                RecentPurchasesCard(state.recentPurchases)
+                            }
+                        }
                     }
                 }
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeTopAppBar(onUserProfile: () -> Unit) {
+    TopAppBar(
+        title = {
+            Text(
+                text = "Compra Inteligente",
+                modifier = Modifier.fillMaxWidth(),
+                style = MaterialTheme.typography.headlineLarge,
+                color = White
             )
         },
-        bottomBar = {
-            CustomBottomNavigation(navController = navController, userId = userId)
-        },
-        content = { paddingValues ->
-            when {
-                uiState.isLoading -> LoadingAnimation(message = "Carregando dados...")
-                uiState.error != null -> uiState.error?.let { ErrorScreen(it) }
-                else -> HomeContent(uiState, paddingValues)
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = PrimaryBlue
+        ),
+        actions = {
+            IconButton(onClick = onUserProfile) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Perfil de Usuário",
+                    tint = White
+                )
             }
         }
     )
 }
 
 @Composable
-fun HomeContent(uiState: HomeViewModel.HomeState, paddingValues: PaddingValues) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)
-            .padding(horizontal = 16.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        UserLevelCard(uiState.userLevel, uiState.userProgress)
-        Spacer(modifier = Modifier.height(16.dp))
-        TipsCarousel()
-        Spacer(modifier = Modifier.height(16.dp))
-        PriceDifferenceCard(uiState.priceDifferenceProduct)
-        Spacer(modifier = Modifier.height(16.dp))
-        TopPricesList(uiState.topPrices)
-    }
-}
-
-@Composable
-fun UserLevelCard(userLevel: String, userProgress: Int) {
+fun UserProgressCard(userProgress: UserProgressState) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        elevation = CardDefaults.cardElevation(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(containerColor = BackgroundLightGray)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(
-                imageVector = Icons.Filled.EmojiEvents,
+                imageVector = Icons.Default.EmojiEvents,
                 contentDescription = "Troféu",
                 tint = TrophyGold,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(40.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text("Nível Atual: $userLevel", style = MaterialTheme.typography.titleMedium)
+            Text("Progresso do Usuário", style = MaterialTheme.typography.headlineSmall.copy(
+                color = TextBlack,
+                fontWeight = FontWeight.Bold
+            ))
+            Text("Nível: ${userProgress.level}", style = MaterialTheme.typography.bodyLarge)
+            Text("Pontos: ${userProgress.points}", style = MaterialTheme.typography.bodyLarge)
+            Spacer(modifier = Modifier.height(8.dp))
             LinearProgressIndicator(
-                progress = { userProgress / 100f },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp)),
-                color = ProgressBarColor,
+                progress = { userProgress.progress },
+                modifier = Modifier.fillMaxWidth(),
+                color = ButtonGreen,
             )
-            Text("$userProgress% para o próximo nível", style = MaterialTheme.typography.bodyMedium)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Progresso no nível: ${(userProgress.progress * 100).toInt()}%",
+                style = MaterialTheme.typography.labelSmall
+            )
         }
     }
 }
 
 @Composable
-fun TipsCarousel() {
-    val tips = listOf(
-        Pair(Icons.Filled.Add, "Adicione uma lista de compras!"),
-        Pair(Icons.Filled.ShoppingCart, "Confira as melhores ofertas perto de você."),
-        Pair(Icons.Filled.Star, "Contribua com preços para ganhar nível.")
-    )
-
-    LazyRow(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(tips) { (icon, tip) ->
-            Card(
-                modifier = Modifier
-                    .width(200.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = CarouselGray
-                )
-            ) {
-                Row(
-                    modifier = Modifier
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        icon,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSecondary
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(tip, style = MaterialTheme.typography.bodyLarge)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun PriceDifferenceCard(priceDifferenceProduct: String?) {
+fun MonthlySummaryCard(monthlySummary: MonthlySummaryState) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        elevation = CardDefaults.cardElevation(8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(containerColor = BackgroundLightGray),
+        shape = RoundedCornerShape(8.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            Text("Resumo Mensal", style = MaterialTheme.typography.headlineSmall.copy(
+                color = TextBlack,
+                fontWeight = FontWeight.Bold
+            ))
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
-                "Produto com Maior Diferença de Preço",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-            )
-            Text(
-                text = priceDifferenceProduct ?: "Nenhuma diferença de preço encontrada",
-                style = MaterialTheme.typography.bodyLarge
+                text = "Total Gasto: R$${"%.2f".format(monthlySummary.totalSpent)}",
+                style = MaterialTheme.typography.bodyLarge,
+                color = TextBlack
             )
         }
     }
 }
 
 @Composable
-fun TopPricesList(topPrices: List<String>) {
-    Column(
+fun RecentPurchasesCard(recentPurchases: List<Pair<Price, String>>) {
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(containerColor = BackgroundLightGray),
+        shape = RoundedCornerShape(8.dp)
     ) {
-        Text(
-            "Top 10 Melhores Preços",
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        topPrices.forEach { price ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                shape = RoundedCornerShape(8.dp),
-                elevation = CardDefaults.cardElevation(4.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = NeutralGrayLight
-                )
-            ) {
-                Text(
-                    text = price,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(12.dp)
-                )
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("Compras Recentes", style = MaterialTheme.typography.headlineSmall.copy(
+                color = TextBlack,
+                fontWeight = FontWeight.Bold
+            ))
+            Spacer(modifier = Modifier.height(8.dp))
+            recentPurchases.forEach { (purchase, productName) ->
+                ProductCard(purchase, productName)
             }
         }
     }
 }
 
-// Tela de erro para exibir mensagem de erro
 @Composable
-fun ErrorScreen(errorMessage: String) {
+fun ProductCard(purchase: Price, productName: String) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        elevation = CardDefaults.cardElevation(2.dp),
+        colors = CardDefaults.cardColors(containerColor = BlueSoft),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = productName,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = TextPrimary,
+                ),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = "R$${"%.2f".format(purchase.price)}",
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = TextGreen,
+                    fontWeight = FontWeight.Bold
+                ),
+                modifier = Modifier.align(Alignment.CenterVertically)
+            )
+        }
+    }
+}
+
+@Composable
+fun LoadingContent() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        LoadingAnimation(message = "Carregando...")
+    }
+}
+
+@Composable
+fun ErrorContent(message: String, onRetry: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(32.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Erro",
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.error
+            "Erro: $message",
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodyLarge
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = errorMessage,
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onError
-        )
+        Button(onClick = onRetry) {
+            Text("Tentar Novamente")
+        }
     }
 }

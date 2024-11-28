@@ -17,6 +17,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import br.com.angelica.comprainteligente.theme.GraySoft
+import br.com.angelica.comprainteligente.theme.PrimaryBlue
+import br.com.angelica.comprainteligente.theme.TextGray
 
 @Composable
 fun CustomTextField(
@@ -44,7 +47,7 @@ fun CustomTextField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            label = { Text(text = label, color = Color.Gray) },
+            label = { Text(text = label, color = if (isError) Color.Red else TextGray) },
             isError = isError,
             visualTransformation = visualTransformation,
             keyboardOptions = keyboardOptions,
@@ -52,19 +55,17 @@ fun CustomTextField(
             trailingIcon = trailingIcon,
             modifier = modifier
                 .fillMaxWidth()
-                .onFocusChanged { focusState ->
-                    onFocusChanged(focusState)
-                },
+                .onFocusChanged { focusState -> onFocusChanged(focusState) },
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
                 errorContainerColor = Color.Transparent,
-                focusedIndicatorColor = Color.Black,
-                unfocusedIndicatorColor = Color.Gray,
+                focusedIndicatorColor = PrimaryBlue,
+                unfocusedIndicatorColor = TextGray,
                 errorIndicatorColor = Color.Red,
-                cursorColor = Color.Black,
+                cursorColor = TextGray,
                 errorCursorColor = Color.Red,
-                disabledContainerColor = Color.LightGray,
+                disabledContainerColor = GraySoft,
             ),
             enabled = enabled
         )
@@ -72,7 +73,7 @@ fun CustomTextField(
             Text(
                 text = errorMessage,
                 color = Color.Red,
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(start = 16.dp, top = 4.dp)
             )
         }

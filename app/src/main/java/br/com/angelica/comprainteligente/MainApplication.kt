@@ -2,6 +2,7 @@ package br.com.angelica.comprainteligente
 
 import android.app.Application
 import br.com.angelica.comprainteligente.di.appModule
+import com.github.mikephil.charting.utils.Utils
 import com.google.android.libraries.places.api.Places
 import com.google.firebase.FirebaseApp
 import org.koin.android.ext.koin.androidContext
@@ -22,5 +23,8 @@ class MainApplication : Application() {
             androidContext(this@MainApplication)
             modules(appModule)
         }
+
+        // Inicialize o MPAndroidChart Utils
+        Utils.init(this)
     }
 }

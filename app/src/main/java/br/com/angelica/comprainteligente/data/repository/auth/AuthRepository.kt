@@ -10,5 +10,4 @@ interface AuthRepository {
     suspend fun updateUserInfo(userId: String, updatedUser: User, address: Address): Result<Unit>
     suspend fun getUserById(userId: String): Result<User>
     suspend fun logout()
-    suspend fun getUserLevel(): Result<UserLevel>
 }

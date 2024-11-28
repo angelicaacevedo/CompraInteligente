@@ -70,12 +70,22 @@ class ProductListRepositoryImpl(
     }
 
     override suspend fun getSuggestions(query: String): Result<List<Product>> {
+        // Verifica se a query tem pelo menos 3 caracteres para buscar a partir de uma palavra mais significativa
+        if (query.trim().length < 3) {
+            return Result.success(emptyList())
+        }
+
         return try {
             val querySnapshot = productCollection
                 .whereGreaterThanOrEqualTo("name", query)
                 .get()
                 .await()
-            val products = querySnapshot.documents.mapNotNull { it.toObject(Product::class.java) }
+
+            // Filtra os produtos cujo nome contenha o termo da query de forma case-insensitive
+            val products = querySnapshot.documents
+                .mapNotNull { it.toObject(Product::class.java) }
+                .filter { it.name.contains(query, ignoreCase = true) }
+
             Result.success(products)
         } catch (e: Exception) {
             Result.failure(e)

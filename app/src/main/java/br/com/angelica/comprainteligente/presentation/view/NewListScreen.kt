@@ -12,8 +12,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,12 +35,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import br.com.angelica.comprainteligente.model.Product
+import br.com.angelica.comprainteligente.presentation.common.CustomAlertDialog
 import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigation
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
-import br.com.angelica.comprainteligente.utils.CustomAlertDialog
+import br.com.angelica.comprainteligente.theme.BlueSoft
+import br.com.angelica.comprainteligente.theme.PrimaryBlue
+import br.com.angelica.comprainteligente.theme.TextBlack
+import br.com.angelica.comprainteligente.theme.White
 import org.koin.androidx.compose.getViewModel
 
 @Composable
@@ -55,11 +62,7 @@ fun NewListScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
-    var listName by remember {
-        mutableStateOf(
-            listNameArg ?: ""
-        )
-    } // preciso passar o valor do argumento da naviegação
+    var listName by remember { mutableStateOf(listNameArg ?: "") }
     var query by remember { mutableStateOf("") }
     var selectedProductIds by remember { mutableStateOf<List<String>>(emptyList()) }
     var selectedProducts by remember { mutableStateOf<List<Product>>(emptyList()) }
@@ -69,7 +72,6 @@ fun NewListScreen(
         viewModel.initialize(userId)
         if (!productIdsArg.isNullOrEmpty()) {
             selectedProductIds = productIdsArg
-            // Carregar os produtos com base nos IDs
             viewModel.handleIntent(
                 ProductListViewModel.ProductListIntent.ViewProductsInList(userId, productIdsArg)
             )
@@ -79,13 +81,11 @@ fun NewListScreen(
     // Atualizar os produtos selecionados com base no estado carregado
     LaunchedEffect(state) {
         if (state is ProductListViewModel.ProductListState.ProductsLoaded) {
-            selectedProducts =
-                (state as ProductListViewModel.ProductListState.ProductsLoaded).products
+            selectedProducts = (state as ProductListViewModel.ProductListState.ProductsLoaded).products
         }
-
         if (state is ProductListViewModel.ProductListState.ListCreated) {
-            onListCreated() // volta para tela de historico de listas
-            viewModel.resetState() // Reseta o estado para evitar loops
+            onListCreated()
+            viewModel.resetState()
         }
     }
 
@@ -101,7 +101,7 @@ fun NewListScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item {
@@ -129,8 +129,7 @@ fun NewListScreen(
 
             // Sugestões de Produtos
             if (state is ProductListViewModel.ProductListState.SuggestionsLoaded) {
-                val suggestions =
-                    (state as ProductListViewModel.ProductListState.SuggestionsLoaded).suggestions
+                val suggestions = (state as ProductListViewModel.ProductListState.SuggestionsLoaded).suggestions
                 items(suggestions) { product ->
                     if (product.id !in selectedProductIds) {
                         Card(
@@ -140,16 +139,18 @@ fun NewListScreen(
                                 .clickable {
                                     selectedProductIds = selectedProductIds + product.id
                                     selectedProducts = selectedProducts + product
-                                    query = "" // Limpa a barra de pesquisa
+                                    query = ""
                                 },
                             shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            colors = CardDefaults.cardColors(containerColor = BlueSoft),
                             elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
                         ) {
                             Text(
                                 text = product.name,
                                 modifier = Modifier.padding(16.dp),
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = TextBlack
+                                )
                             )
                         }
                     }
@@ -161,7 +162,10 @@ fun NewListScreen(
                 item {
                     Text(
                         text = "Produtos Selecionados:",
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            color = TextBlack,
+                            fontWeight = FontWeight.Bold
+                        ),
                         modifier = Modifier.padding(top = 16.dp)
                     )
                 }
@@ -170,14 +174,12 @@ fun NewListScreen(
                         product = product,
                         onRemoveProduct = { removedProduct ->
                             selectedProducts = selectedProducts.filter { it != removedProduct }
-                            selectedProductIds =
-                                selectedProductIds.filter { it != removedProduct.id }
+                            selectedProductIds = selectedProductIds.filter { it != removedProduct.id }
                         }
                     )
                 }
             } else {
                 item { NoProductsSelectedMessage() }
-
             }
 
             item { ListButton(viewModel, userId, listId, listName, selectedProductIds) }
@@ -195,19 +197,21 @@ private fun NewListTopBar(onBack: () -> Unit) {
     TopAppBar(
         title = {
             Text(
-                text = "Criar Lista", modifier = Modifier.fillMaxWidth(),
+                text = "Criar Lista",
+                modifier = Modifier.fillMaxWidth(),
                 style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onPrimary
+                color = White
             )
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primary
+            containerColor = PrimaryBlue
         ),
         navigationIcon = {
             IconButton(onClick = { onBack() }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                    contentDescription = "Voltar"
+                    contentDescription = "Voltar",
+                    tint = White
                 )
             }
         }
@@ -224,7 +228,7 @@ private fun SelectedProductItemCard(
             .fillMaxWidth()
             .padding(vertical = 8.dp, horizontal = 16.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = BlueSoft),
         elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
     ) {
         Row(
@@ -244,9 +248,9 @@ private fun SelectedProductItemCard(
 
             IconButton(onClick = { onRemoveProduct(product) }) {
                 Icon(
-                    imageVector = Icons.Default.Delete,
+                    imageVector = Icons.Outlined.Delete,
                     contentDescription = "Remover produto",
-                    tint = MaterialTheme.colorScheme.outline
+                    tint = Color.Red
                 )
             }
         }
@@ -261,7 +265,6 @@ private fun ListButton(
     listName: String,
     selectedProductIds: List<String>
 ) {
-
     var showDialog by remember { mutableStateOf(false) }
     Button(
         onClick = {
@@ -280,11 +283,18 @@ private fun ListButton(
         },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 16.dp)
+            .padding(top = 16.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = PrimaryBlue,
+            contentColor = White
+        )
     ) {
         Text(
             text = if (listId == null) "Criar" else "Salvar",
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge.copy(
+                color = White,
+                fontWeight = FontWeight.Bold
+            )
         )
     }
 
@@ -312,7 +322,11 @@ private fun NoProductsSelectedMessage() {
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = "Nenhum produto selecionado", style = MaterialTheme.typography.bodyMedium)
+        Text(
+            text = "Nenhum produto selecionado",
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = Color.Red
+            ),
+        )
     }
 }
-

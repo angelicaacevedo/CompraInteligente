@@ -16,13 +16,16 @@ class ProductListViewModel(
 ) : ViewModel() {
 
     private lateinit var userId: String
+    private var isInitialized = false
 
     private val _state = MutableStateFlow<ProductListState>(ProductListState.Idle)
     val state: StateFlow<ProductListState> = _state
 
     // Inicializa o userId e carrega as listas do usuário
     fun initialize(userId: String) {
+        if (isInitialized) return
         this.userId = userId
+        isInitialized = true
         loadUserLists(includeProductIds = false, userId = userId)
     }
 
@@ -41,8 +44,6 @@ class ProductListViewModel(
                 intent.userId
             )
 
-            is ProductListIntent.GetProductSuggestions -> fetchProductSuggestions(intent.query)
-            is ProductListIntent.DeleteList -> deleteList(intent.listId, intent.userId)
             is ProductListIntent.ViewProductsInList -> {
                 if (intent.loadLatestPrices) {
                     loadMostRecentAndCheapestPricesByLocation(intent.userId, intent.productIds)
@@ -50,6 +51,9 @@ class ProductListViewModel(
                     loadProductsFromList(intent.productIds)
                 }
             }
+
+            is ProductListIntent.GetProductSuggestions -> fetchProductSuggestions(intent.query)
+            is ProductListIntent.DeleteList -> deleteList(intent.listId, intent.userId)
         }
     }
 
@@ -75,17 +79,15 @@ class ProductListViewModel(
             val updateData = Timestamp.now()
 
             val result = if (listId == null) {
-                // Criação de uma nova lista
                 productListOperationsUseCase.createList(name, productIds, userId)
             } else {
-                // Atualização de uma lista existente
                 productListOperationsUseCase.updateList(listId, name, productIds, updateData)
             }
 
             if (result.isSuccess) {
                 _state.value = ProductListState.ListCreated(true)
             } else {
-                _state.value = ProductListState.Error("Failed to create list")
+                _state.value = ProductListState.Error("Falha ao criar/atualizar a lista")
             }
         }
     }
@@ -107,7 +109,8 @@ class ProductListViewModel(
                     _state.value = ProductListState.Empty
                 }
             } else {
-                _state.value = ProductListState.Error("Failed to load products")
+                val error = "Falha ao carregar produtos da lista"
+                _state.value = ProductListState.Error(error)
             }
         }
     }
@@ -118,7 +121,7 @@ class ProductListViewModel(
             if (result.isSuccess) {
                 loadUserLists(includeProductIds = false, userId = userId)
             } else {
-                _state.value = ProductListState.Error("Failed to delete list")
+                _state.value = ProductListState.Error("Falha ao excluir a lista")
             }
         }
     }
@@ -130,20 +133,27 @@ class ProductListViewModel(
             if (result.isSuccess) {
                 _state.value = ProductListState.SuggestionsLoaded(result.getOrNull() ?: emptyList())
             } else {
-                _state.value = ProductListState.Error("Failed to load suggestions")
+                _state.value = ProductListState.Error("Falha ao carregar sugestões")
             }
         }
     }
 
-    private fun loadMostRecentAndCheapestPricesByLocation(userId: String, productIds: List<String>) {
+    private fun loadMostRecentAndCheapestPricesByLocation(
+        userId: String,
+        productIds: List<String>
+    ) {
         viewModelScope.launch {
             _state.value = ProductListState.Loading
-            val result = productListOperationsUseCase.fetchMostRecentAndCheapestPricesByLocation(userId, productIds)
+            val result = productListOperationsUseCase.fetchMostRecentAndCheapestPricesByLocation(
+                userId,
+                productIds
+            )
             if (result.isSuccess) {
                 _state.value =
                     ProductListState.ProductsWithLatestPricesLoaded(result.getOrNull().orEmpty())
             } else {
-                _state.value = ProductListState.Error("Failed to load latest prices")
+                _state.value =
+                    ProductListState.Error("Falha ao carregar preços mais recentes e mais baratos")
             }
         }
     }
@@ -155,6 +165,8 @@ class ProductListViewModel(
     sealed class ProductListIntent {
         data class LoadLists(val userId: String) : ProductListIntent()
         data class LoadListsWithoutProductIds(val userId: String) : ProductListIntent()
+        data class DeleteList(val listId: String, val userId: String) : ProductListIntent()
+        data class GetProductSuggestions(val query: String) : ProductListIntent()
         data class CreateOrUpdateList(
             val listId: String?,
             val name: String,
@@ -162,10 +174,6 @@ class ProductListViewModel(
             val userId: String
         ) : ProductListIntent()
 
-        data class DeleteList(val listId: String, val userId: String) : ProductListIntent()
-        data class GetProductSuggestions(val query: String) : ProductListIntent()
-
-        // Adicionando uma flag para especificar se queremos carregar preços
         data class ViewProductsInList(
             val userId: String,
             val productIds: List<String>,
@@ -177,13 +185,12 @@ class ProductListViewModel(
         object Idle : ProductListState()
         object Loading : ProductListState()
         object Empty : ProductListState()
+        data class Error(val message: String) : ProductListState()
         data class ListsLoaded(val lists: List<ProductList>) : ProductListState()
         data class ListCreated(val success: Boolean) : ProductListState()
         data class SuggestionsLoaded(val suggestions: List<Product>) : ProductListState()
         data class ProductsLoaded(val products: List<Product>) : ProductListState()
         data class ProductsWithLatestPricesLoaded(val products: List<ProductWithLatestPrice>) :
             ProductListState()
-
-        data class Error(val message: String) : ProductListState()
     }
 }

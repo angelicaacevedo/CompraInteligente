@@ -1,5 +1,6 @@
 package br.com.angelica.comprainteligente.presentation.view
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,12 +12,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -26,7 +27,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -38,20 +38,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import br.com.angelica.comprainteligente.presentation.common.CustomAlertDialog
 import br.com.angelica.comprainteligente.presentation.common.CustomTextField
 import br.com.angelica.comprainteligente.presentation.viewmodel.AuthViewModel
+import br.com.angelica.comprainteligente.theme.GraySoft
+import br.com.angelica.comprainteligente.theme.PrimaryBlue
+import br.com.angelica.comprainteligente.theme.TextGray
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
 @Composable
 fun LoginScreen(
     onLoginSuccess: (String) -> Unit,
-    onNavigateToRegister: () -> Unit,  // Função para navegar para a tela de cadastro
+    onNavigateToRegister: () -> Unit,
     authViewModel: AuthViewModel = getViewModel()
 ) {
-    // Observando o estado de autenticação
     val authState by authViewModel.authState.collectAsState()
     val isLoading by authViewModel.isLoading.collectAsState()
 
@@ -61,11 +65,9 @@ fun LoginScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var showErrors by remember { mutableStateOf(false) }
 
-    // Estado do Snackbar usando remember
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    // Verifica o estado de sucesso e navega para a tela "home"
     LaunchedEffect(authState) {
         if (authState is AuthViewModel.AuthState.Success) {
             val userId = (authState as AuthViewModel.AuthState.Success).userId
@@ -76,7 +78,8 @@ fun LoginScreen(
 
     Box(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .background(GraySoft),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -86,20 +89,20 @@ fun LoginScreen(
             Text(
                 text = "Login",
                 style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.padding(bottom = 24.dp)
+                modifier = Modifier.padding(bottom = 24.dp),
+                textAlign = TextAlign.Center,
             )
 
             if (isLoading) {
                 CircularProgressIndicator(modifier = Modifier.padding(16.dp))
             } else {
-
                 Card(
                     shape = RoundedCornerShape(16.dp),
                     elevation = CardDefaults.cardElevation(8.dp),
                     modifier = Modifier
                         .padding(16.dp)
                         .fillMaxWidth(0.85f),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = GraySoft)
                 ) {
                     Column(
                         modifier = Modifier
@@ -115,10 +118,10 @@ fun LoginScreen(
                             isPassword = false,
                             leadingIcon = {
                                 Icon(
-                                    imageVector = Icons.Default.Email,
-                                    contentDescription = null
+                                    imageVector = Icons.Outlined.Email,
+                                    contentDescription = null,
+                                    tint = TextGray
                                 )
-
                             }
                         )
 
@@ -132,23 +135,25 @@ fun LoginScreen(
                             errorMessage = "Campo obrigatório",
                             leadingIcon = {
                                 Icon(
-                                    imageVector = Icons.Default.Lock,
-                                    contentDescription = null
+                                    imageVector = Icons.Outlined.Lock,
+                                    contentDescription = null,
+                                    tint = TextGray
                                 )
                             },
                             trailingIcon = {
                                 IconButton(onClick = { showPassword = !showPassword }) {
                                     Icon(
-                                        imageVector = if (showPassword) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                        contentDescription = null
+                                        imageVector = if (showPassword) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
+                                        contentDescription = null,
+                                        tint = TextGray
                                     )
                                 }
-                            },
+                            }
                         )
 
                         Button(
                             onClick = {
-                                showErrors = true  // Mostra erros se o botão for clicado
+                                showErrors = true
                                 if (validateLoginForm(email, password)) {
                                     authViewModel.loginUser(email, password)
                                     coroutineScope.launch {
@@ -158,37 +163,57 @@ fun LoginScreen(
                                     errorMessage = "Preencha todos os campos"
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = PrimaryBlue,
+                                contentColor = Color.White
+                            )
                         ) {
-                            Text("Entrar")
+                            Text(
+                                "Entrar",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
                         }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Texto para navegar para a tela de cadastro
                 Text(
                     text = "Não tem uma conta? Cadastre-se",
-                    color = MaterialTheme.colorScheme.primary,
+                    color = PrimaryBlue,
                     modifier = Modifier
-                        .clickable { onNavigateToRegister() }  // Navega para a tela de cadastro
+                        .clickable { onNavigateToRegister() }
                         .padding(8.dp),
-                    fontSize = 14.sp
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    )
                 )
             }
 
             errorMessage?.let {
-                CustomAlert(message = it, onDismiss = { errorMessage = null })
+                CustomAlertDialog(
+                    title = "Atenção",
+                    message = it,
+                    onDismiss = { errorMessage = null },
+                    onConfirm = {}
+                )
             }
 
             if (authState is AuthViewModel.AuthState.Error) {
                 val message = (authState as AuthViewModel.AuthState.Error).message
-                CustomAlert(message = message, onDismiss = { authViewModel.resetAuthState() })
+                CustomAlertDialog(
+                    title = "Erro",
+                    message = message,
+                    onDismiss = { authViewModel.resetAuthState() },
+                    onConfirm = {}
+                )
             }
         }
 
-        // Adicionando o SnackbarHost para exibir o Snackbar
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier.align(Alignment.BottomCenter)
@@ -198,19 +223,4 @@ fun LoginScreen(
 
 fun validateLoginForm(email: String, password: String): Boolean {
     return email.isNotEmpty() && password.isNotEmpty()
-}
-
-@Composable
-fun CustomAlert(message: String, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = { onDismiss() },
-        title = { Text(text = "Atenção") },
-        text = { Text(text = message) },
-        confirmButton = {
-            TextButton(onClick = { onDismiss() }) {
-                Text("OK", style = MaterialTheme.typography.bodyMedium)
-            }
-        },
-        modifier = Modifier.padding(16.dp)
-    )
 }

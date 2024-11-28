@@ -20,8 +20,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LocationOn
@@ -61,10 +61,17 @@ import androidx.navigation.NavController
 import br.com.angelica.comprainteligente.R
 import br.com.angelica.comprainteligente.model.Address
 import br.com.angelica.comprainteligente.model.User
+import br.com.angelica.comprainteligente.presentation.common.CustomAlertDialog
 import br.com.angelica.comprainteligente.presentation.common.CustomTextField
 import br.com.angelica.comprainteligente.presentation.viewmodel.AuthViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.UserProfileViewModel
-import br.com.angelica.comprainteligente.utils.CustomAlertDialog
+import br.com.angelica.comprainteligente.theme.GraySoft
+import br.com.angelica.comprainteligente.theme.LilacStrong
+import br.com.angelica.comprainteligente.theme.PrimaryBlue
+import br.com.angelica.comprainteligente.theme.SecondaryLilac
+import br.com.angelica.comprainteligente.theme.TextBlack
+import br.com.angelica.comprainteligente.theme.TextGray
+import br.com.angelica.comprainteligente.theme.White
 import org.koin.androidx.compose.getViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -93,8 +100,9 @@ fun UserProfileScreen(
                     Text(
                         text = "Perfil do Usuário",
                         modifier = Modifier.fillMaxWidth(),
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = MaterialTheme.colorScheme.onPrimary
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            color = White
+                        ),
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -103,8 +111,9 @@ fun UserProfileScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar"
+                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                            contentDescription = "Voltar",
+                            tint = White
                         )
                     }
                 }
@@ -117,7 +126,7 @@ fun UserProfileScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    CircularProgressIndicator(color = PrimaryBlue)
                 }
             } else {
                 userData?.let { user ->
@@ -130,7 +139,8 @@ fun UserProfileScreen(
                     Text(
                         text = "Erro ao carregar dados do usuário",
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        color = Color.Red
                     )
                 }
             }
@@ -189,13 +199,13 @@ fun UserProfileContent(
                 modifier = Modifier
                     .size(28.dp)
                     .clip(CircleShape)
-                    .background(Color.White)
+                    .background(GraySoft)
                     .padding(4.dp)
             ) {
                 Icon(
                     imageVector = Icons.Outlined.CameraAlt,
                     contentDescription = "Editar imagem de perfil",
-                    tint = Color.Black,
+                    tint = TextGray,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -206,36 +216,34 @@ fun UserProfileContent(
         // Nome e email
         Text(
             text = user.username,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+            style = MaterialTheme.typography.headlineLarge.copy(
+                color = TextBlack
+            )
         )
         Text(
             text = user.email,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onBackground
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = TextGray
+            )
         )
 
-        // Botão de Editar Perfil
         Spacer(modifier = Modifier.height(16.dp))
+
         Button(
             onClick = onEditProfileClick,
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary.copy(
-                    alpha = 0.1f
-                )
+                containerColor = SecondaryLilac
             ),
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth(),
             shape = RoundedCornerShape(50)
         ) {
-            Text(text = "Editar Perfil", color = Color.Black)
+            Text(text = "Editar Perfil", color = White, fontWeight = FontWeight.Bold)
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Lista de opções
         LazyColumn(modifier = Modifier.fillMaxWidth()) {
             item {
                 ProfileOption(icon = Icons.Default.Favorite, label = "Favoritos")
@@ -244,7 +252,6 @@ fun UserProfileContent(
             }
             item {
                 Spacer(modifier = Modifier.height(16.dp))
-                // Botão de Logout
                 OutlinedButton(
                     onClick = onLogoutClick,
                     modifier = Modifier
@@ -254,7 +261,7 @@ fun UserProfileContent(
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red),
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ExitToApp,
+                        imageVector = Icons.AutoMirrored.Outlined.ExitToApp,
                         contentDescription = "Logout",
                         modifier = Modifier.size(18.dp)
                     )
@@ -278,13 +285,14 @@ fun ProfileOption(icon: ImageVector, label: String) {
         Icon(
             imageVector = icon,
             contentDescription = label,
-            tint = MaterialTheme.colorScheme.primary,
+            tint = LilacStrong,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface
+            style = MaterialTheme.typography.bodyLarge.copy(
+                color = TextBlack
+            )
         )
     }
 }
@@ -335,7 +343,7 @@ fun EditProfileModal(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 600.dp)  // Define uma altura máxima para o conteúdo do modal
+                .heightIn(max = 600.dp)
                 .padding(16.dp)
         ) {
             item {
@@ -348,7 +356,9 @@ fun EditProfileModal(
                 ) {
                     Text(
                         text = "Editar Perfil",
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            color = TextBlack
+                        ),
                         fontWeight = FontWeight.Bold,
                     )
                     TextButton(
@@ -367,13 +377,12 @@ fun EditProfileModal(
                                     )
                                 )
                             )
-                        },
-                        modifier = Modifier.align(Alignment.CenterVertically)
+                        }
                     ) {
                         Text(
                             text = "Salvar",
-                            color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.bodyLarge.copy(
+                                color = LilacStrong,
                                 fontWeight = FontWeight.Bold
                             )
                         )

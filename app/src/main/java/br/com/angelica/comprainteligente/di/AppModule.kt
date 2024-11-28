@@ -15,13 +15,13 @@ import br.com.angelica.comprainteligente.data.repository.supermarket.Supermarket
 import br.com.angelica.comprainteligente.data.repository.supermarket.SupermarketRepositoryImpl
 import br.com.angelica.comprainteligente.domain.usecase.AuthUseCases
 import br.com.angelica.comprainteligente.domain.usecase.GetCategoriesUseCase
-import br.com.angelica.comprainteligente.domain.usecase.GetLargestPriceDifferenceUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetPriceHistoryUseCase
 import br.com.angelica.comprainteligente.domain.usecase.GetSupermarketSuggestionsUseCase
-import br.com.angelica.comprainteligente.domain.usecase.GetTopPricesUseCase
-import br.com.angelica.comprainteligente.domain.usecase.GetUserLevelUseCase
+import br.com.angelica.comprainteligente.domain.usecase.MonthlySummaryUseCase
 import br.com.angelica.comprainteligente.domain.usecase.ProductListOperationsUseCase
 import br.com.angelica.comprainteligente.domain.usecase.ProductOperationsUseCase
+import br.com.angelica.comprainteligente.domain.usecase.RecentPurchasesUseCase
+import br.com.angelica.comprainteligente.domain.usecase.UserProgressUseCase
 import br.com.angelica.comprainteligente.model.CategoryRepository
 import br.com.angelica.comprainteligente.presentation.viewmodel.AuthViewModel
 import br.com.angelica.comprainteligente.presentation.viewmodel.HomeViewModel
@@ -89,18 +89,18 @@ val appModule = module {
     factory { AuthUseCases(get()) }
     factory { GetSupermarketSuggestionsUseCase(get()) }
     factory { GetCategoriesUseCase(get()) }
-    factory { GetPriceHistoryUseCase(get()) }
+    factory { GetPriceHistoryUseCase(get(), get()) }
     factory { ProductListOperationsUseCase(get(), get()) }
     factory { ProductOperationsUseCase(get(), get(), get()) }
-    factory { GetLargestPriceDifferenceUseCase(get()) }
-    factory { GetTopPricesUseCase(get()) }
-    factory { GetUserLevelUseCase(get()) }
+    factory { MonthlySummaryUseCase(get()) }
+    factory { RecentPurchasesUseCase(get()) }
+    factory { UserProgressUseCase(get()) }
 
     // ViewModels
     viewModel { AuthViewModel(get(), get(), get(), get()) }
     viewModel { ProductViewModel(get(), get(), get()) }
     viewModel { ProductListViewModel(get()) }
-    viewModel { InflationViewModel(get(), get()) }
+    viewModel { InflationViewModel(get(), get(), get()) }
     viewModel { UserProfileViewModel(get()) }
-    viewModel { HomeViewModel(get(), get(), get()) }
+    viewModel { HomeViewModel(get(), get(), get(), get()) }
 }

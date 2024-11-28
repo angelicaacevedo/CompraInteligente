@@ -2,6 +2,8 @@ package br.com.angelica.comprainteligente.presentation.common
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
@@ -17,11 +19,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import br.com.angelica.comprainteligente.theme.BottomNavigationGreen
+import br.com.angelica.comprainteligente.theme.BackgroundLightGray
+import br.com.angelica.comprainteligente.theme.PrimaryBlue
+import br.com.angelica.comprainteligente.theme.TextSecondary
 
 @Composable
 fun CustomBottomNavigation(navController: NavController, userId: String) {
@@ -30,8 +36,10 @@ fun CustomBottomNavigation(navController: NavController, userId: String) {
     }
 
     NavigationBar(
-        containerColor = BottomNavigationGreen,
-        tonalElevation = 4.dp
+        modifier = Modifier
+            .shadow(10.dp, RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+        containerColor = BackgroundLightGray,
+        tonalElevation = 8.dp
     ) {
         val items = listOf(
             BottomNavItem("home/$userId", Icons.Default.Home, "Início"),
@@ -41,27 +49,30 @@ fun CustomBottomNavigation(navController: NavController, userId: String) {
             BottomNavItem("inflation/$userId", Icons.AutoMirrored.Default.TrendingUp, "Inflação")
         )
 
-        // Obtém a rota atual para indicar a tela selecionada
         val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
         items.forEach { item ->
+            val isSelected = currentRoute?.contains(item.route.substringBefore("/")) == true
             NavigationBarItem(
                 icon = {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
                             imageVector = item.icon,
                             contentDescription = item.title,
-                            tint = if (currentRoute == item.route) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                            modifier = Modifier.size(24.dp),
+                            tint = if (isSelected) PrimaryBlue else TextSecondary
                         )
                         Text(
                             text = item.title ?: "",
-                            color = if (currentRoute == item.route) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                            style = MaterialTheme.typography.labelSmall,
+                            color = if (isSelected) PrimaryBlue else TextSecondary,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                            ),
                             modifier = Modifier.padding(top = 2.dp)
                         )
                     }
                 },
-                selected = currentRoute == item.route,
+                selected = isSelected,
                 onClick = {
                     navController.navigate(item.route) {
                         popUpTo(navController.graph.startDestinationId) {
@@ -72,10 +83,11 @@ fun CustomBottomNavigation(navController: NavController, userId: String) {
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurface,
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurface
+                    indicatorColor = BackgroundLightGray,
+                    selectedIconColor = PrimaryBlue,
+                    unselectedIconColor = TextSecondary,
+                    selectedTextColor = PrimaryBlue,
+                    unselectedTextColor = TextSecondary
                 )
             )
         }

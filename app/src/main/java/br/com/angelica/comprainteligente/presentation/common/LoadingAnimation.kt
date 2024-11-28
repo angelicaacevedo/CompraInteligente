@@ -1,6 +1,6 @@
 package br.com.angelica.comprainteligente.presentation.common
 
-import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -18,33 +18,52 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import br.com.angelica.comprainteligente.theme.ButtonGreen
+import br.com.angelica.comprainteligente.theme.PrimaryBlue
+import br.com.angelica.comprainteligente.theme.SecondaryLilac
 
 @Composable
 fun LoadingAnimation(message: String) {
     val infiniteTransition = rememberInfiniteTransition(label = "")
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 0.5f,
-        targetValue = 1.5f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(800, easing = LinearOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ), label = ""
-    )
-    val alpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(800, easing = LinearOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ), label = ""
-    )
+
+    // Animações individuais para cada círculo
+    val scales = List(3) { index ->
+        infiniteTransition.animateFloat(
+            initialValue = 0.6f,
+            targetValue = 1.3f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(
+                    durationMillis = 800 + (index * 100),
+                    easing = FastOutSlowInEasing
+                ),
+                repeatMode = RepeatMode.Reverse
+            ), label = ""
+        )
+    }
+
+    val alphas = List(3) { index ->
+        infiniteTransition.animateFloat(
+            initialValue = 0.3f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(
+                    durationMillis = 800 + (index * 100),
+                    easing = FastOutSlowInEasing
+                ),
+                repeatMode = RepeatMode.Reverse
+            ), label = ""
+        )
+    }
+
+    // Lista de cores para cada círculo
+    val circleColors = listOf(PrimaryBlue, SecondaryLilac, ButtonGreen)
 
     Column(
         modifier = Modifier
@@ -54,33 +73,30 @@ fun LoadingAnimation(message: String) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Três círculos animados lado a lado
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            repeat(3) {
+            repeat(3) { index ->
                 Box(
                     modifier = Modifier
-                        .size(24.dp)
-                        .scale(scale)
-                        .alpha(alpha)
-                        .padding(bottom = 8.dp)
+                        .size(20.dp)
+                        .scale(scales[index].value)
+                        .alpha(alphas[index].value)
+                        .shadow(4.dp, shape = CircleShape, clip = false)
                         .background(
-                            color = MaterialTheme.colorScheme.primary,
+                            color = circleColors[index].copy(alpha = alphas[index].value),
                             shape = CircleShape
                         )
                 )
             }
         }
 
-        // Mensagem ao lado dos círculos animados
         Text(
             text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground),
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(start = 16.dp)
+            modifier = Modifier.padding(top = 24.dp)
         )
     }
 }

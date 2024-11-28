@@ -5,8 +5,8 @@ import com.google.firebase.Timestamp
 data class Product(
     val id: String = "",                   // ID único do produto
     val name: String = "",                 // Nome do produto
-    val categoryId: String = "",           // ID da categoria associada
     val imageUrl: String = "",              // URL da imagem do produto
     val updateData: Timestamp = Timestamp.now(), // Data de atualização do produto
-    var userId: String = ""
+    var userId: String = "",
+    val isManual: Boolean = false           // Indica se o produto foi cadastrado manualmente
 )

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,13 +14,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +48,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import br.com.angelica.comprainteligente.model.ProductList
@@ -52,6 +60,12 @@ import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigat
 import br.com.angelica.comprainteligente.presentation.common.EmptyStateScreen
 import br.com.angelica.comprainteligente.presentation.common.LoadingAnimation
 import br.com.angelica.comprainteligente.presentation.viewmodel.ProductListViewModel
+import br.com.angelica.comprainteligente.theme.BlueSoft
+import br.com.angelica.comprainteligente.theme.TextAccent
+import br.com.angelica.comprainteligente.theme.TextBlack
+import br.com.angelica.comprainteligente.theme.TextGray
+import br.com.angelica.comprainteligente.theme.TextGreen
+import br.com.angelica.comprainteligente.theme.White
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
@@ -65,20 +79,29 @@ fun PriceComparisonScreen(
 ) {
     val state by productListViewModel.state.collectAsState()
     var selectedList by remember { mutableStateOf<ProductList?>(null) }
+    var specificSupermarket by remember { mutableStateOf<String?>(null) }
+    var totalPrice by remember { mutableStateOf(0.0) }
+
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val coroutineScope = rememberCoroutineScope()
     var isAnalyzeButtonVisible by remember { mutableStateOf(true) }
     var segmentSelection by remember { mutableStateOf("Produtos") }
 
-    // Carrega listas no inicio se ainda não estiverem carregadas
-    LaunchedEffect(Unit) {
-        productListViewModel.initialize(userId)
-        if (state !is ProductListViewModel.ProductListState.ListsLoaded) {
-            productListViewModel.handleIntent(
-                ProductListViewModel.ProductListIntent.LoadLists(
-                    userId
-                )
-            )
+    // Calcula o total quando a tela é aberta pela primeira vez
+    LaunchedEffect(state) {
+        if (state is ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded && specificSupermarket == null) {
+            val productsWithPrices =
+                (state as ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded).products
+            totalPrice = calculateTotalPrice(productsWithPrices, specificSupermarket)
+        }
+    }
+
+    // Atualiza o preço total e a lista de produtos quando `specificSupermarket` mudar
+    LaunchedEffect(specificSupermarket) {
+        if (state is ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded) {
+            val productsWithPrices =
+                (state as ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded).products
+            totalPrice = calculateTotalPrice(productsWithPrices, specificSupermarket)
         }
     }
 
@@ -89,8 +112,9 @@ fun PriceComparisonScreen(
                     Text(
                         text = "Comparação de Preços",
                         modifier = Modifier.fillMaxWidth(),
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = MaterialTheme.colorScheme.onPrimary
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            color = White
+                        )
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -104,23 +128,59 @@ fun PriceComparisonScreen(
         content = { paddingValues ->
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .padding(paddingValues)
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-                // Campo de seleção de lista
+                // Exibe o total e o valor em uma linha
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Total: ",
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                    Text(
+                        text = "R$ ${"%.2f".format(totalPrice)}",
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            color = TextGreen,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+
+                // Campo de seleção de supermercado específico
+                DropdownMenuSupermarketSelector(
+                    productsWithPrices = if (state is ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded)
+                        (state as ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded).products else emptyList(),
+                    onSupermarketSelected = { selectedSupermarket ->
+                        specificSupermarket = selectedSupermarket
+                        totalPrice = calculateTotalPrice(
+                            (state as? ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded)?.products.orEmpty(),
+                            specificSupermarket
+                        )
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 ListShoppingTextField(
-                    selectedList,
-                    coroutineScope,
-                    sheetState,
+                    selectedList, coroutineScope, sheetState,
                     onListSelected = { isAnalyzeButtonVisible = true }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Controle de segmentação (Segmented Control) para alternar visualizações
+                // Controle de segmentação para alternar visualizações
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -130,15 +190,15 @@ fun PriceComparisonScreen(
                     listOf("Produtos", "Supermercados").forEach { segment ->
                         Text(
                             text = segment,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = if (segment == segmentSelection) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = if (segment == segmentSelection) White else MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.Bold
+                            ),
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
                                 .clickable { segmentSelection = segment }
                                 .background(
-                                    color = if (segment == segmentSelection) MaterialTheme.colorScheme.primary.copy(
-                                        alpha = 0.15f
-                                    ) else Color.Transparent,
+                                    color = if (segment == segmentSelection) MaterialTheme.colorScheme.secondary else Color.Transparent,
                                     shape = RoundedCornerShape(20.dp)
                                 )
                                 .padding(vertical = 8.dp, horizontal = 16.dp)
@@ -148,7 +208,6 @@ fun PriceComparisonScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Botão para "Analisar"
                 if (isAnalyzeButtonVisible) {
                     AnalyzeButton(
                         productListViewModel = productListViewModel,
@@ -157,6 +216,7 @@ fun PriceComparisonScreen(
                     )
                 }
 
+                // Exibe as listas de preços por produtos ou supermercados
                 when (state) {
                     is ProductListViewModel.ProductListState.Loading -> {
                         LoadingAnimation(message = "Aguarde, estamos trazendo os dados...")
@@ -166,7 +226,7 @@ fun PriceComparisonScreen(
                         val productsWithPrices =
                             (state as ProductListViewModel.ProductListState.ProductsWithLatestPricesLoaded).products
                         if (segmentSelection == "Produtos") {
-                            ProductsPriceList(productsWithPrices)
+                            ProductsPriceList(productsWithPrices, specificSupermarket)
                         } else {
                             SupermarketsPriceList(productsWithPrices)
                         }
@@ -175,8 +235,9 @@ fun PriceComparisonScreen(
                     is ProductListViewModel.ProductListState.Error -> {
                         Text(
                             text = "Erro ao carregar informações",
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodyLarge
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = MaterialTheme.colorScheme.error
+                            )
                         )
                     }
 
@@ -184,7 +245,7 @@ fun PriceComparisonScreen(
                         EmptyStateScreen(
                             title = "Nenhuma lista selecionada!",
                             message = "Escolha uma lista para comparar os preços mais recentes.",
-                            icon = Icons.Default.ShoppingCart,
+                            icon = Icons.Outlined.ShoppingCart,
                             contentDescription = "Carrinho vazio"
                         )
                     }
@@ -212,7 +273,10 @@ fun PriceComparisonScreen(
                     item {
                         Text(
                             "Escolha uma lista",
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                color = TextBlack,
+                                fontWeight = FontWeight.Bold
+                            ),
                             modifier = Modifier.padding(16.dp)
                         )
                     }
@@ -225,9 +289,7 @@ fun PriceComparisonScreen(
                                         .fillMaxWidth()
                                         .padding(vertical = 8.dp)
                                         .background(
-                                            color = if (isSelected) MaterialTheme.colorScheme.primary.copy(
-                                                alpha = 0.15f
-                                            ) else Color.Transparent,
+                                            color = if (isSelected) BlueSoft else Color.Transparent,
                                             shape = RoundedCornerShape(16.dp)
                                         )
                                         .clickable {
@@ -235,12 +297,13 @@ fun PriceComparisonScreen(
                                             productListViewModel.resetState()
                                             coroutineScope.launch { sheetState.hide() }
                                         }
-                                        .padding(16.dp) // Espaçamento interno para todo o conteúdo
+                                        .padding(16.dp)
                                 ) {
                                     Text(
                                         text = list.name,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        color = MaterialTheme.colorScheme.onBackground
+                                        style = MaterialTheme.typography.bodyLarge.copy(
+                                            color = TextGray
+                                        )
                                     )
                                 }
                             }
@@ -251,6 +314,105 @@ fun PriceComparisonScreen(
                 }
             }
         )
+    }
+}
+
+fun calculateTotalPrice(
+    productsWithPrices: List<ProductWithLatestPrice>,
+    specificSupermarket: String? = null
+): Double {
+    return productsWithPrices
+        .filter { specificSupermarket == null || it.supermarket.name.startsWith(specificSupermarket) }
+        .sumOf { it.latestPrice.price }
+}
+
+@Composable
+fun DropdownMenuSupermarketSelector(
+    productsWithPrices: List<ProductWithLatestPrice>,
+    onSupermarketSelected: (String?) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var selectedSupermarketName by remember { mutableStateOf<String?>(null) }
+    var selectedSupermarketAddress by remember { mutableStateOf<String?>(null) }
+    val supermarkets = productsWithPrices.map {
+        it.supermarket.name.substringBefore(" - ") to "${it.supermarket.street}, ${it.supermarket.city}, ${it.supermarket.state}, ${it.supermarket.zipCode}"
+    }.distinct()
+
+    Column {
+        OutlinedTextField(
+            value = selectedSupermarketName ?: "Todos os Supermercados",
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Supermercado") },
+            trailingIcon = {
+                IconButton(onClick = { expanded = true }) {
+                    Icon(
+                        Icons.Default.ArrowDropDown,
+                        contentDescription = "Selecionar Supermercado"
+                    )
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Todos os Supermercados") },
+                onClick = {
+                    selectedSupermarketName = null
+                    selectedSupermarketAddress = null
+                    onSupermarketSelected(null)
+                    expanded = false
+                }
+            )
+
+            supermarkets.forEachIndexed { index, (name, address) ->
+                if (index > 0) HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+                DropdownMenuItem(
+                    text = {
+                        Column {
+                            // Nome do Supermercado em negrito (apenas a parte antes do primeiro '-')
+                            Text(
+                                text = name,
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                            // Endereço em cinza claro
+                            Text(
+                                text = address,
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                )
+                            )
+                        }
+                    },
+                    onClick = {
+                        selectedSupermarketName = name  // Exibe apenas o nome selecionado
+                        selectedSupermarketAddress =
+                            address  // Guarda o endereço completo para exibição
+                        onSupermarketSelected(name)
+                        expanded = false
+                    },
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+        }
+
+        // Exibe o endereço completo abaixo do campo de seleção, se um supermercado for selecionado
+        selectedSupermarketAddress?.let { address ->
+            Text(
+                text = address,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                ),
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
     }
 }
 
@@ -296,9 +458,15 @@ fun ListShoppingTextField(
 }
 
 @Composable
-fun ProductsPriceList(productsWithPrices: List<ProductWithLatestPrice>) {
+fun ProductsPriceList(
+    productsWithPrices: List<ProductWithLatestPrice>,
+    specificSupermarket: String?
+) {
     LazyColumn {
         items(productsWithPrices) { item ->
+            val hasPriceForSupermarket =
+                specificSupermarket == null || item.supermarket.name.startsWith(specificSupermarket)
+
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -315,25 +483,40 @@ fun ProductsPriceList(productsWithPrices: List<ProductWithLatestPrice>) {
                     // Nome do Produto
                     Text(
                         text = item.product.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            color = TextBlack
+                        ),
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
 
-                    // Preço com destaque
-                    Text(
-                        text = "R$ ${item.latestPrice.price}",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
+                    if (hasPriceForSupermarket) {
+                        // Exibe o preço caso o supermercado tenha informação de preço
+                        Text(
+                            text = "R$ ${item.latestPrice.price}",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                color = TextGreen
+                            ),
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
 
-                    // Nome do Supermercado com estilo sutil
-                    Text(
-                        text = item.supermarket.name,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
+                        // Nome do Supermercado com estilo sutil
+                        Text(
+                            text = item.supermarket.name,
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = TextAccent
+                            )
+                        )
+                    } else {
+                        // Exibe uma mensagem de aviso se o preço estiver indisponível
+                        Text(
+                            text = "Informação de preço indisponível para o supermercado selecionado",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = Color.Red,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
                 }
             }
         }
@@ -365,8 +548,9 @@ fun SupermarketsPriceList(productsWithPrices: List<ProductWithLatestPrice>) {
                     // Nome do Supermercado com estilo de título
                     Text(
                         text = supermarketName,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            color = MaterialTheme.colorScheme.primary
+                        ),
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
 
@@ -375,18 +559,29 @@ fun SupermarketsPriceList(productsWithPrices: List<ProductWithLatestPrice>) {
                         val address = product.supermarket
                         Text(
                             text = "${address.street}, ${address.city}, ${address.state}, ${address.zipCode}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            ),
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
                     }
 
-                    // Lista de produtos com preços
                     products.forEach { product ->
                         Text(
-                            text = "- ${product.product.name}: R$ ${product.latestPrice.price}",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface,
+                            text = buildAnnotatedString {
+                                append("- ${product.product.name}: ")
+                                withStyle(
+                                    style = SpanStyle(
+                                        color = TextGreen,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                ) { // Altere Color.Green para a cor desejada
+                                    append("R$ ${product.latestPrice.price}")
+                                }
+                            },
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = MaterialTheme.colorScheme.onSurface
+                            ),
                             modifier = Modifier.padding(bottom = 4.dp)
                         )
                     }
@@ -418,8 +613,18 @@ private fun AnalyzeButton(
             }
         },
         modifier = Modifier.fillMaxWidth(),
-        enabled = selectedList != null
+        enabled = selectedList != null,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = Color.White
+        )
     ) {
-        Text("Analisar")
+        Text(
+            "Analisar",
+            style = MaterialTheme.typography.bodyLarge.copy(
+                color = White,
+                fontWeight = FontWeight.Bold
+            )
+        )
     }
 }
