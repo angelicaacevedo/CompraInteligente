@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
@@ -50,6 +51,7 @@ import br.com.angelica.comprainteligente.presentation.common.CustomBottomNavigat
 import br.com.angelica.comprainteligente.presentation.common.EmptyStateScreen
 import br.com.angelica.comprainteligente.presentation.common.LoadingAnimation
 import br.com.angelica.comprainteligente.presentation.viewmodel.InflationViewModel
+import br.com.angelica.comprainteligente.theme.TextBlack
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
@@ -260,13 +262,27 @@ fun InflationScreen(
 
                     state.prices.items.isNotEmpty() -> {
                         if (state.analysisType == "Inflação de Produtos") {
-                            Text(
-                                text = "Inflação do Período: ${state.inflationRate}%",
-                                style = MaterialTheme.typography.bodyLarge.copy(color = Color.Red),
+                            Row(
                                 modifier = Modifier
                                     .align(Alignment.CenterHorizontally)
                                     .padding(vertical = 8.dp)
-                            )
+                                    .padding(horizontal = 16.dp)
+                            ) {
+                                Text(
+                                    text = "Inflação do Período: ",
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        color = TextBlack,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                                Text(
+                                    text = "${state.inflationRate}%",
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        color = Color(0xFFD32F2F),
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                            }
                             InflationChart(
                                 prices = state.prices.items,
                                 selectedPeriod = state.prices.period
@@ -304,35 +320,23 @@ fun InflationChart(prices: List<Price>, selectedPeriod: String) {
         Entry(dateValue, priceValue)
     }
 
-    // Configura o conjunto de dados para o preço
-    val lineDataSet = LineDataSet(entries, "price").apply {
-        color = android.graphics.Color.parseColor("#6200EE")
-        valueTextColor = android.graphics.Color.parseColor("#6200EE")
-        lineWidth = 2f
-        circleRadius = 6f  // Aumenta o tamanho dos círculos para melhorar visibilidade
+    // Configura o conjunto de dados para o preço com um tom de azul turquesa
+    val lineDataSet = LineDataSet(entries, "Preço").apply {
+        color = android.graphics.Color.parseColor("#009688") // Azul turquesa vibrante
+        valueTextColor = android.graphics.Color.parseColor("#009688")
+        lineWidth = 2.5f // Linha mais espessa para destaque
+        circleRadius = 6f  // Círculos visíveis
         setDrawFilled(true)
-        setCircleColor(android.graphics.Color.parseColor("#6200EE"))
+        setCircleColor(android.graphics.Color.parseColor("#009688"))
         setDrawValues(true)
-        valueTextSize = 10f  // Aumenta o tamanho do texto para melhor legibilidade
-        fillDrawable = ColorDrawable(android.graphics.Color.parseColor("#EDE7F6"))
+        valueTextSize = 10f  // Melhor legibilidade
+        fillDrawable =
+            ColorDrawable(android.graphics.Color.parseColor("#B2DFDB")) // Preenchimento suave em tom claro
         setDrawHighlightIndicators(false)
     }
 
-    // Configura o conjunto de dados para a inflação
-    val inflationDataSet = LineDataSet(entries, "inflation").apply {
-        color = android.graphics.Color.parseColor("#03DAC5")
-        valueTextColor = android.graphics.Color.parseColor("#03DAC5")
-        lineWidth = 2.5f
-        circleRadius = 6f  // Aumenta o tamanho dos círculos
-        setDrawCircles(true)
-        setCircleColor(android.graphics.Color.parseColor("#03DAC5"))
-        setDrawFilled(true)
-        fillDrawable = ColorDrawable(android.graphics.Color.parseColor("#C8E6C9"))
-        setDrawHighlightIndicators(false)
-        valueTextSize = 10f
-    }
-
-    val lineData = LineData(lineDataSet, inflationDataSet)
+    // Adiciona apenas o conjunto de dados do preço no gráfico
+    val lineData = LineData(lineDataSet)
 
     AndroidView(
         factory = { context ->
@@ -349,8 +353,10 @@ fun InflationChart(prices: List<Price>, selectedPeriod: String) {
                 axisLeft.apply {
                     textColor = android.graphics.Color.BLACK
                     textSize = 10f
-                    axisMinimum = (prices.minOfOrNull { it.price.toFloat() } ?: 0f) - 5f  // Adiciona mais espaço abaixo do valor mínimo
-                    axisMaximum = (prices.maxOfOrNull { it.price.toFloat() } ?: 10f) + 5f  // Adiciona mais espaço acima do valor máximo
+                    axisMinimum = (prices.minOfOrNull { it.price.toFloat() }
+                        ?: 0f) - 5f  // Adiciona mais espaço abaixo do valor mínimo
+                    axisMaximum = (prices.maxOfOrNull { it.price.toFloat() }
+                        ?: 10f) + 5f  // Adiciona mais espaço acima do valor máximo
                     granularity = 1f
                     labelCount = 6
                     valueFormatter = object : ValueFormatter() {
