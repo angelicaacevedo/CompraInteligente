@@ -369,8 +369,6 @@ fun RegisterScreen(
                                             password,
                                             address
                                         )
-                                    } else {
-                                        errorMessage = "Preencha todos os campos corretamente"
                                     }
                                 },
                                 modifier = Modifier.fillMaxWidth(),
@@ -387,15 +385,6 @@ fun RegisterScreen(
                                     )
                                 )
                             }
-
-                            errorMessage?.let {
-                                CustomAlertDialog(
-                                    title = "Erro",
-                                    message = it,
-                                    onDismiss = { errorMessage = null },
-                                    onConfirm = { errorMessage = null }
-                                )
-                            }
                         }
                     }
 
@@ -405,7 +394,8 @@ fun RegisterScreen(
                             message = "Cadastro realizado com sucesso!",
                             onDismiss = { /* ação após sucesso */ },
                             onConfirm = { onNavigateToLogin() },
-                            confirmButtonText = "Prosseguir"
+                            confirmButtonText = "Prosseguir",
+                            showDismissButton = false
                         )
                     }
 

@@ -159,8 +159,6 @@ fun LoginScreen(
                                     coroutineScope.launch {
                                         snackbarHostState.showSnackbar("Autenticando...")
                                     }
-                                } else {
-                                    errorMessage = "Preencha todos os campos"
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
@@ -194,22 +192,15 @@ fun LoginScreen(
                 )
             }
 
-            errorMessage?.let {
-                CustomAlertDialog(
-                    title = "Atenção",
-                    message = it,
-                    onDismiss = { errorMessage = null },
-                    onConfirm = {}
-                )
-            }
-
             if (authState is AuthViewModel.AuthState.Error) {
                 val message = (authState as AuthViewModel.AuthState.Error).message
                 CustomAlertDialog(
                     title = "Erro",
                     message = message,
                     onDismiss = { authViewModel.resetAuthState() },
-                    onConfirm = {}
+                    onConfirm = { authViewModel.resetAuthState() },
+                    confirmButtonText = "Ok",
+                    showDismissButton = false
                 )
             }
         }

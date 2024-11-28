@@ -274,25 +274,37 @@ fun ProductRegisterScreen(
             ) {
                 // Alternar entre cadastro com código de barras ou manual
                 item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = if (isManualEntry) "Cadastro Manual" else "Código de Barras",
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                            )
+                            Switch(
+                                checked = isManualEntry,
+                                onCheckedChange = { isManualEntry = it },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = PrimaryBlue, // Cor do botão circular quando ligado
+                                    checkedTrackColor = BackgroundLightGray, // Cor da trilha quando ligado
+                                    uncheckedThumbColor = TextAccent, // Cor do botão circular quando desligado
+                                    uncheckedTrackColor = BackgroundLightGray, // Cor da trilha quando desligado
+                                ),
+                                modifier = Modifier.padding(8.dp) // Adiciona espaçamento ao redor
+                            )
+                        }
+
+                        // Texto explicativo abaixo do switch
                         Text(
-                            text = if (isManualEntry) "Cadastro Manual" else "Código de Barras",
-                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
-                        )
-                        Switch(
-                            checked = isManualEntry,
-                            onCheckedChange = { isManualEntry = it },
-                            colors = SwitchDefaults.colors(
-                                checkedThumbColor = PrimaryBlue, // Cor do botão circular quando ligado
-                                checkedTrackColor = BackgroundLightGray, // Cor da trilha quando ligado
-                                uncheckedThumbColor = TextAccent, // Cor do botão circular quando desligado
-                                uncheckedTrackColor = BackgroundLightGray, // Cor da trilha quando desligado
-                            ),
-                            modifier = Modifier.padding(8.dp) // Adiciona espaçamento ao redor
+                            text = if (isManualEntry)
+                                "Desativei o cadastro manual. Insira os dados via código de barras."
+                            else
+                                "Ativei o cadastro manual. Preencha os campos manualmente.",
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
+                            modifier = Modifier.padding(top = 4.dp)
                         )
                     }
                 }
@@ -443,6 +455,28 @@ fun ProductRegisterScreen(
                     }
                 }
 
+                // Campo para inserir o preço do produto
+                item {
+                    CustomTextField(
+                        value = productPrice,
+                        onValueChange = {
+                            productPrice = it
+                            val priceValue = it.replace(",", ".").toDoubleOrNull()
+                            if (priceValue == null || priceValue <= 0) {
+                                priceError = true
+                                priceErrorMessage = "O preço não pode ser zero ou negativo"
+                            } else {
+                                priceError = false
+                                priceErrorMessage = ""
+                            }
+                        },
+                        label = "Preço",
+                        isNumeric = true,
+                        isError = isFormSubmitted && (productPrice.isEmpty() || priceError),
+                        errorMessage = if (priceError) priceErrorMessage else "Campo obrigatório",
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
 
                 item {
                     ExposedDropdownMenuBox(
@@ -478,29 +512,6 @@ fun ProductRegisterScreen(
                             }
                         }
                     }
-                }
-
-                // Campo para inserir o preço do produto
-                item {
-                    CustomTextField(
-                        value = productPrice,
-                        onValueChange = {
-                            productPrice = it
-                            val priceValue = it.replace(",", ".").toDoubleOrNull()
-                            if (priceValue == null || priceValue <= 0) {
-                                priceError = true
-                                priceErrorMessage = "O preço não pode ser zero ou negativo"
-                            } else {
-                                priceError = false
-                                priceErrorMessage = ""
-                            }
-                        },
-                        label = "Preço",
-                        isNumeric = true,
-                        isError = isFormSubmitted && (productPrice.isEmpty() || priceError),
-                        errorMessage = if (priceError) priceErrorMessage else "Campo obrigatório",
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
                 }
 
                 // Campo para selecionar supermercado
